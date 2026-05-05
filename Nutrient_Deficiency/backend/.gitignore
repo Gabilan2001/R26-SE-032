@@ -1,0 +1,22 @@
+# Model files - too large for GitHub
+*.pth
+*.onnx
+*.h5
+*.pt
+
+# Model folder
+model/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment
+.env
+venv/
+env/
+
+# OS files
+.DS_Store
+Thumbs.db
