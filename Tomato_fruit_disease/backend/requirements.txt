@@ -4,3 +4,7 @@ torch
 torchvision
 pillow
 numpy
+pymongo
+flask-jwt-extended
+bcrypt
+python-dotenv
