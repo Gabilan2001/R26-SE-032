@@ -181,7 +181,7 @@ export default function HomeScreen({ navigation }) {
           title="Nutrient Deficiency"
           subtitle="Leaf scan + fertilizer recommendation"
           delay={60}
-          onPress={() => navigation.navigate('NutrientModule')}
+          onPress={() => navigation.navigate('NutrientModule', { screen: 'Scan' })}
         />
         <OptionCard
           emoji="🦠"
@@ -197,7 +197,7 @@ export default function HomeScreen({ navigation }) {
           title="Disease in Tomato"
           subtitle="Fruit disease detection + treatment"
           delay={180}
-          onPress={() => navigation.navigate('FruitModule')}
+          onPress={() => navigation.navigate('FruitModule', { screen: 'FruitScan' })}
         />
 
         {/* ── Logout ── */}
