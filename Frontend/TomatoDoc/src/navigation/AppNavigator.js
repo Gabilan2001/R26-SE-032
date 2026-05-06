@@ -56,6 +56,7 @@ function NutrientModuleTabs() {
   const { palette } = useContext(UIThemeContext);
   return (
     <ModuleTabs.Navigator
+      initialRouteName="Scan"
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
@@ -95,6 +96,7 @@ function FruitModuleTabs() {
   const { palette } = useContext(UIThemeContext);
   return (
     <ModuleTabs.Navigator
+      initialRouteName="FruitScan"
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
