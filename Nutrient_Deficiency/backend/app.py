@@ -1,14 +1,21 @@
 import os
+import sys
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
-from services.db_service import init_db
+from services.db_service import init_db, get_db
 from services.model_service import class_names
 from routes.predict_routes import predict_bp
-from routes.auth_routes import auth_bp
 from routes.history_routes import history_bp
 from routes.stats_routes import stats_bp
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
+if PROJECT_ROOT not in sys.path:
+    sys.path.append(PROJECT_ROOT)
+
+from application_auth import create_auth_blueprint  # noqa: E402
 
 load_dotenv()
 
@@ -20,6 +27,8 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = False
 
 JWTManager(app)
 init_db()
+
+auth_bp = create_auth_blueprint(get_db)
 
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(predict_bp)

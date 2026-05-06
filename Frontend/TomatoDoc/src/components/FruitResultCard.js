@@ -4,11 +4,12 @@ import { Card, Chip, ProgressBar, Surface, Text } from 'react-native-paper';
 import { colors } from '../constants/colors';
 import { computeSeverity } from '../utils/severity';
 
-export default function ResultCard({ result, presentationMode = false }) {
-  const isHealthy = result.class === 'Healthy';
+export default function FruitResultCard({ result, presentationMode = false }) {
+  const isHealthy = result.class === 'Healthy_Tomato';
+  const progress = Math.min((result.confidence || 0) / 100, 1);
   const confidence = Number(result.confidence || 0);
   const confidenceBand = confidence >= 85 ? 'High Confidence' : confidence >= 70 ? 'Moderate Confidence' : 'Retake Recommended';
-  const severity = computeSeverity(result, 'nutrient');
+  const severity = computeSeverity(result, 'fruit');
   const fade = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
@@ -17,12 +18,12 @@ export default function ResultCard({ result, presentationMode = false }) {
 
   return (
     <Animated.View style={{ opacity: fade }}>
-      <Card style={[styles.card, { borderColor: isHealthy ? colors.healthy : colors.danger }] }>
+      <Card style={[styles.card, { borderColor: isHealthy ? colors.healthy : colors.danger }]}>
         <Card.Content>
         <View style={styles.headerRow}>
           <Text style={[styles.title, presentationMode && { fontSize: 28 }]}>{result.class}</Text>
           <Chip compact style={isHealthy ? styles.goodChip : styles.alertChip}>
-            {isHealthy ? 'Healthy' : 'Needs Action'}
+            {isHealthy ? 'Healthy' : 'Disease'}
           </Chip>
         </View>
         <Text style={styles.desc}>{result.description}</Text>
@@ -42,13 +43,23 @@ export default function ResultCard({ result, presentationMode = false }) {
             <Text style={styles.kpiSub}>{confidenceBand}</Text>
           </Surface>
         </View>
-        <ProgressBar progress={Math.min(result.confidence / 100, 1)} color={isHealthy ? colors.healthy : colors.accent} style={styles.progress} />
+        <ProgressBar
+          progress={progress}
+          color={isHealthy ? colors.healthy : colors.accent}
+          style={styles.progress}
+        />
+        {result.warning ? (
+          <>
+            <Text style={styles.section}>Warning</Text>
+            <Text>{result.warning}</Text>
+          </>
+        ) : null}
         <Text style={styles.section}>Symptoms</Text>
         <Text>{result.symptoms}</Text>
-        <Text style={styles.section}>Solution</Text>
+        <Text style={styles.section}>Recommended Action</Text>
         <Text>{result.solution}</Text>
-        <Text style={styles.section}>Fertilizer</Text>
-        <Text>{result.fertilizer}</Text>
+        <Text style={styles.section}>Treatment</Text>
+        <Text>{result.treatment}</Text>
         </Card.Content>
       </Card>
     </Animated.View>
@@ -72,3 +83,4 @@ const styles = StyleSheet.create({
   goodChip: { backgroundColor: '#D8F5DC' },
   alertChip: { backgroundColor: '#FFE3E3' },
 });
+
