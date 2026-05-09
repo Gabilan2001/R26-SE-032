@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TomatoScan — Disease Detection</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0a0f0a;
+    --surface:   #111811;
+    --card:      #151d15;
+    --border:    #1e2e1e;
+    --green:     #4ade80;
+    --green-dim: #166534;
+    --red:       #f87171;
+    --amber:     #fbbf24;
+    --blue:      #60a5fa;
+    --text:      #e2f0e2;
+    --muted:     #6b7f6b;
+    --mono:      'Space Mono', monospace;
+    --sans:      'DM Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(74, 222, 128, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(74, 222, 128, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo { display: flex; align-items: center; gap: 14px; }
+
+  .logo-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, #166534, #4ade80);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+
+  .logo-text h1 {
+    font-family: var(--mono); font-size: 20px;
+    font-weight: 700; letter-spacing: -0.5px; color: var(--green);
+  }
+
+  .logo-text p { font-size: 12px; color: var(--muted); font-family: var(--mono); margin-top: 2px; }
+
+  .status-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px; padding: 8px 16px;
+    font-family: var(--mono); font-size: 11px; color: var(--muted);
+  }
+
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green); box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* Model Switcher */
+  .model-switcher {
+    margin-bottom: 24px;
+  }
+
+  .switcher-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .model-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  @media (max-width: 600px) { .model-grid { grid-template-columns: 1fr; } }
+
+  .model-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .model-card:hover { border-color: var(--green-dim); background: #121a12; }
+
+  .model-card.active {
+    border-color: var(--green);
+    background: rgba(74, 222, 128, 0.05);
+  }
+
+  .model-radio {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--muted);
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .model-card.active .model-radio {
+    border-color: var(--green);
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+  }
+
+  .model-info-text { flex: 1; }
+
+  .model-name {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .model-card.active .model-name { color: var(--green); }
+
+  .model-desc {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  .model-map {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--green);
+    flex-shrink: 0;
+  }
+
+  /* Upload zone */
+  .upload-section { margin-bottom: 32px; }
+
+  .drop-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: 16px;
+    padding: 56px 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--card);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .drop-zone::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(74, 222, 128, 0.04) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .drop-zone:hover, .drop-zone.drag-over { border-color: var(--green); background: #121a12; }
+
+  .upload-icon {
+    width: 56px; height: 56px; border-radius: 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px; font-size: 24px;
+  }
+
+  .drop-zone h3 { font-size: 16px; font-weight: 500; margin-bottom: 8px; color: var(--text); }
+  .drop-zone p { font-size: 13px; color: var(--muted); font-family: var(--mono); }
+
+  .browse-btn {
+    display: inline-block; margin-top: 20px; padding: 10px 24px;
+    background: transparent; border: 1px solid var(--green-dim);
+    color: var(--green); border-radius: 8px;
+    font-family: var(--mono); font-size: 12px;
+    cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px;
+  }
+
+  .browse-btn:hover { background: rgba(74, 222, 128, 0.08); border-color: var(--green); }
+
+  #fileInput { display: none; }
+
+  .main-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 20px; margin-bottom: 24px;
+  }
+
+  @media (max-width: 720px) { .main-grid { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+
+  .panel-header {
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .panel-title { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+
+  .panel-body { padding: 20px; }
+
+  .img-container {
+    width: 100%; aspect-ratio: 1; background: var(--surface);
+    border-radius: 8px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .img-placeholder { display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--muted); font-family: var(--mono); font-size: 12px; }
+  .img-placeholder span { font-size: 28px; }
+  .img-container img { width: 100%; height: 100%; object-fit: contain; }
+
+  .analyze-btn {
+    width: 100%; padding: 16px;
+    background: linear-gradient(135deg, #166534, #16803c);
+    border: none; border-radius: 10px; color: #ffffff;
+    font-family: var(--mono); font-size: 13px; font-weight: 700;
+    letter-spacing: 1px; cursor: pointer; transition: all 0.2s;
+    text-transform: uppercase; margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+
+  .analyze-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .analyze-btn:not(:disabled):hover {
+    background: linear-gradient(135deg, #16803c, #15803d);
+    box-shadow: 0 0 24px rgba(74, 222, 128, 0.2);
+    transform: translateY(-1px);
+  }
+
+  .results-section { display: none; }
+  .results-section.visible { display: block; }
+
+  .alert {
+    border-radius: 10px; padding: 16px 20px; margin-bottom: 20px;
+    display: flex; align-items: center; gap: 14px;
+    font-size: 14px; font-weight: 500; border: 1px solid;
+    animation: slideIn 0.3s ease;
+  }
+
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .alert-cooccurrence { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.3); color: var(--red); }
+  .alert-single       { background: rgba(251,191,36,0.08);  border-color: rgba(251,191,36,0.3);  color: var(--amber); }
+  .alert-healthy      { background: rgba(74,222,128,0.08);  border-color: rgba(74,222,128,0.3);  color: var(--green); }
+  .alert-error        { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.3); color: var(--red); }
+
+  .alert-icon { font-size: 22px; flex-shrink: 0; }
+  .alert-text strong { display: block; font-size: 15px; margin-bottom: 2px; }
+  .alert-text span { font-size: 12px; opacity: 0.8; font-family: var(--mono); }
+
+  .disease-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
+
+  .disease-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; animation: fadeIn 0.4s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+
+  .disease-card.early    { border-left: 3px solid #ff6432; }
+  .disease-card.late     { border-left: 3px solid #60a5fa; }
+  .disease-card.septoria { border-left: 3px solid #4ade80; }
+
+  .disease-name { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .disease-name.early    { color: #ff6432; }
+  .disease-name.late     { color: var(--blue); }
+  .disease-name.septoria { color: var(--green); }
+
+  .disease-stat { display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 6px; }
+  .disease-stat strong { color: var(--text); font-size: 18px; font-family: var(--mono); }
+
+  .detections-panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+
+  .det-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: var(--mono); }
+  .det-table th { background: var(--surface); padding: 10px 16px; text-align: left; color: var(--muted); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+  .det-table td { padding: 10px 16px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+  .det-table tr:last-child td { border-bottom: none; }
+  .det-table tr:hover td { background: var(--surface); }
+
+  .conf-bar { display: flex; align-items: center; gap: 8px; }
+  .conf-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .conf-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+  .conf-fill.early    { background: #ff6432; }
+  .conf-fill.late     { background: var(--blue); }
+  .conf-fill.septoria { background: var(--green); }
+
+  .class-tag { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+  .class-tag.early    { background: rgba(255,100,50,0.15); color: #ff6432; }
+  .class-tag.late     { background: rgba(96,165,250,0.15); color: var(--blue); }
+  .class-tag.septoria { background: rgba(74,222,128,0.15); color: var(--green); }
+
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+
+  .stat-box { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center; }
+  .stat-box .val { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--green); display: block; line-height: 1; margin-bottom: 6px; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .model-info-chips { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+  .info-chip { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; font-family: var(--mono); font-size: 10px; color: var(--muted); }
+  .info-chip span { color: var(--green); }
+
+  .empty-state { text-align: center; padding: 40px; color: var(--muted); font-family: var(--mono); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🍅</div>
+      <div class="logo-text">
+        <h1>TomatoScan</h1>
+        <p>YOLOv8 Disease Detection System</p>
+      </div>
+    </div>
+    <div class="status-badge">
+      <div class="status-dot"></div>
+      MODEL READY
+    </div>
+  </header>
+
+  <!-- Model Switcher -->
+  <div class="model-switcher">
+    <span class="switcher-label">Select Model</span>
+    <div class="model-grid" id="modelGrid"></div>
+  </div>
+
+  <!-- Upload Zone -->
+  <div class="upload-section">
+    <div class="drop-zone" id="dropZone">
+      <div class="upload-icon">🌿</div>
+      <h3>Drop a tomato leaf image here</h3>
+      <p>JPG, PNG, BMP supported</p>
+      <button class="browse-btn" onclick="document.getElementById('fileInput').click()">BROWSE FILES</button>
+      <input type="file" id="fileInput" accept="image/*">
+    </div>
+  </div>
+
+  <!-- Image Preview -->
+  <div class="main-grid">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">INPUT IMAGE</span>
+        <span class="panel-title" id="imgDimensions" style="color: var(--green)"></span>
+      </div>
+      <div class="panel-body">
+        <div class="img-container" id="inputImgContainer">
+          <div class="img-placeholder"><span>📷</span><p>No image loaded</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">DETECTION RESULT</span>
+        <span class="panel-title" id="inferenceTime" style="color: var(--green)"></span>
+      </div>
+      <div class="panel-body">
+        <div class="img-container" id="resultImgContainer">
+          <div class="img-placeholder"><span>🔬</span><p>Run analysis to see results</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analyze Button -->
+  <button class="analyze-btn" id="analyzeBtn" disabled onclick="runAnalysis()">
+    <div class="spinner" id="spinner"></div>
+    <span id="btnText">⚡ ANALYSE LEAF</span>
+  </button>
+
+  <!-- Results -->
+  <div class="results-section" id="resultsSection">
+    <div id="alertBanner"></div>
+    <div class="stats-row">
+      <div class="stat-box"><span class="val" id="statDiseases">—</span><span class="lbl">Diseases Found</span></div>
+      <div class="stat-box"><span class="val" id="statBoxes">—</span><span class="lbl">Total Detections</span></div>
+      <div class="stat-box"><span class="val" id="statConf">—</span><span class="lbl">Avg Confidence</span></div>
+    </div>
+    <div class="disease-grid" id="diseaseGrid"></div>
+    <div class="detections-panel">
+      <div class="panel-header"><span class="panel-title">DETECTION LOG</span></div>
+      <div id="detectionsTable"><div class="empty-state">No detections yet</div></div>
+    </div>
+    <div class="model-info-chips" id="modelInfoChips"></div>
+  </div>
+
+</div>
+
+<script>
+  let selectedFile  = null;
+  let selectedModel = "yolov8m_clean";
+  let allModels     = {};
+
+  const CLASS_STYLES = {
+    "Early_Blight"      : { key: "early",    label: "Early Blight",   emoji: "🟠" },
+    "Late_Blight"       : { key: "late",     label: "Late Blight",    emoji: "🔵" },
+    "Septoria_Leaf_Spot": { key: "septoria", label: "Septoria",       emoji: "🟢" },
+  };
+
+  // ── Load models from server ──────────────────────────────────────────────────
+  async function loadModels() {
+    const res  = await fetch("/models");
+    allModels  = await res.json();
+    renderModelSwitcher();
+  }
+
+  function renderModelSwitcher() {
+    const grid = document.getElementById("modelGrid");
+    grid.innerHTML = "";
+    Object.entries(allModels).forEach(([key, info]) => {
+      const card = document.createElement("div");
+      card.className = `model-card ${key === selectedModel ? "active" : ""}`;
+      card.onclick   = () => selectModel(key);
+      card.innerHTML = `
+        <div class="model-radio"></div>
+        <div class="model-info-text">
+          <div class="model-name">${info.label}</div>
+          <div class="model-desc">${info.desc}</div>
+        </div>
+        <div class="model-map">mAP ${info.map}</div>`;
+      grid.appendChild(card);
+    });
+  }
+
+  function selectModel(key) {
+    selectedModel = key;
+    renderModelSwitcher();
+    // Reset results when model changes
+    document.getElementById("resultsSection").classList.remove("visible");
+    document.getElementById("resultImgContainer").innerHTML =
+      `<div class="img-placeholder"><span>🔬</span><p>Run analysis to see results</p></div>`;
+    document.getElementById("inferenceTime").textContent = "";
+  }
+
+  // ── Drag & Drop ──────────────────────────────────────────────────────────────
+  const dropZone = document.getElementById("dropZone");
+  const fileInput = document.getElementById("fileInput");
+
+  dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("drag-over"); });
+  dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
+  dropZone.addEventListener("drop", e => {
+    e.preventDefault(); dropZone.classList.remove("drag-over");
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) loadFile(file);
+  });
+  fileInput.addEventListener("change", e => { if (e.target.files[0]) loadFile(e.target.files[0]); });
+
+  function loadFile(file) {
+    selectedFile = file;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => document.getElementById("imgDimensions").textContent = `${img.width} × ${img.height}`;
+      img.src = e.target.result;
+      document.getElementById("inputImgContainer").innerHTML = `<img src="${e.target.result}" alt="Input">`;
+      document.getElementById("resultImgContainer").innerHTML = `<div class="img-placeholder"><span>🔬</span><p>Run analysis to see results</p></div>`;
+      document.getElementById("analyzeBtn").disabled = false;
+      document.getElementById("resultsSection").classList.remove("visible");
+      document.getElementById("inferenceTime").textContent = "";
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // ── Run Analysis ─────────────────────────────────────────────────────────────
+  async function runAnalysis() {
+    if (!selectedFile) return;
+    const btn     = document.getElementById("analyzeBtn");
+    const spinner = document.getElementById("spinner");
+    const btnText = document.getElementById("btnText");
+    btn.disabled = true; spinner.style.display = "block"; btnText.textContent = "ANALYSING...";
+    const startTime = performance.now();
+    const formData  = new FormData();
+    formData.append("image", selectedFile);
+    formData.append("model", selectedModel);
+    try {
+      const res     = await fetch("/predict", { method: "POST", body: formData });
+      const data    = await res.json();
+      const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+      document.getElementById("inferenceTime").textContent = `${elapsed}s`;
+      renderResults(data);
+    } catch (err) {
+      alert("Error connecting to server. Make sure app.py is running.");
+    } finally {
+      btn.disabled = false; spinner.style.display = "none"; btnText.textContent = "⚡ ANALYSE LEAF";
+    }
+  }
+
+  // ── Render Results ───────────────────────────────────────────────────────────
+  function renderResults(data) {
+    document.getElementById("resultsSection").classList.add("visible");
+    if (data.annotated_image) {
+      document.getElementById("resultImgContainer").innerHTML =
+        `<img src="data:image/jpeg;base64,${data.annotated_image}" alt="Result">`;
+    }
+
+    const banner = document.getElementById("alertBanner");
+    if (data.error && !data.valid) {
+      banner.innerHTML = `
+        <div class="alert alert-error">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-text">
+            <strong>Detection Failed</strong>
+            <span>${data.error}</span>
+          </div>
+        </div>`;
+      document.getElementById("statDiseases").textContent = "0";
+      document.getElementById("statBoxes").textContent    = "0";
+      document.getElementById("statConf").textContent     = "—";
+      document.getElementById("diseaseGrid").innerHTML    = "";
+      document.getElementById("detectionsTable").innerHTML = `<div class="empty-state">${data.error}</div>`;
+      return;
+    }
+
+    if (data.diseases_found.length === 0) {
+      banner.innerHTML = `<div class="alert alert-healthy"><div class="alert-icon">✅</div><div class="alert-text"><strong>No Disease Detected</strong><span>Leaf appears healthy or below confidence threshold</span></div></div>`;
+    } else if (data.co_occurrence) {
+      banner.innerHTML = `<div class="alert alert-cooccurrence"><div class="alert-icon">⚠️</div><div class="alert-text"><strong>CO-OCCURRENCE DETECTED — Multiple Diseases Present</strong><span>${data.diseases_found.map(d=>d.replace(/_/g,' ')).join(' + ')}</span></div></div>`;
+    } else {
+      banner.innerHTML = `<div class="alert alert-single"><div class="alert-icon">🔍</div><div class="alert-text"><strong>Disease Detected</strong><span>${data.diseases_found.map(d=>d.replace(/_/g,' ')).join(', ')}</span></div></div>`;
+    }
+
+    const avgConf = data.detections.length > 0
+      ? (data.detections.reduce((s,d) => s + d.confidence, 0) / data.detections.length).toFixed(2) : "—";
+    document.getElementById("statDiseases").textContent = data.diseases_found.length;
+    document.getElementById("statBoxes").textContent    = data.total_boxes;
+    document.getElementById("statConf").textContent     = avgConf;
+
+    const grid = document.getElementById("diseaseGrid");
+    grid.innerHTML = "";
+    data.diseases_found.forEach(disease => {
+      const style = CLASS_STYLES[disease] || { key: "early", label: disease, emoji: "🔴" };
+      const boxes = data.detections.filter(d => d.class_name === disease);
+      const avgC  = (boxes.reduce((s,d) => s + d.confidence, 0) / boxes.length).toFixed(2);
+      grid.innerHTML += `<div class="disease-card ${style.key}"><div class="disease-name ${style.key}">${style.emoji} ${style.label}</div><div class="disease-stat"><span>Detections</span><strong>${boxes.length}</strong></div><div class="disease-stat"><span>Avg confidence</span><strong>${avgC}</strong></div></div>`;
+    });
+
+    if (data.detections.length === 0) {
+      document.getElementById("detectionsTable").innerHTML = `<div class="empty-state">No detections above confidence threshold</div>`;
+    } else {
+      const rows = data.detections.map((det, i) => {
+        const style  = CLASS_STYLES[det.class_name] || { key: "early", label: det.class_name };
+        const confPct = Math.round(det.confidence * 100);
+        return `<tr><td>${i+1}</td><td><span class="class-tag ${style.key}">${style.label}</span></td><td><div class="conf-bar"><div class="conf-track"><div class="conf-fill ${style.key}" style="width:${confPct}%"></div></div><span>${det.confidence.toFixed(3)}</span></div></td><td>${det.x1},${det.y1} → ${det.x2},${det.y2}</td></tr>`;
+      }).join("");
+      document.getElementById("detectionsTable").innerHTML = `<table class="det-table"><thead><tr><th>#</th><th>Class</th><th>Confidence</th><th>Bounding Box</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+
+    if (data.model_info) {
+      const mi = data.model_info;
+      document.getElementById("modelInfoChips").innerHTML = `
+        <div class="info-chip">Model <span>${mi.arch}</span></div>
+        <div class="info-chip">mAP@0.5 <span>${mi.map}</span></div>
+        <div class="info-chip">Device <span>${mi.device}</span></div>
+        <div class="info-chip">Conf <span>${mi.conf_thr}</span></div>
+        <div class="info-chip">IoU <span>${mi.iou_thr}</span></div>
+        <div class="info-chip">Classes <span>${mi.classes.join(', ')}</span></div>`;
+    }
+  }
+
+  document.addEventListener("keydown", e => { if (e.key === "Enter" && selectedFile) runAnalysis(); });
+
+  // ── Init ─────────────────────────────────────────────────────────────────────
+  loadModels();
+</script>
+</body>
+</html>
