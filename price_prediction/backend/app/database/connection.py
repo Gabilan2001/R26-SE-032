@@ -1,25 +1,37 @@
+import logging
 import os
-from pymongo import MongoClient
+
 from dotenv import load_dotenv
+from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure
 
-load_dotenv()
+# Force override to ensure .env variables are loaded over system cache
+load_dotenv(override=True)
 
-_db = None
+logger = logging.getLogger(__name__)
+
+_client = None
 
 
-def init_db():
-    """Initialize the MongoDB connection at application startup."""
-    global _db
-    mongo_uri = os.getenv('MONGO_URI')
-    db_name = os.getenv('MONGO_DB_NAME', 'tomato_price_prediction')
+def get_mongo_client() -> MongoClient:
+    """
+    Initialize and return the MongoDB client instance.
+    Utilizes a singleton pattern so only one connection pool is created.
+    """
+    global _client
+    if _client is not None:
+        return _client
+
+    mongo_uri = os.getenv("MONGO_URI")
     if not mongo_uri:
-        raise RuntimeError('MONGO_URI is required in the environment.')
-    client = MongoClient(mongo_uri)
-    _db = client[db_name]
+        raise ValueError("MONGO_URI is not set in the environment variables.")
 
-
-def get_db():
-    """Return a reference to the MongoDB database."""
-    if _db is None:
-        raise RuntimeError('Database connection has not been initialized.')
-    return _db
+    try:
+        # Never log the full URI (credentials). At most log that we are connecting.
+        logger.debug("Initializing MongoClient (credentials redacted).")
+        _client = MongoClient(mongo_uri, serverSelectionTimeoutMS=8000)
+        _client.admin.command("ping")
+        return _client
+    except ConnectionFailure as e:
+        logger.error("Failed to connect to MongoDB: %s", e)
+        raise e

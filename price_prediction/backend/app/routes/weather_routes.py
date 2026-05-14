@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
-from app.schemas.weather_schema import WeatherRequest, WeatherResponse
+from app.schemas.weather_schema import WeatherResponse
 from app.services.weather_service import fetch_weather_signal
 
 router = APIRouter()
