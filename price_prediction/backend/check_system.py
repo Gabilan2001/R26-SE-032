@@ -216,40 +216,8 @@ def main() -> None:
         except Exception as exc:  # noqa: BLE001
             print(f"MODEL ❌ {exc}")
 
-    # TEST 5 — Full prediction
+    # TEST 5 — Full prediction (past_prices omitted → loaded from datasets CSV)
     print("\n--- TEST 5: Full prediction ---")
-    sample = [
-        245,
-        250,
-        248,
-        260,
-        255,
-        258,
-        262,
-        257,
-        265,
-        270,
-        268,
-        272,
-        275,
-        269,
-        273,
-        278,
-        280,
-        275,
-        282,
-        285,
-        279,
-        283,
-        288,
-        284,
-        290,
-        287,
-        292,
-        295,
-        289,
-        294,
-    ]
     if not flags["model"]:
         print("PREDICTION ❌ skipped (model not loaded)")
     else:
@@ -258,11 +226,10 @@ def main() -> None:
             from app.services.lstm_service import generate_price_prediction
 
             req = PricePredictionRequest(
-                past_prices=sample,
+                location="Dambulla",
                 forecast_horizon_days=7,
                 currency="LKR/kg",
                 window_size=10,
-                location="Dambulla",
             )
             out = generate_price_prediction(req)
             print("First forecast day (LKR):", out.predicted_prices[0] if out.predicted_prices else "n/a")

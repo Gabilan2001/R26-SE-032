@@ -13,6 +13,7 @@ from app.schemas.prediction_schema import (
     PricePredictionResponse,
     compute_horizon_for_target,
 )
+from app.services.dataset_price_service import get_recent_prices_from_dataset
 from app.services.explanation_service import build_explanation_reasons
 from app.services.news_impact_service import analyze_agriculture_news_for_location
 from app.services.preprocessing_service import prepare_time_series_features
@@ -56,7 +57,8 @@ def generate_price_prediction(request: PricePredictionRequest) -> PricePredictio
       * Location drives Open-Meteo coordinates and news query context.
       * News is fetched and filtered automatically (no manual news query).
       * Optional target_date extends horizon (capped) and picks a focal price day.
-      * Rule-based reasons + selling recommendation are attached for explainability.
+      * If `past_prices` is omitted or too short, the last N days are read from the training CSV
+        (national daily series, same logic as train_model.py) so the scaler stays aligned.
     """
     location = (request.location or "Dambulla").strip()
 
@@ -70,10 +72,17 @@ def generate_price_prediction(request: PricePredictionRequest) -> PricePredictio
             request.window_size,
             expected_window,
         )
-    if len(request.past_prices) < expected_window:
-        raise ValueError(
-            f"Need at least {expected_window} past prices for this model; got {len(request.past_prices)}."
-        )
+
+    past_prices: List[float] = list(request.past_prices or [])
+    past_detail = ""
+    if len(past_prices) < expected_window:
+        past_prices, past_detail = get_recent_prices_from_dataset(expected_window)
+        logger.info("Loaded %s past prices from dataset for window=%s", len(past_prices), expected_window)
+    elif len(past_prices) > expected_window:
+        past_prices = past_prices[-expected_window:]
+        past_detail = "request (trimmed to model window)"
+    else:
+        past_detail = "request (farmer or app supplied)"
 
     horizon, target_note, target_resolved = compute_horizon_for_target(
         request.target_date,
@@ -83,7 +92,7 @@ def generate_price_prediction(request: PricePredictionRequest) -> PricePredictio
     weather = fetch_weather_signal(location, forecast_days=horizon)
     news = analyze_agriculture_news_for_location(location)
 
-    raw_prices = np.array(request.past_prices).reshape(-1, 1)
+    raw_prices = np.array(past_prices).reshape(-1, 1)
     scaled_prices = scaler.transform(raw_prices).flatten().tolist()
     current_window = prepare_time_series_features(scaled_prices, expected_window)
 
@@ -95,7 +104,7 @@ def generate_price_prediction(request: PricePredictionRequest) -> PricePredictio
 
     forecast_raw = scaler.inverse_transform(np.array(forecast_scaled).reshape(-1, 1)).flatten().tolist()
 
-    last_price = float(request.past_prices[-1])
+    last_price = float(past_prices[-1])
     mean_forecast = float(np.mean(forecast_raw))
     best_idx = int(np.argmax(forecast_raw))
     best_price = float(forecast_raw[best_idx])
@@ -160,10 +169,12 @@ def generate_price_prediction(request: PricePredictionRequest) -> PricePredictio
         f"Best time to sell: Day {best_idx + 1} at {best_price:.2f} {unit}. {action}: {timing_hint}"
     )
 
+    past_source_short = "dataset" if "CSV" in past_detail else "request"
     data_sources = {
         "weather": weather.data_source,
         "news": news.data_source,
         "model": "Bidirectional LSTM v1",
+        "past_prices": past_detail,
     }
 
     response = PricePredictionResponse(
@@ -187,6 +198,8 @@ def generate_price_prediction(request: PricePredictionRequest) -> PricePredictio
         news_sentiment=news.news_sentiment,
         news_headlines=news.relevant_headlines[:3],
         data_sources=data_sources,
+        past_prices_used=[f"{p:.2f}" for p in past_prices],
+        past_prices_source=past_source_short,
     )
 
     # Richer MongoDB document for audits.

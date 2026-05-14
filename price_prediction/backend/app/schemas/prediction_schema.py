@@ -33,7 +33,10 @@ class PricePredictionRequest(BaseModel):
         "Dambulla",
         description="Market / region (dropdown or free text), e.g. Colombo, Dambulla, Kandy.",
     )
-    past_prices: List[float] = Field(..., description="Recent observed tomato prices (same units as training).")
+    past_prices: Optional[List[float]] = Field(
+        None,
+        description="Recent prices (oldest→newest). Omit or [] to load the last N days from the training CSV (national series, same as train_model.py).",
+    )
     currency: str = Field("LKR/kg", description="Currency label for responses")
     forecast_horizon_days: int = Field(7, ge=1, le=30, description="Ignored when target_date is set.")
     window_size: int = Field(
@@ -91,6 +94,14 @@ class PricePredictionResponse(BaseModel):
     news_sentiment: str = ""
     news_headlines: List[str] = Field(default_factory=list)
     data_sources: Dict[str, str] = Field(default_factory=dict)
+    past_prices_used: List[str] = Field(
+        default_factory=list,
+        description="The exact past window fed to the model (strings for JSON).",
+    )
+    past_prices_source: str = Field(
+        "",
+        description="request | dataset — where the input window came from.",
+    )
 
 
 def compute_horizon_for_target(target: Optional[date], default_horizon: int) -> tuple[int, Optional[str], Optional[date]]:
