@@ -79,13 +79,17 @@ function displayMarketLabel(apiName) {
   return apiName;
 }
 
-function weatherLoadingHtml(placeLabel) {
+function weatherLoadingHtml(placeLabel, opts) {
   const p = escapeHtml(placeLabel);
+  const throughDate =
+    opts && opts.forSellingDate
+      ? " through your selling date"
+      : "";
   return `
     <div class="loading-panel loading-panel--weather" role="status" aria-live="polite">
       <div class="loading-spinner-lg" aria-hidden="true"></div>
       <p class="loading-title">Getting weather…</p>
-      <p class="loading-sub">Fetching the forecast for <strong>${p}</strong>. This usually takes a few seconds.</p>
+      <p class="loading-sub">Fetching the forecast for <strong>${p}</strong>${throughDate}. This usually takes a few seconds.</p>
       <div class="skeleton-block" aria-hidden="true">
         <div class="skeleton-line"></div>
         <div class="skeleton-line skeleton-line--mid"></div>
@@ -577,14 +581,17 @@ async function onMarketChanged() {
   $("weather-title").textContent = `Weather for ${label}`;
   $("weather-section").classList.add("card-is-loading");
   $("news-section").classList.add("card-is-loading");
-  $("weather-body").innerHTML = weatherLoadingHtml(label);
+  const wq = weatherQueryString(m);
+  const dateMode = forecastMode() === "date";
+  const loadingOpts = dateMode && /^\d{4}-\d{2}-\d{2}$/.test(selectedTargetDateIso()) ? { forSellingDate: true } : undefined;
+  $("weather-body").innerHTML = weatherLoadingHtml(label, loadingOpts);
   $("news-body").innerHTML = newsLoadingHtml(label);
   $("weather-error").hidden = true;
   $("news-error").hidden = true;
 
   const locEnc = encodeURIComponent(m);
 
-  const weatherP = fetch(`/weather/?location=${locEnc}`, { headers: { Accept: "application/json" } })
+  const weatherP = fetch(`/weather/?${wq}`, { headers: { Accept: "application/json" } })
     .then((r) => r.json().then((j) => ({ ok: r.ok, j })))
     .catch(() => ({ ok: false, j: null }));
 
@@ -620,6 +627,61 @@ async function onMarketChanged() {
 function forecastMode() {
   const el = document.querySelector('input[name="forecast-mode"]:checked');
   return el ? el.value : "week";
+}
+
+function selectedTargetDateIso() {
+  return (($("target-date") && $("target-date").value) || "").trim();
+}
+
+/** Query string for GET /weather/ (location + optional target_date for horizon alignment). */
+function weatherQueryString(location) {
+  const enc = encodeURIComponent(location);
+  let q = `location=${enc}`;
+  if (forecastMode() === "date") {
+    const td = selectedTargetDateIso();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(td)) {
+      q += `&target_date=${encodeURIComponent(td)}`;
+    }
+  }
+  return q;
+}
+
+async function refetchWeatherOnly() {
+  const m = resolvedMarket();
+  const sel = $("market-select");
+  if (!m || (sel && sel.value === "__other__" && !m)) return;
+  if ($("weather-section").hidden) return;
+
+  const label = displayMarketLabel(m);
+  const dateMode = forecastMode() === "date";
+  const loadingOpts = dateMode && /^\d{4}-\d{2}-\d{2}$/.test(selectedTargetDateIso()) ? { forSellingDate: true } : undefined;
+  $("weather-section").classList.add("card-is-loading");
+  $("weather-body").innerHTML = weatherLoadingHtml(label, loadingOpts);
+  $("weather-error").hidden = true;
+
+  const q = weatherQueryString(m);
+  try {
+    const res = await fetch(`/weather/?${q}`, { headers: { Accept: "application/json" } });
+    const j = await res.json().catch(() => null);
+    if (resolvedMarket() !== m) return;
+    if (!res.ok || !j) {
+      $("weather-body").innerHTML = "";
+      $("weather-error").textContent = friendlyError("weather");
+      $("weather-error").hidden = false;
+    } else {
+      renderWeatherCard(j, label);
+      $("weather-error").hidden = true;
+    }
+  } catch {
+    if (resolvedMarket() !== m) return;
+    $("weather-body").innerHTML = "";
+    $("weather-error").textContent = friendlyError("weather");
+    $("weather-error").hidden = false;
+  } finally {
+    if (resolvedMarket() === m) {
+      $("weather-section").classList.remove("card-is-loading");
+    }
+  }
 }
 
 async function runForecast() {
@@ -683,7 +745,12 @@ async function runForecast() {
 function syncCardsFromPredict(body) {
   const m = body.location || resolvedMarket();
   const label = displayMarketLabel(m);
-  fetch(`/weather/?location=${encodeURIComponent(m)}`, { headers: { Accept: "application/json" } })
+  let wq = weatherQueryString(m);
+  const td = body.target_date ? String(body.target_date).slice(0, 10) : "";
+  if (td && /^\d{4}-\d{2}-\d{2}$/.test(td)) {
+    wq = `location=${encodeURIComponent(m)}&target_date=${encodeURIComponent(td)}`;
+  }
+  fetch(`/weather/?${wq}`, { headers: { Accept: "application/json" } })
     .then((r) => (r.ok ? r.json() : null))
     .then((w) => {
       if (w) renderWeatherCard(w, label);
@@ -708,8 +775,17 @@ function init() {
       const wrap = $("target-date-wrap");
       if (wrap) wrap.hidden = !dateMode;
       if (dateMode) refreshTargetDateBounds();
+      refetchWeatherOnly();
     });
   });
+  const targetDateInp = $("target-date");
+  if (targetDateInp) {
+    const onDateMaybeChange = debounce(() => {
+      if (forecastMode() === "date") refetchWeatherOnly();
+    }, 350);
+    targetDateInp.addEventListener("input", onDateMaybeChange);
+    targetDateInp.addEventListener("change", onDateMaybeChange);
+  }
   refreshTargetDateBounds();
 }
 
