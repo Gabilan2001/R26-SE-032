@@ -59,3 +59,16 @@ Disease_Detection/models/
 
 # ─── YOLO training runs ───
 runs/
+
+# ─── Testing-only frontend (real frontend is the mobile app in /Frontend) ───
+Disease_Detection/frontend/
+
+# ─── RAG vector DB (generated/regenerable via ingest.py from knowledge_base.json) ───
+Disease_Detection/pipeline/stage4_inference/chroma_db/
+
+# ─── Ad-hoc test/reference images dropped in the component folder ───
+Disease_Detection/*.png
+Disease_Detection/*.jpg
+Disease_Detection/*.jpeg
+Disease_Detection/*.JPG
+Disease_Detection/*.JPEG
