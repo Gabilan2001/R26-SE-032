@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 # ── API Key ───────────────────────────────────────────
 # Put your OpenWeatherMap API key here
-WEATHER_API_KEY = os.getenv("WEATHER_API_KEY", "1395cd70d2f83cc0348b30002b031d4f")
+WEATHER_API_KEY = os.getenv("WEATHER_API_KEY") or os.getenv("OPENWEATHER_API_KEY", "")
 BASE_URL        = "https://api.openweathermap.org/data/2.5/weather"
 
 
@@ -110,15 +110,15 @@ def compute_weather_risk_score(weather: dict) -> dict:
     if risk_score >= 70:
         risk_level = "HIGH"
         alert = (
-            f"High fungal risk! Humidity {humidity}%, "
-            f"Rainfall {rainfall}mm. Treatment may wash away. "
-            f"Consider re-spraying after weather improves."
+            f"High weather-related disease pressure. Humidity {humidity}%, "
+            f"Rainfall {rainfall}mm. Conditions may favour continued disease "
+            f"development — increase observation frequency."
         )
     elif risk_score >= 40:
         risk_level = "MEDIUM"
         alert = (
-            f"Moderate risk. Monitor conditions. "
-            f"Humidity {humidity}%, Temp {temperature}°C."
+            f"Moderate weather-related disease pressure. "
+            f"Humidity {humidity}%, Temp {temperature}°C. Continue monitoring."
         )
     else:
         risk_level = "LOW"
@@ -142,9 +142,7 @@ def compute_weather_risk_score(weather: dict) -> dict:
 
 def get_weather_risk(lat: float, lon: float) -> dict:
     """
-    Main function called by leaf_service.py
-    
-    Returns complete weather risk assessment
+    Fetch weather and compute contextual risk for observation records.
     """
     weather = get_weather_data(lat, lon)
 
