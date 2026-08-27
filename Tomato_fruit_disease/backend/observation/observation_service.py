@@ -1,0 +1,230 @@
+"""Orchestrates the observation-based monitoring pipeline."""
+
+import uuid
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional
+
+from fastapi import HTTPException, UploadFile
+
+from config.observation_config import (
+    CROP_PARTS,
+    DISEASES_BY_CROP,
+)
+from consistency.consistency_checker import check_consistency
+from consistency.similarity import cosine_similarity
+from ml.predict.gate_predictor import is_valid_fruit, is_valid_leaf
+from observation.observation_repository import (
+    create_case,
+    get_all_observations,
+    get_case,
+    get_last_accepted_observation,
+    insert_observation,
+    public_observation,
+    save_observation_image,
+)
+from observation.recommendation_service import get_worsening_recommendation
+from observation.trend_analysis import compute_overall_status, compute_trend
+from observation.weather_context import fetch_weather_context
+from severity.fruit.fruit_severity import (
+    FruitModelNotConfiguredError,
+    predict_fruit_severity,
+)
+from severity.leaf.efficientnet_severity import (
+    ModelNotConfiguredError,
+    predict_leaf_severity,
+)
+
+
+def _validate_crop_part(crop_part: str) -> str:
+    normalized = crop_part.strip().upper()
+    if normalized not in CROP_PARTS:
+        raise HTTPException(400, f"crop_part must be one of {sorted(CROP_PARTS)}")
+    return normalized
+
+
+def _validate_disease(crop_part: str, disease: str) -> str:
+    normalized = disease.strip().lower()
+    allowed = DISEASES_BY_CROP.get(crop_part, set())
+    if normalized not in allowed:
+        raise HTTPException(
+            400,
+            f"disease '{disease}' is not supported for crop_part {crop_part}. "
+            f"Allowed: {sorted(allowed)}",
+        )
+    return normalized
+
+
+def _run_gate(crop_part: str, image_bytes: bytes):
+    if crop_part == "LEAF":
+        return is_valid_leaf(image_bytes)
+    return is_valid_fruit(image_bytes)
+
+
+def _run_severity(crop_part: str, image_bytes: bytes) -> Dict[str, Any]:
+    try:
+        if crop_part == "LEAF":
+            return predict_leaf_severity(image_bytes)
+        return predict_fruit_severity(image_bytes)
+    except (ModelNotConfiguredError, FruitModelNotConfiguredError) as exc:
+        raise HTTPException(503, str(exc)) from exc
+
+
+async def create_monitoring_case(crop_part: str, label: Optional[str] = None) -> Dict[str, Any]:
+    crop_part = _validate_crop_part(crop_part)
+    return create_case(crop_part, label)
+
+
+async def get_monitoring_case(case_id: str) -> Dict[str, Any]:
+    case = get_case(case_id)
+    if not case:
+        raise HTTPException(404, f"Case '{case_id}' not found.")
+    return case
+
+
+async def process_observation_upload(
+    case_id: str,
+    file: UploadFile,
+    crop_part: str,
+    disease: str,
+    latitude: Optional[float] = None,
+    longitude: Optional[float] = None,
+    confirm_same_case: bool = False,
+) -> Dict[str, Any]:
+    case = get_case(case_id)
+    if not case:
+        raise HTTPException(404, f"Case '{case_id}' not found.")
+
+    crop_part = _validate_crop_part(crop_part)
+    if case["crop_part"] != crop_part:
+        raise HTTPException(
+            400,
+            f"Case '{case_id}' is registered for {case['crop_part']}, not {crop_part}.",
+        )
+
+    disease = _validate_disease(crop_part, disease)
+    image_bytes = await file.read()
+
+    valid, gate_confidence, rejection_reason = _run_gate(crop_part, image_bytes)
+    if not valid:
+        return {
+            "accepted": False,
+            "case_id": case_id,
+            "crop_part": crop_part,
+            "image_valid": False,
+            "gate_confidence": gate_confidence,
+            "rejection_reason": rejection_reason,
+        }
+
+    severity_result = _run_severity(crop_part, image_bytes)
+    embedding = severity_result["embedding"]
+
+    previous = get_last_accepted_observation(case_id, crop_part)
+    similarity_score = None
+    if previous:
+        if previous["crop_part"] != crop_part:
+            raise HTTPException(500, "Internal error: crop_part mismatch in observation history.")
+        similarity_score = round(cosine_similarity(embedding, previous["embedding"]), 4)
+
+    consistency_status, accepted, consistency_reason = check_consistency(
+        similarity_score,
+        is_first_observation=previous is None,
+        confirm_same_case=confirm_same_case,
+    )
+
+    if not accepted:
+        return {
+            "accepted": False,
+            "case_id": case_id,
+            "crop_part": crop_part,
+            "image_valid": True,
+            "gate_confidence": gate_confidence,
+            "similarity_score": similarity_score,
+            "consistency_status": consistency_status,
+            "rejection_reason": consistency_reason,
+            "disease": disease,
+        }
+
+    previous_score = previous["severity_score"] if previous else None
+    trend = compute_trend(severity_result["severity_score"], previous_score)
+    weather_context = fetch_weather_context(latitude, longitude)
+    recommendation = get_worsening_recommendation(disease, trend, weather_context)
+
+    observation_id = f"OBS-{uuid.uuid4().hex[:8].upper()}"
+    created_at = datetime.now(timezone.utc).isoformat()
+    image_path = save_observation_image(case_id, observation_id, image_bytes)
+
+    record = {
+        "observation_id": observation_id,
+        "case_id": case_id,
+        "crop_part": crop_part,
+        "created_at": created_at,
+        "disease": disease,
+        "severity_score": severity_result["severity_score"],
+        "severity_class": severity_result["severity_class"],
+        "embedding": embedding,
+        "similarity_score": similarity_score,
+        "consistency_status": consistency_status,
+        "weather_context": weather_context,
+        "trend": trend,
+        "status": trend,
+        "recommendation": recommendation,
+        "accepted": True,
+        "image_path": image_path,
+    }
+    insert_observation(record)
+
+    response_obs = public_observation(record)
+    return {
+        "accepted": True,
+        "case_id": case_id,
+        "crop_part": crop_part,
+        "image_valid": True,
+        "gate_confidence": gate_confidence,
+        "observation": response_obs,
+        "overall_status": await get_case_status(case_id),
+    }
+
+
+async def list_observations(case_id: str) -> Dict[str, Any]:
+    case = get_case(case_id)
+    if not case:
+        raise HTTPException(404, f"Case '{case_id}' not found.")
+    observations = [public_observation(o) for o in get_all_observations(case_id)]
+    return {"case_id": case_id, "crop_part": case["crop_part"], "observations": observations}
+
+
+async def get_case_status(case_id: str) -> Dict[str, Any]:
+    case = get_case(case_id)
+    if not case:
+        raise HTTPException(404, f"Case '{case_id}' not found.")
+
+    crop_part = case["crop_part"]
+    from observation.observation_repository import get_accepted_observations
+
+    accepted = get_accepted_observations(case_id, crop_part)
+    public = [public_observation(o) for o in accepted]
+    trends = [o["trend"] for o in accepted if o.get("trend")]
+    overall = compute_overall_status(trends)
+
+    latest = public[-1] if public else None
+    latest_recommendation = latest.get("recommendation") if latest else None
+
+    return {
+        "case_id": case_id,
+        "crop_part": crop_part,
+        "observation_count": len(public),
+        "overall_status": overall,
+        "latest_observation": latest,
+        "latest_recommendation": latest_recommendation,
+        "observations_summary": [
+            {
+                "observation_id": o["observation_id"],
+                "created_at": o["created_at"],
+                "severity_score": o["severity_score"],
+                "severity_class": o["severity_class"],
+                "trend": o.get("trend"),
+                "consistency_status": o["consistency_status"],
+            }
+            for o in public
+        ],
+    }
