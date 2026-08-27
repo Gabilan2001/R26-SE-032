@@ -1,0 +1,74 @@
+# ─── Model Weights (large binaries — use Git LFS if needed) ───
+*.pt
+*.pth
+*.onnx
+*.engine
+*.pkl
+
+# ─── Python ───
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ─── Virtual Environments ───
+venv/
+.venv/
+env/
+.env
+ENV/
+
+# ─── Jupyter ───
+.ipynb_checkpoints/
+*.ipynb
+
+# ─── Output / Generated Files ───
+output/predictions/
+output/visualizations/
+output/metrics/*.csv
+output/reports/*.pdf
+output/reports/*.html
+
+# ─── OS Files ───
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── IDE / Editor ───
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ─── Logs ───
+*.log
+logs/
+runs/
+
+# ─── Data (entire folder) ───
+data/
+
+# ─── Models (weights & checkpoints) ───
+models/
+Disease_Detection/models/
+
+# ─── YOLO training runs ───
+runs/
+
+# ─── Testing-only frontend (real frontend is the mobile app in /Frontend) ───
+Disease_Detection/frontend/
+
+# ─── RAG vector DB (generated/regenerable via ingest.py from knowledge_base.json) ───
+Disease_Detection/pipeline/stage4_inference/chroma_db/
+
+# ─── Ad-hoc test/reference images dropped in the component folder ───
+Disease_Detection/*.png
+Disease_Detection/*.jpg
+Disease_Detection/*.jpeg
+Disease_Detection/*.JPG
+Disease_Detection/*.JPEG
