@@ -1,0 +1,227 @@
+import React, { useMemo, useState } from "react";
+import {
+  Alert,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import * as ImagePicker from "expo-image-picker";
+import {
+  getCaseStatus,
+  listObservations,
+  uploadObservation,
+  type CropPart,
+  type CaseStatus,
+  type MonitoringCase,
+  type Observation,
+} from "../../api/observations";
+import { LeafScanAppHeader } from "../../components/LeafScanAppHeader";
+import {
+  MismatchConfirmationModal,
+  ObservationProgress,
+  ObservationUploadCard,
+} from "../../components/monitoring";
+import { DEMO_WEATHER_COORDS, MODALITY } from "../../config/modality";
+import { useMonitoringPalette } from "../../theme/MonitoringThemeContext";
+import type { MonitoringPalette } from "../../theme/colors";
+
+type Props = {
+  caseData: MonitoringCase;
+  cropPart: CropPart;
+  observationNumber: number;
+  attachWeather: boolean;
+  onBack?: () => void;
+  onSuccess: (payload: {
+    observation: Observation;
+    status: CaseStatus;
+    observations: Observation[];
+    imageUri: string;
+  }) => void;
+};
+
+type Pending = {
+  uri: string;
+  consistency: string;
+  similarity?: number | null;
+  reason?: string;
+};
+
+export function ObservationUploadScreen({
+  caseData,
+  cropPart,
+  observationNumber,
+  attachWeather,
+  onBack,
+  onSuccess,
+}: Props) {
+  const [previewUri, setPreviewUri] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [validationMessage, setValidationMessage] = useState<string | null>(null);
+  const [pending, setPending] = useState<Pending | null>(null);
+  const cfg = MODALITY[cropPart];
+  const p = useMonitoringPalette();
+  const styles = useMemo(() => makeStyles(p), [p]);
+
+  const pickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Permission required", "Allow photo library access to upload observations.");
+      return;
+    }
+    const picked = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.9,
+    });
+    if (picked.canceled || !picked.assets[0]?.uri) return;
+    setPreviewUri(picked.assets[0].uri);
+    setValidationMessage("Image selected — ready to upload.");
+  };
+
+  const runUpload = async (uri: string, confirmSameCase: boolean) => {
+    setLoading(true);
+    setValidationMessage(null);
+    try {
+      const result = await uploadObservation({
+        caseId: caseData.case_id,
+        cropPart,
+        disease: cfg.defaultDisease,
+        uri,
+        confirmSameCase,
+        latitude: attachWeather ? DEMO_WEATHER_COORDS.latitude : undefined,
+        longitude: attachWeather ? DEMO_WEATHER_COORDS.longitude : undefined,
+      });
+
+      if (!result.accepted) {
+        if (result.image_valid === false) {
+          setPending(null);
+          setValidationMessage(
+            `Image validation failed: ${String(result.rejection_reason ?? "rejected")}`
+          );
+          return;
+        }
+
+        const consistency = String(result.consistency_status ?? "");
+        if (
+          !confirmSameCase &&
+          (consistency === "POSSIBLE_MATCH" || consistency === "MISMATCH")
+        ) {
+          setPending({
+            uri,
+            consistency,
+            similarity:
+              typeof result.similarity_score === "number" ? result.similarity_score : null,
+            reason: String(result.rejection_reason ?? ""),
+          });
+          return;
+        }
+
+        setValidationMessage(String(result.rejection_reason ?? "Observation rejected."));
+        return;
+      }
+
+      const obs = result.observation as Observation;
+      const [status, listed] = await Promise.all([
+        getCaseStatus(caseData.case_id),
+        listObservations(caseData.case_id),
+      ]);
+      setPending(null);
+      onSuccess({
+        observation: obs,
+        status,
+        observations: listed.observations,
+        imageUri: uri,
+      });
+    } catch (e) {
+      const text = String(e);
+      if (cropPart === "FRUIT" && (text.includes("503") || text.toLowerCase().includes("fruit"))) {
+        Alert.alert(
+          "Fruit model unavailable",
+          cfg.pendingMessage ??
+            "Fruit severity CNN could not be loaded. Check FRUIT_SEVERITY_MODEL_PATH."
+        );
+      } else {
+        Alert.alert("Upload failed", text);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <StatusBar style="light" />
+      <LeafScanAppHeader
+        title={cfg.title}
+        badge={`OBS ${observationNumber}`}
+        onBack={onBack}
+      />
+      <ScrollView contentContainerStyle={styles.content}>
+        <ObservationProgress current={observationNumber} />
+        <Text style={styles.title}>Observation {observationNumber}</Text>
+        <Text style={styles.meta}>Case ID: {caseData.case_id}</Text>
+        <Text style={styles.meta}>{cfg.shortLabel} · disease context: external default</Text>
+
+        <ObservationUploadCard
+          cropPart={cropPart}
+          observationNumber={observationNumber}
+          dateLabel={new Date().toLocaleDateString(undefined, {
+            weekday: "short",
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })}
+          previewUri={previewUri}
+          validationMessage={validationMessage}
+          loading={loading}
+          onPick={pickImage}
+          onUpload={() => {
+            if (!previewUri) return;
+            void runUpload(previewUri, false);
+          }}
+        />
+
+        <Pressable
+          style={styles.link}
+          onPress={() =>
+            Alert.alert(
+              "Disease context",
+              "Disease identification belongs to another component. This app sends a modality default required by the observation API."
+            )
+          }
+        >
+          <Text style={styles.linkText}>About disease context</Text>
+        </Pressable>
+      </ScrollView>
+
+      <MismatchConfirmationModal
+        visible={!!pending}
+        consistency={pending?.consistency ?? ""}
+        similarity={pending?.similarity}
+        reason={pending?.reason}
+        loading={loading}
+        onConfirm={() => {
+          if (!pending) return;
+          void runUpload(pending.uri, true);
+        }}
+        onCancel={() => {
+          setPending(null);
+          setValidationMessage("Upload cancelled.");
+        }}
+      />
+    </SafeAreaView>
+  );
+}
+
+function makeStyles(p: MonitoringPalette) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: p.bg },
+    content: { padding: 18, paddingBottom: 40 },
+    title: { color: p.textPrimary, fontSize: 22, fontWeight: "800", marginBottom: 4 },
+    meta: { color: p.textMuted, marginBottom: 4 },
+    link: { marginTop: 16, alignItems: "center" },
+    linkText: { color: p.infoText, fontWeight: "600" },
+  });
+}

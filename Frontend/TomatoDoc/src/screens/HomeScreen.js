@@ -186,10 +186,20 @@ export default function HomeScreen({ navigation }) {
         <OptionCard
           emoji="🦠"
           thumbStyle={styles.thumbRed}
-          title="Disease in Leaf"
-          subtitle="Pathology diagnostics"
-          locked
+          title="Disease Monitoring"
+          subtitle="Severity & recovery tracking over time"
           delay={120}
+          onPress={() => navigation.navigate('MonitoringModule')}
+        />
+        <OptionCard
+          emoji="🍃"
+          thumbStyle={styles.thumbGreen}
+          title="Disease in Tomato Leaf"
+          subtitle="Leaf severity & recovery monitoring"
+          delay={150}
+          onPress={() =>
+            navigation.navigate('MonitoringModule', { initialCropPart: 'LEAF' })
+          }
         />
         <OptionCard
           emoji="🍅"
