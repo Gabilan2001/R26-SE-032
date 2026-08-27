@@ -13,6 +13,7 @@ import StatsScreen from '../screens/StatsScreen';
 import FruitScanScreen from '../screens/FruitScanScreen';
 import FruitResultScreen from '../screens/FruitResultScreen';
 import FruitDetailScreen from '../screens/FruitDetailScreen';
+import DiseaseMonitoringFlowScreen from '../modules/diseaseMonitoring/DiseaseMonitoringFlowScreen';
 import { UIThemeContext } from '../context/UIThemeContext';
 
 const Stack = createNativeStackNavigator();
@@ -146,6 +147,11 @@ export default function AppNavigator() {
       />
       <Stack.Screen name="NutrientModule" component={NutrientModuleTabs} options={{ headerShown: false }} />
       <Stack.Screen name="FruitModule" component={FruitModuleTabs} options={{ headerShown: false }} />
+      <Stack.Screen
+        name="MonitoringModule"
+        component={DiseaseMonitoringFlowScreen}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name="Result"
         component={ResultScreen}
