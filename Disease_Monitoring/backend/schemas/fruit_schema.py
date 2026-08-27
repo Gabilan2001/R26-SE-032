@@ -6,11 +6,12 @@ class FruitUploadResponse(BaseModel):
     session_id:   str
     image_valid:  bool
 
+    day:          int     # 1, 3, or 7
     # Gate rejection
     rejection_reason: Optional[str] = None
 
     # ── U-Net multiclass segmentation ─────────────────────────────────────────
-    severity:    float   # overall disease %  (metadata formula)
+    severity:    str     # overall disease level: LOW | MEDIUM | HIGH
     confidence:  float   # mean predicted-class prob on disease pixels
 
     dominant_disease:            str    # "anthracnose" | "blossom_end_rot" | "spotted_wilt_virus" | "none" | "unknown"
@@ -27,3 +28,9 @@ class FruitUploadResponse(BaseModel):
 
     # ── Weather alert message ─────────────────────────────────────────────────
     weather_alert: Optional[str] = None
+    weather_details:     Optional[dict] = None
+
+    # ── Monitoring & RAG ──────────────────────────────────────────────────────
+    daily_status:        Optional[str] = None
+    daily_alerts:        list = []
+    treatment_advice:    Optional[str] = None
