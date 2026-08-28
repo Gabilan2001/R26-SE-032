@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import ResultCard from '../components/ResultCard';
+import TreatmentAdviceCard from '../components/TreatmentAdviceCard';
 import { saveHistory } from '../api/historyApi';
 import { exportScanReport } from '../utils/reportExport';
 import { AuthContext } from '../context/AuthContext';
@@ -230,6 +231,8 @@ export default function ResultScreen({ route, navigation }) {
 
             {/* Inline ResultCard (keeps existing component) */}
             <ResultCard result={result} presentationMode={presentationMode} />
+
+            <TreatmentAdviceCard predictedClass={result.class} variant="nutrient" />
 
             {/* Recommendations */}
             {result.recommendations?.length > 0 && (

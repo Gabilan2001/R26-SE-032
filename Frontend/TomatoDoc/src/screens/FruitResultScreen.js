@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import FruitResultCard from '../components/FruitResultCard';
+import TreatmentAdviceCard from '../components/TreatmentAdviceCard';
 import { saveFruitHistory } from '../api/fruitHistoryApi';
 import { exportScanReport } from '../utils/reportExport';
 import { AuthContext } from '../context/AuthContext';
@@ -273,6 +274,8 @@ export default function FruitResultScreen({ route, navigation }) {
 
             {/* Existing FruitResultCard (keeps component) */}
             <FruitResultCard result={result} presentationMode={presentationMode} />
+
+            <TreatmentAdviceCard predictedClass={result.class} variant="fruit" />
 
             {/* Symptoms */}
             {symptomList.length > 0 && (
