@@ -1,5 +1,5 @@
 /**
- * Tomato Price Advisor — farmer-friendly UI (no technical details shown).
+ * Tomato Price Advisor — farmer-friendly UI logic.
  */
 
 function $(id) {
@@ -62,7 +62,7 @@ async function apiJson(path, options = {}) {
   return body;
 }
 
-/** Resolved market name for APIs (same string backend uses for locations). */
+/** Resolved market name for APIs. */
 function resolvedMarket() {
   const sel = $("market-select");
   if (!sel || !sel.value) return "";
@@ -72,135 +72,71 @@ function resolvedMarket() {
   return sel.value.trim();
 }
 
-/** Display label for header/cards (e.g. Colombo (Pettah)). */
+/** Display label for header/cards. */
 function displayMarketLabel(apiName) {
   if (!apiName) return "";
   if (apiName === "Colombo") return "Colombo (Pettah)";
   return apiName;
 }
 
-function weatherLoadingHtml(placeLabel, opts) {
+function weatherLoadingHtml(placeLabel) {
   const p = escapeHtml(placeLabel);
-  const throughDate =
-    opts && opts.forSellingDate
-      ? " through your selling date"
-      : "";
   return `
     <div class="loading-panel loading-panel--weather" role="status" aria-live="polite">
       <div class="loading-spinner-lg" aria-hidden="true"></div>
-      <p class="loading-title">Getting weather…</p>
-      <p class="loading-sub">Fetching the forecast for <strong>${p}</strong>${throughDate}. This usually takes a few seconds.</p>
-      <div class="skeleton-block" aria-hidden="true">
-        <div class="skeleton-line"></div>
-        <div class="skeleton-line skeleton-line--mid"></div>
-        <div class="skeleton-line skeleton-line--short"></div>
-      </div>
+      <p class="loading-title">Loading weather data…</p>
+      <p class="loading-sub">Analyzing regional weather signals across Anuradhapura, Badulla, Dambulla, and Nuwara Eliya (${p})…</p>
     </div>
   `;
 }
 
-function newsLoadingHtml(placeLabel) {
-  const p = escapeHtml(placeLabel);
+
+function newsLoadingHtml() {
   return `
     <div class="loading-panel loading-panel--news" role="status" aria-live="polite">
       <div class="loading-spinner-lg loading-spinner-lg--amber" aria-hidden="true"></div>
-      <p class="loading-title">Loading market news…</p>
-      <p class="loading-sub">Scanning recent headlines for <strong>${p}</strong>. Please wait…</p>
-      <div class="skeleton-block" aria-hidden="true">
-        <div class="skeleton-line"></div>
-        <div class="skeleton-line skeleton-line--short"></div>
-      </div>
+      <p class="loading-title">Loading market intelligence…</p>
     </div>
   `;
 }
 
 const WEATHER_IMPACT = {
-  heavy_rain: "⚠️ Heavy rain may reduce supply — prices may rise",
-  moderate_rain: "🌧️ Some rain expected, slight supply impact",
-  light_rain: "🌦️ Light rain only, minimal impact",
-  dry: "☀️ Dry conditions, normal supply expected",
-  drought_risk: "⚠️ Dry spell may affect future crop supply",
-  unknown: "Weather details are limited right now; we still use the latest data we have.",
+  heavy_rain: "⚠️ Heavy rain in growing regions may reduce supply — prices may rise",
+  moderate_rain: "🌧️ Rainfall in growing regions may slightly affect harvest supply",
+  light_rain: "🌦️ Light rain in growing regions; minimal harvest disruption expected",
+  dry: "☀️ Dry conditions in growing regions; normal harvest supply expected",
+  drought_risk: "⚠️ Prolonged dry spell in growing regions may tighten future crop supply",
+  unknown: "Weather monitoring active.",
 };
 
 const NEWS_MOOD = {
   very_negative: "⚠️ Bad news for supply — prices may rise",
-  negative: "📉 Some negative signals — prices may increase slightly",
+  negative: "📉 Negative market signals detected",
   neutral: "📊 Normal market conditions",
-  positive: "✅ Good news for market — prices may stay steadier",
-  very_positive: "🎉 Great market conditions — can be a good time to sell",
-};
-
-const NEWS_MEANS = {
-  very_negative: "Prices may be unpredictable this week. Consider selling soon if your tomatoes are ready.",
-  negative: "Keep an eye on buyers and transport; pressure may build on prices.",
-  neutral: "No strong red flags in the headlines we saw. Use the price forecast as your main guide.",
-  positive: "Headlines look supportive. You may have a bit more room on timing.",
-  very_positive: "News tone is encouraging. Still check the day-by-day prices below.",
-};
-
-/** Plain wording for “why” section (no emoji). */
-const NEWS_SENTIMENT_PLAIN = {
-  very_negative: "worrying signals",
-  negative: "some caution in the news",
-  neutral: "a calm tone in the news",
-  positive: "supportive signals",
-  very_positive: "very supportive signals",
+  positive: "✅ Supportive market signals",
+  very_positive: "🎉 Encouraging market conditions",
 };
 
 function rainfallLine(daily) {
-  if (!Array.isArray(daily) || daily.length === 0) return "Rainfall: not available for this week.";
-  const total = daily.reduce((a, b) => a + Number(b || 0), 0);
+  if (!Array.isArray(daily) || daily.length === 0) return "Rainfall: N/A";
   const mx = Math.max(...daily.map((x) => Number(x || 0)));
-  if (mx > 50) return `🌧️ Rainfall: heavy (peak day up to ${mx.toFixed(1)} mm)`;
-  if (mx > 20) return `🌧️ Rainfall: moderate (peak day up to ${mx.toFixed(1)} mm)`;
-  if (mx > 5) return `🌦️ Rainfall: light (peak day up to ${mx.toFixed(1)} mm)`;
-  if (total < 1) return `🌧️ Rainfall: low (${total.toFixed(1)} mm over the week)`;
-  return `🌧️ Rainfall: low (${total.toFixed(1)} mm over the week)`;
+  if (mx > 50) return `🌧️ Heavy rain (up to ${mx.toFixed(1)} mm)`;
+  if (mx > 20) return `🌧️ Moderate rain (up to ${mx.toFixed(1)} mm)`;
+  if (mx > 5) return `🌦️ Light rain (up to ${mx.toFixed(1)} mm)`;
+  return `☀️ Low/Dry (${mx.toFixed(1)} mm)`;
 }
 
-function conditionsLabel(signal) {
-  const s = (signal || "").toLowerCase();
-  if (s === "dry") return "Dry";
-  if (s === "light_rain") return "Light rain at times";
-  if (s === "moderate_rain") return "Wet periods";
-  if (s === "heavy_rain") return "Very wet";
-  if (s === "drought_risk") return "Very dry";
-  return "Mixed";
-}
-
-function renderWeatherCard(data, displayArea) {
-  const title = $("weather-title");
+/** Render Multi-Station Regional Weather Impact Card into Left Sidebar #weather-body. */
+function renderWeatherCard(regImpact) {
   const body = $("weather-body");
-  if (!title || !body) return;
-  const area = data.area_used_for_forecast || displayArea || "your area";
-  title.textContent = `☀️ Weather near ${area}`;
-  const temp = Number(data.expected_temperature_celsius);
-  const tempStr = Number.isFinite(temp) ? `${temp.toFixed(1)}°C` : "—";
-  const impact = WEATHER_IMPACT[data.weather_signal] || WEATHER_IMPACT.unknown;
-  const rainLine = rainfallLine(data.daily_rainfall);
-  const cond = conditionsLabel(data.weather_signal);
-  body.innerHTML = `
-    <div class="weather-stats">
-      <div class="stat-tile">
-        <span class="stat-label">Temperature</span>
-        <span class="stat-value">${escapeHtml(tempStr)}</span>
-      </div>
-      <div class="stat-tile stat-tile-wide">
-        <span class="stat-label">Rainfall</span>
-        <span class="stat-value stat-value-sm">${escapeHtml(rainLine)}</span>
-      </div>
-      <div class="stat-tile">
-        <span class="stat-label">Conditions</span>
-        <span class="stat-value">${escapeHtml(cond)}</span>
-      </div>
-    </div>
-    <div class="weather-impact">
-      <p class="impact-heading">Impact on tomato supply</p>
-      <p class="impact-body">${escapeHtml(impact)}</p>
-    </div>
-  `;
+  if (!body || !regImpact) return;
+
+  const html = buildRegionalWeatherCard(regImpact);
+  if (html) {
+    body.innerHTML = html;
+  }
 }
+
 
 function sentimentKey(raw) {
   const k = String(raw || "neutral").toLowerCase().replace(/\s+/g, "_");
@@ -213,17 +149,22 @@ function renderNewsCard(data) {
   if (!body) return;
   const sent = sentimentKey(data.news_sentiment);
   const mood = NEWS_MOOD[sent] || NEWS_MOOD.neutral;
-  const means = NEWS_MEANS[sent] || NEWS_MEANS.neutral;
   const heads = (data.relevant_headlines || []).slice(0, 5);
   const list =
     heads.length > 0
       ? `<ul class="headline-list">${heads.map((h) => `<li>${escapeHtml(h)}</li>`).join("")}</ul>`
-      : "<p>No short headlines matched this time — the market still looks calm in the news we checked.</p>";
+      : "<p class='text-muted-sm'>No major supply alerts reported in recent news monitoring.</p>";
+
   body.innerHTML = `
-    <p class="mood-line">Overall mood: ${escapeHtml(mood)}</p>
-    <p><strong>Latest headlines:</strong></p>
-    ${list}
-    <p class="meaning-line"><strong>What this means for you:</strong><br />${escapeHtml(means)}</p>
+    <div class="news-compact-row">
+      <span class="news-mood-badge">${escapeHtml(mood)}</span>
+    </div>
+    <details class="news-headlines-details" style="margin-top: 0.5rem;">
+      <summary class="toggle-link">Show Headlines (${heads.length})</summary>
+      <div class="headline-wrap-inner" style="margin-top: 0.4rem;">
+        ${list}
+      </div>
+    </details>
   `;
 }
 
@@ -232,76 +173,13 @@ function parsePriceList(arr) {
   return arr.map((x) => Number.parseFloat(String(x))).filter((n) => Number.isFinite(n));
 }
 
-function dayLabel(i) {
-  if (i === 0) return "Tomorrow";
-  return `Day ${i + 1}`;
-}
-
-/** YYYY-MM-DD → readable label (avoid UTC shift). */
-function formatSellingDate(iso) {
-  if (!iso || typeof iso !== "string") return "";
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso.trim());
-  if (!m) return iso;
-  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("en-LK", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function refreshTargetDateBounds() {
-  const inp = $("target-date");
-  if (!inp) return;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const min = new Date(today);
-  min.setDate(min.getDate() + 1);
-  const max = new Date(today);
-  max.setDate(max.getDate() + 16);
-  inp.min = min.toISOString().slice(0, 10);
-  inp.max = max.toISOString().slice(0, 10);
-  if (inp.value && (inp.value < inp.min || inp.value > inp.max)) {
-    inp.value = "";
+function dayLabel(i, forecastDates) {
+  const dateStr = Array.isArray(forecastDates) && forecastDates[i] ? forecastDates[i] : "";
+  const num = i + 1;
+  if (dateStr) {
+    return `Day ${num} <span style="font-size: 0.85em; color: var(--text-muted); font-weight: normal;">(${escapeHtml(dateStr)})</span>`;
   }
-}
-
-/** Index in predicted series closest to focal headline price. */
-function focalRowIndex(pred, focalPrice) {
-  if (!pred.length || !Number.isFinite(focalPrice)) return -1;
-  let best = 0;
-  let bestDiff = Infinity;
-  pred.forEach((p, i) => {
-    const diff = Math.abs(p - focalPrice);
-    if (diff < bestDiff) {
-      bestDiff = diff;
-      best = i;
-    }
-  });
-  return best;
-}
-
-function trendBaselineToFocal(baseline, focal) {
-  if (!Number.isFinite(focal)) {
-    return { label: "➡️ Prices steady", className: "trend-flat", key: "stable" };
-  }
-  if (baseline == null || !Number.isFinite(baseline) || Math.abs(baseline) < 1e-6) {
-    return { label: "➡️ Prices steady", className: "trend-flat", key: "stable" };
-  }
-  const ch = (focal - baseline) / baseline;
-  if (ch > 0.02) return { label: "📈 Prices rising", className: "trend-up", key: "up" };
-  if (ch < -0.02) return { label: "📉 Prices falling", className: "trend-down", key: "down" };
-  return { label: "➡️ Prices steady", className: "trend-flat", key: "stable" };
-}
-
-function friendlyTargetNote(raw) {
-  if (!raw || typeof raw !== "string") return "";
-  if (raw.includes("capped at")) {
-    return "That date is further than 16 days ahead. We show prices for the next 16 days and use the last day for the amount on your date.";
-  }
-  return raw;
+  return i === 0 ? "Tomorrow" : `Day ${num}`;
 }
 
 function pctChange(prev, cur) {
@@ -309,162 +187,251 @@ function pctChange(prev, cur) {
   return ((cur - prev) / prev) * 100;
 }
 
-/** Trend vs last known price (or first forecast day if no history). */
-function trendFromForecast(baseline, prices) {
-  if (!prices.length) return { label: "➡️ Prices steady", className: "trend-flat", key: "stable" };
-  const last = prices[prices.length - 1];
-  const start = baseline != null && Number.isFinite(baseline) ? baseline : prices[0];
-  const denom = Math.abs(start) || 1;
-  const ch = (last - start) / denom;
-  if (ch > 0.02) return { label: "📈 Prices rising", className: "trend-up", key: "up" };
-  if (ch < -0.02) return { label: "📉 Prices falling", className: "trend-down", key: "down" };
-  return { label: "➡️ Prices steady", className: "trend-flat", key: "stable" };
-}
-
+/** Farmer-facing simple copy in English with plain Sinhala subtitle. */
 function adviceCopy(data) {
-  const fr = data.farmer_recommendation || {};
-  const action = String(fr.action || "").toUpperCase();
-  const risk = String(fr.market_risk || "").toUpperCase();
-  const unc = String(data.news_uncertainty || "").toLowerCase();
+  const rec = String(data.recommendation || "").toUpperCase();
 
-  const holdish =
-    action === "WAIT" &&
-    (risk === "HIGH" || unc === "elevated" || unc === "very_high");
-
-  if (action === "SELL_NOW") {
+  if (rec.includes("MONITOR")) {
     return {
-      title: "✅ SELL NOW",
-      text: "Prices are expected to soften over the days ahead. Best to sell as soon as you can get a fair buyer.",
+      title: "⚠️ MONITOR — Market Anomaly Detected",
+      textEn: "Current market prices are behaving unpredictably right now. Keep a close eye on daily buyer offers before committing to a large sale.",
+      textSi: "වෙළඳපොළ මිල ගණන් දැනට අවිනිශ්චිත තත්ත්වයක පවතී. විශාල වශයෙන් අලෙවි කිරීමට පෙර දිනපතා වෙළඳපොළ තොරතුරු පරීක්ෂා කරන්න.",
+      bannerClass: "banner-monitor",
     };
   }
-  if (holdish) {
+  if (rec.includes("HOLD")) {
     return {
-      title: "🤔 HOLD",
-      text: "The market looks uncertain. Watch prices for two or three more days before you decide.",
+      title: "📈 HOLD — Higher Returns Expected",
+      textEn: "Prices are projected to rise steadily over the next two weeks. Holding off on immediate sales is recommended to capture higher profit.",
+      textSi: "ඉදිරි සති දෙක තුළ තක්කාලි මිල ඉහළ යනු ඇතැයි අපේක්ෂා කෙරේ. වැඩි ලාභයක් ලබා ගැනීම සඳහා දැනට අලෙවි කිරීම අත්හිටුවීම සුදුසුය.",
+      bannerClass: "banner-hold",
     };
   }
-  if (action === "WAIT") {
+  if (rec.includes("SELL NOW") && !rec.includes("HOLD")) {
     return {
-      title: "⏳ WAIT",
-      text: "Prices may improve a little if you can keep quality for a few more days. Only wait if storage is safe.",
+      title: "🚨 SELL NOW — Prices Softening",
+      textEn: "Prices are projected to fall over the next two weeks. Selling immediately is recommended to protect your earnings before prices drop further.",
+      textSi: "ඉදිරි සති දෙක තුළ තක්කාලි මිල පහළ යාමට ඉඩ ඇත. මිල තවත් අඩුවීමට පෙර වහාම අලෙවි කිරීම සුදුසුය.",
+      bannerClass: "banner-sell",
     };
   }
   return {
-    title: "💡 OUR ADVICE",
-    text: fr.sell_timing_hint || "Use the day-by-day table and your own judgement.",
+    title: "➡️ SELL NOW OR HOLD — Prices Expected to Stay Stable",
+    textEn: "Prices are projected to remain steady within normal daily market fluctuations. You can sell at your convenience.",
+    textSi: "තක්කාලි මිල සාමාන්‍ය මට්ටමේ ස්ථාවරව පවතිනු ඇතැයි අපේක්ෂා කෙරේ. ඔබට පහසු පරිදි අලෙවි කළ හැක.",
+    bannerClass: "banner-stable",
   };
 }
 
-function buildWhySection(data, displayArea) {
-  const area = displayArea || data.location || "your area";
-  const ws = data.weather_signal || "";
-  const weatherSentence =
-    ws === "dry"
-      ? `Dry conditions near ${area}. Normal tomato supply is more likely this week.`
-      : ws === "light_rain"
-        ? `Light rain near ${area}. Only a small effect on harvest and transport is expected.`
-        : ws === "moderate_rain"
-          ? `Some wet weather near ${area}. Transport and picking may slow slightly.`
-          : ws === "heavy_rain"
-            ? `Heavy rain near ${area}. Harvest delays can tighten supply.`
-            : ws === "drought_risk"
-              ? `A long dry spell near ${area}. Future supply may get tighter if it continues.`
-              : `We combined the latest weather picture for ${area} with your price outlook.`;
+/** Render Collapsible Technical Details for Researchers / Supervisors. */
+function buildTechnicalDetails(data, displayArea) {
+  const area = displayArea || data.series || data.location || "your area";
+  const reasoningText = data.reasoning || "";
+  const d14Rain = data.d14_cum_rain_mm != null ? data.d14_cum_rain_mm.toFixed(1) : "—";
+  const weatherLevel = (data.weather_flag_level || "none").toUpperCase();
+  const newsLevel = (data.news_flag_level || "none").toUpperCase();
+  const isAnomaly = data.is_anomaly ? "YES (Market shock detected)" : "NO (Normal market behavior)";
 
-  const news = data.news_market_analysis || {};
-  const nSent = sentimentKey(news.news_sentiment);
-  const nPlain = NEWS_SENTIMENT_PLAIN[nSent] || "mixed signals";
-  const art = Number(news.articles_analyzed) || 0;
-  const newsPara =
-    art > 0
-      ? `Market news shows ${nPlain}. We read ${art} recent article${art === 1 ? "" : "s"} about Sri Lanka food and farming.`
-      : "Market news was quiet in the articles we checked, so prices lean more on weather and recent selling levels.";
+  const lstmShare = data.driver_share_lstm_pct != null ? data.driver_share_lstm_pct.toFixed(0) : "100";
+  const weatherShare = data.driver_share_weather_pct != null ? data.driver_share_weather_pct.toFixed(0) : "0";
 
-  const past = parsePriceList(data.past_prices_used);
-  const pred = parsePriceList(data.predicted_prices);
-  const lastObs = past.length ? past[past.length - 1] : null;
-  const focal = Number(data.predicted_price);
-  let trendPara = "Recent selling levels and the week-ahead outlook were compared to give you this table.";
-  if (lastObs != null && Number.isFinite(focal)) {
-    if (focal < lastObs * 0.97) {
-      trendPara =
-        "Recent prices have been relatively strong. Our analysis expects them to ease as more tomatoes reach the markets.";
-    } else if (focal > lastObs * 1.03) {
-      trendPara =
-        "Recent prices have been on the lower side. Our analysis sees room for buyers to pay a bit more in the coming days.";
-    } else {
-      trendPara = "Recent prices and the week ahead look close together — no sharp jump or drop stands out.";
-    }
+  const shapData = data.shap_explanation;
+  let shapHtml = "";
+  if (shapData && shapData.summary_sentence) {
+    const rankedList = Array.isArray(shapData.ranked_timesteps) ? shapData.ranked_timesteps.slice(0, 5) : [];
+    const maxVal = Math.max(...rankedList.map(t => Math.abs(t.shap_contribution_lkr)), 0.01);
+
+    const itemsHtml = rankedList.map(t => {
+      const val = t.shap_contribution_lkr;
+      const isPos = val >= 0;
+      const sign = isPos ? "+" : "";
+      const color = isPos ? "#10b981" : "#ef4444";
+      const pctWidth = Math.min(Math.round((Math.abs(val) / maxVal) * 100), 100);
+      const fillClass = isPos ? "shap-bar-fill-pos" : "shap-bar-fill-neg";
+
+      return `
+        <div class="shap-bar-item">
+          <div class="shap-bar-head">
+            <span><strong>${escapeHtml(t.timestep_label)}</strong> (${t.observed_price_lkr.toFixed(2)} LKR/kg)</span>
+            <span style="color: ${color}; font-weight: 700;">${sign}${val.toFixed(2)} LKR</span>
+          </div>
+          <div class="shap-bar-track">
+            <div class="${fillClass}" style="width: ${pctWidth}%;"></div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    shapHtml = `
+      <div class="shap-card">
+        <p class="shap-title">🔍 LSTM SHAP Timestep Attributions</p>
+        <p class="shap-summary"><strong>${escapeHtml(shapData.summary_sentence)}</strong></p>
+        <div class="shap-bars-container">
+          ${itemsHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  const conf = data.is_anomaly ? 0.50 : 0.90;
+  const pct = Math.round(conf * 100);
+
+  return `
+    <details class="tech-details-card" style="margin-top: 1.2rem;">
+      <summary class="tech-summary">⚙️ Technical Details (For Researchers & Supervisors)</summary>
+      <div class="tech-details-body" style="padding-top: 1rem;">
+        <div class="why-item">
+          <p class="why-label">Decision Reasoning Engine Text</p>
+          <p class="why-p"><strong>${escapeHtml(reasoningText)}</strong></p>
+        </div>
+        ${shapHtml}
+        <div class="why-item">
+          <p class="why-label">Forecast Driver Deconstruction</p>
+          <p class="why-p">Base LSTM Price Momentum: <strong>${lstmShare}%</strong> | Weather Calibration: <strong>${weatherShare}%</strong></p>
+        </div>
+        <div class="why-item">
+          <p class="why-label">14-Day Lagged Weather Signal ($\Delta mm$ Anuradhapura)</p>
+          <p class="why-p">Flag Level: <strong>${escapeHtml(weatherLevel)}</strong> (${d14Rain} mm cumulative rain change)</p>
+        </div>
+        <div class="why-item">
+          <p class="why-label">Price Residual Anomaly Check (IsolationForest)</p>
+          <p class="why-p">Anomaly Flag: <strong>${escapeHtml(isAnomaly)}</strong> (Score: ${data.anomaly_score != null ? data.anomaly_score.toFixed(4) : "—"})</p>
+        </div>
+        <div class="why-item">
+          <p class="why-label">Heuristic Model Confidence Score</p>
+          <p class="why-p">Confidence Rating: <strong>${pct}%</strong> (Heuristic flag based on residual bounds)</p>
+        </div>
+      </div>
+    </details>
+  `;
+}
+
+/** Render Multi-Station Regional Weather Risk Section for Farmers. */
+function buildRegionalWeatherCard(regImpact) {
+  if (!regImpact || !regImpact.growing_region_weather) return "";
+  const gw = regImpact.growing_region_weather;
+  const regions = gw.regions || {};
+  const season = regImpact.season || "Yala";
+  const overallRisk = regImpact.overall_weather_risk || "LOW";
+  const primaryRegion = regImpact.primary_region || "Badulla";
+  const explanation = regImpact.explanation || "";
+
+  const riskBadgeClass = overallRisk === "SEVERE" ? "badge-danger" : (overallRisk === "MODERATE" ? "badge-warning" : "badge-success");
+
+  let stationCardsHtml = "";
+  for (const [stName, stData] of Object.entries(regions)) {
+    const rLvl = stData.risk_level || "LOW";
+    const stBadgeClass = rLvl === "SEVERE" ? "badge-danger" : (rLvl === "MODERATE" ? "badge-warning" : "badge-success");
+    const rain21 = stData.rain_21d_cum_mm != null ? stData.rain_21d_cum_mm.toFixed(1) : "—";
+    const zScore = stData.rain_21d_z != null ? (stData.rain_21d_z >= 0 ? "+" : "") + stData.rain_21d_z.toFixed(1) + "σ" : "—";
+    const temp3d = stData.temp_3d_avg_c != null ? stData.temp_3d_avg_c.toFixed(1) : "—";
+    const weightPct = Math.round((stData.seasonal_weight || 0.25) * 100);
+
+    stationCardsHtml += `
+      <div style="background: var(--bg-card, #f8fafc); border: 1px solid var(--border-soft, #e2e8f0); border-radius: 8px; padding: 0.65rem; flex: 1 1 45%; min-width: 130px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;">
+          <strong style="font-size: 0.9rem;">📍 ${escapeHtml(stName)}</strong>
+          <span class="badge ${stBadgeClass}" style="font-size: 0.7rem; padding: 1px 5px;">${escapeHtml(rLvl)}</span>
+        </div>
+        <div style="font-size: 0.82rem; color: var(--text-muted, #64748b);">
+          <div>21d Rain: <strong>${rain21} mm</strong> (${zScore})</div>
+          <div>3d Temp: <strong>${temp3d} °C</strong> | Weight: <strong>${weightPct}%</strong></div>
+        </div>
+      </div>
+    `;
+  }
+
+  const storage = regImpact.market_storage_impact || {};
+  const storageLoc = storage.market_location || "";
+  const storageTemp = storage.ambient_temp_3d_avg_c != null ? storage.ambient_temp_3d_avg_c.toFixed(1) : "—";
+  const storageSpoilage = storage.spoilage_risk_level || "LOW";
+  const storageUrgency = storage.selling_urgency || "NORMAL";
+  const storageBadgeClass = storageSpoilage === "HIGH" ? "badge-danger" : (storageSpoilage === "MEDIUM" ? "badge-warning" : "badge-success");
+
+  let storageHtml = "";
+  if (storageLoc) {
+    storageHtml = `
+      <div style="margin-top: 0.65rem; padding-top: 0.65rem; border-top: 1px dashed var(--border-soft, #e2e8f0);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+          <strong style="font-size: 0.88rem; color: var(--text-heading, #0f172a);">🏪 Market Storage Impact (${escapeHtml(storageLoc)})</strong>
+          <span class="badge ${storageBadgeClass}" style="font-size: 0.7rem; padding: 1px 5px;">Spoilage: ${escapeHtml(storageSpoilage)}</span>
+        </div>
+        <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); margin: 0;">
+          3-Day Ambient Temp: <strong>${storageTemp} °C</strong> | Selling Urgency: <strong>${escapeHtml(storageUrgency)}</strong>
+        </p>
+      </div>
+    `;
   }
 
   return `
-    <div class="why-block">
-      <h4>Why is this the forecast?</h4>
-      <div class="why-item">
-        <p class="why-label">Weather</p>
-        <p class="why-p">${escapeHtml(weatherSentence)}</p>
+    <div class="card card-pad" style="margin-bottom: 1rem; background: var(--bg-surface, #ffffff); border: 1px solid var(--border-soft, #e2e8f0); border-radius: 12px; padding: 0.9rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-soft, #e2e8f0); padding-bottom: 0.4rem; margin-bottom: 0.65rem;">
+        <h3 style="margin: 0; font-size: 0.98rem; color: var(--text-heading, #0f172a);">
+          🌱 Sri Lankan Tomato Supply Weather Impact
+        </h3>
+        <span class="badge ${riskBadgeClass}" style="font-size: 0.78rem;">Season: ${escapeHtml(season)} | Risk: ${escapeHtml(overallRisk)}</span>
       </div>
-      <div class="why-item">
-        <p class="why-label">Market news</p>
-        <p class="why-p">${escapeHtml(newsPara)}</p>
+      <p style="font-size: 0.84rem; color: var(--text-body, #334155); margin-bottom: 0.65rem;">
+        Primary Signal: <strong>${escapeHtml(primaryRegion)} 21-Day Rainfall Anomaly</strong>
+      </p>
+      <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.65rem;">
+        ${stationCardsHtml}
       </div>
-      <div class="why-item">
-        <p class="why-label">Price trend</p>
-        <p class="why-p">${escapeHtml(trendPara)}</p>
-      </div>
-      <div class="remember-box">
-        Remember: this is a forecast, not a guarantee. Prices can change because of sudden rain, transport strikes, or import news.
+      ${storageHtml}
+      <div style="margin-top: 0.65rem; background: rgba(16, 185, 129, 0.08); border-left: 3px solid #10b981; padding: 0.5rem 0.7rem; border-radius: 4px; font-size: 0.82rem; color: var(--text-body, #334155);">
+        <strong>Research Analysis:</strong> ${escapeHtml(explanation)}
       </div>
     </div>
   `;
 }
 
-function confidenceLabel(score) {
-  const s = Number(score);
-  if (!Number.isFinite(s)) return "We are moderately sure about this outlook.";
-  if (s >= 0.75) return "HIGH confidence in this forecast";
-  if (s >= 0.5) return "MEDIUM confidence — keep checking local buyers";
-  return "LOWER confidence — use this as one signal among many";
-}
 
 function renderForecast(data) {
   const wrap = $("forecast-result");
   if (!wrap) return;
-  const displayArea = displayMarketLabel(data.location || resolvedMarket());
-  const pred = parsePriceList(data.predicted_prices);
-  const past = parsePriceList(data.past_prices_used);
-  const baseline = past.length ? past[past.length - 1] : null;
-  const currentApprox =
-    baseline != null ? Math.round(baseline) : pred.length ? Math.round(pred[0]) : "—";
+  wrap.hidden = false;
 
-  const hasTarget = Boolean(data.target_date && String(data.target_date).trim());
-  const focalPrice = Number(data.predicted_price);
+  if (data.regional_weather_impact) {
+    renderWeatherCard(data.regional_weather_impact);
+  }
+
+
+  const displayArea = displayMarketLabel(data.series || data.location || resolvedMarket());
+
+
+  const pred = Array.isArray(data.weather_adjusted_forecast) && data.weather_adjusted_forecast.length
+    ? data.weather_adjusted_forecast
+    : parsePriceList(data.predicted_prices);
+
+  const baseline = data.current_price_lkr != null ? data.current_price_lkr : (pred.length ? pred[0] : null);
+  const currentApprox = baseline != null ? Math.round(baseline) : "—";
+
+  const focalPrice = Number(data.day1_forecast_lkr || data.predicted_price || (pred.length ? pred[0] : 0));
   const focalRounded = Number.isFinite(focalPrice) ? Math.round(focalPrice) : "—";
-  const focalIdx = hasTarget && Number.isFinite(focalPrice) ? focalRowIndex(pred, focalPrice) : -1;
 
-  const day7 = pred.length >= 7 ? Math.round(pred[6]) : pred.length ? Math.round(pred[pred.length - 1]) : "—";
-  const trend = hasTarget
-    ? trendBaselineToFocal(baseline, focalPrice)
-    : trendFromForecast(baseline, pred);
+  const day14 = data.day14_forecast_lkr != null ? Math.round(data.day14_forecast_lkr) : (pred.length ? Math.round(pred[pred.length - 1]) : "—");
+  
+  // Calculate 14-day trend arrow & % change
+  const totalChgPct = baseline != null && baseline > 0 ? ((day14 - baseline) / baseline) * 100 : 0;
+  let trendArrow = "➡️";
+  let trendClass = "trend-flat";
+  if (totalChgPct > 2.0) {
+    trendArrow = "📈";
+    trendClass = "trend-up";
+  } else if (totalChgPct < -2.0) {
+    trendArrow = "📉";
+    trendClass = "trend-down";
+  }
+  const totalChgStr = `${totalChgPct >= 0 ? "+" : ""}${totalChgPct.toFixed(1)}%`;
 
   const advice = adviceCopy(data);
-  const conf = Number(data.confidence_score);
-  const pct = Number.isFinite(conf) ? Math.round(Math.min(1, Math.max(0, conf)) * 100) : 50;
 
-  const midLabel = hasTarget ? "On your date" : "About day 7";
-  const midValue = hasTarget
-    ? `${escapeHtml(formatSellingDate(String(data.target_date)))} — About ${escapeHtml(String(focalRounded))} <span class="unit">LKR/kg</span>`
-    : `About ${escapeHtml(String(day7))} <span class="unit">LKR/kg</span>`;
-
-  const trendLabel = hasTarget ? "To your date" : "Week trend";
-
-  const noteFriendly = friendlyTargetNote(data.target_date_note);
-  const noteBlock = noteFriendly
-    ? `<div class="msg-note" role="status">${escapeHtml(noteFriendly)}</div>`
-    : "";
-
-  const rows = [];
+  // Build Day-by-Day Table Rows (Full 14 Days)
   const nRows = pred.length;
+  const fullRows = [];
+  const milestoneRows = [];
+  const milestoneIndices = [0, 2, 6, nRows - 1].filter(idx => idx >= 0 && idx < nRows);
+
   for (let i = 0; i < nRows; i++) {
     const prev = i === 0 ? baseline : pred[i - 1];
     const cur = pred[i];
@@ -482,73 +449,90 @@ function renderForecast(data) {
       }
       pctStr = `${p >= 0 ? "+" : ""}${p.toFixed(1)}%`;
     }
-    const rowHighlight = hasTarget && i === focalIdx ? " day-row-target" : "";
-    rows.push(`
-      <tr class="${rowHighlight.trim()}">
-        <td>${escapeHtml(dayLabel(i))}</td>
+
+    const rowHtml = `
+      <tr>
+        <td>${dayLabel(i, data.forecast_dates)}</td>
         <td><strong>${Math.round(cur)} LKR</strong></td>
         <td class="${cls}">${icon} ${escapeHtml(pctStr)}</td>
       </tr>
-    `);
+    `;
+
+    fullRows.push(rowHtml);
+    if (milestoneIndices.includes(i)) {
+      milestoneRows.push(rowHtml);
+    }
   }
 
-  const tableTitle = hasTarget ? "Day-by-day to your date" : "Day-by-day outlook (7 days)";
+  const tableTitle = data.forecast_period_label
+    ? `14-Day Forecast (${data.forecast_period_label})`
+    : "14-Day Forecast";
 
   wrap.hidden = false;
   wrap.innerHTML = `
     <div class="forecast-panel">
-      <div class="forecast-panel-top">
-        <h3>Tomato price forecast</h3>
-        <p class="forecast-sub">${escapeHtml(displayArea)} market</p>
-        ${
-          hasTarget
-            ? `<p class="forecast-date-line">Selling date: <strong>${escapeHtml(
-                formatSellingDate(String(data.target_date))
-              )}</strong></p>`
-            : ""
-        }
+      <!-- Prominent Color-Coded Recommendation Banner -->
+      <div class="rec-banner ${advice.bannerClass}">
+        <h3 class="rec-title">${escapeHtml(advice.title)}</h3>
+        <p class="rec-body-en">${escapeHtml(advice.textEn)}</p>
+        <p class="rec-body-si">${escapeHtml(advice.textSi)}</p>
       </div>
-      ${noteBlock}
+
+      <!-- 3-Tile Metrics Row -->
       <div class="forecast-metrics metric-grid">
         <div class="metric-tile">
-          <span class="metric-tile-label">Latest level</span>
-          <span class="metric-tile-value">About ${escapeHtml(String(currentApprox))} <span class="unit">LKR/kg</span></span>
+          <span class="metric-tile-label">Current Observed Price</span>
+          <span class="metric-tile-value">${escapeHtml(String(currentApprox))} <span class="unit">LKR/kg</span></span>
+          <span class="metric-tile-sub">As of ${escapeHtml(data.data_as_of_date || "—")}</span>
         </div>
         <div class="metric-tile">
-          <span class="metric-tile-label">${escapeHtml(midLabel)}</span>
-          <span class="metric-tile-value">${midValue}</span>
+          <span class="metric-tile-label">Tomorrow's Forecast</span>
+          <span class="metric-tile-value">${escapeHtml(String(focalRounded))} <span class="unit">LKR/kg</span></span>
+          <span class="metric-tile-sub">${escapeHtml(data.forecast_start_date || "Day 1")}</span>
         </div>
         <div class="metric-tile metric-tile-highlight">
-          <span class="metric-tile-label">${escapeHtml(trendLabel)}</span>
-          <span class="metric-tile-value ${trend.className}">${escapeHtml(trend.label)}</span>
+          <span class="metric-tile-label">14-Day Forecast</span>
+          <span class="metric-tile-value">${escapeHtml(String(day14))} <span class="unit">LKR/kg</span> <span class="${trendClass}" style="font-size: 0.9em;">${trendArrow} (${totalChgStr})</span></span>
+          <span class="metric-tile-sub">${escapeHtml(data.forecast_end_date || "Day 14")}</span>
         </div>
       </div>
-      <div class="forecast-divider"></div>
+
+      <!-- Compact Milestone Forecast Table with Toggle -->
       <div class="day-table-wrap">
-        <p class="day-table-title">${escapeHtml(tableTitle)}</p>
-        <table class="day-table" aria-label="Day by day prices">
-          <thead><tr><th>Day</th><th>Price (LKR)</th><th>Change</th></tr></thead>
-          <tbody>${rows.join("")}</tbody>
+        <div class="table-header-flex">
+          <p class="day-table-title">${escapeHtml(tableTitle)}</p>
+          <button type="button" id="btn-toggle-days" class="btn-toggle-sm">
+            Show All 14 Days
+          </button>
+        </div>
+        <table class="day-table" aria-label="Forecasted prices">
+          <thead><tr><th>Forecast Day</th><th>Expected Price (LKR)</th><th>Daily Trend</th></tr></thead>
+          <tbody id="forecast-table-body">${milestoneRows.join("")}</tbody>
         </table>
       </div>
-      <div class="forecast-divider"></div>
-      <div class="advice-block">
-        <h4>Our advice</h4>
-        <p class="advice-title">${escapeHtml(advice.title)}</p>
-        <p class="advice-text">${escapeHtml(advice.text)}</p>
-      </div>
-      <div class="forecast-divider"></div>
-      <div class="confidence-block">
-        <p class="conf-heading">How sure we are</p>
-        <div class="bar-track" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100">
-          <div class="bar-fill" style="width:${pct}%"></div>
-        </div>
-        <p class="conf-label">${pct}% — ${escapeHtml(confidenceLabel(conf))}</p>
-      </div>
-      <div class="forecast-divider"></div>
-      ${buildWhySection(data, displayArea)}
+
+      <p class="dataset-coverage-note">Model trained on historical price data from ${escapeHtml(data.dataset_coverage || "Aug 2016 to Aug 2026")}.</p>
+
+      <!-- Collapsible Technical Details for Researchers -->
+      ${buildTechnicalDetails(data, displayArea)}
+
+
     </div>
   `;
+
+  // Attach Table Toggle Listener
+  const toggleBtn = $("btn-toggle-days");
+  if (toggleBtn) {
+    let showingAll = false;
+    toggleBtn.addEventListener("click", () => {
+      showingAll = !showingAll;
+      const tbody = $("forecast-table-body");
+      if (tbody) {
+        tbody.innerHTML = showingAll ? fullRows.join("") : milestoneRows.join("");
+      }
+      toggleBtn.textContent = showingAll ? "Show Key Milestones Only" : "Show All 14 Days";
+    });
+  }
 }
 
 let loadSeq = 0;
@@ -563,8 +547,6 @@ async function onMarketChanged() {
   $("forecast-error").hidden = true;
 
   if (!m || (sel && sel.value === "__other__" && !m)) {
-    $("weather-section").classList.remove("card-is-loading");
-    $("news-section").classList.remove("card-is-loading");
     $("weather-section").hidden = true;
     $("news-section").hidden = true;
     $("btn-forecast").disabled = true;
@@ -578,35 +560,36 @@ async function onMarketChanged() {
   $("btn-forecast").disabled = false;
 
   const label = displayMarketLabel(m);
-  $("weather-title").textContent = `Weather for ${label}`;
-  $("weather-section").classList.add("card-is-loading");
-  $("news-section").classList.add("card-is-loading");
-  const wq = weatherQueryString(m);
-  const dateMode = forecastMode() === "date";
-  const loadingOpts = dateMode && /^\d{4}-\d{2}-\d{2}$/.test(selectedTargetDateIso()) ? { forSellingDate: true } : undefined;
-  $("weather-body").innerHTML = weatherLoadingHtml(label, loadingOpts);
-  $("news-body").innerHTML = newsLoadingHtml(label);
-  $("weather-error").hidden = true;
-  $("news-error").hidden = true;
+  $("weather-body").innerHTML = weatherLoadingHtml(label);
+  $("news-body").innerHTML = newsLoadingHtml();
 
   const locEnc = encodeURIComponent(m);
 
-  const weatherP = fetch(`/weather/?${wq}`, { headers: { Accept: "application/json" } })
-    .then((r) => r.json().then((j) => ({ ok: r.ok, j })))
-    .catch(() => ({ ok: false, j: null }));
+  // Fetch Multi-Station Regional Weather Impact & News Signals for selected market
+  const marketParts = m.split("-");
+  const mkt = marketParts[0].trim();
+  const tp = marketParts.length > 1 ? marketParts[1].trim() : "Retail";
+
+  const predictP = apiJson("/predict/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      market: mkt,
+      type: tp,
+      forecast_horizon_days: 14,
+    }),
+  }).catch(() => null);
+
 
   const newsP = fetch(`/news/market-analysis?location=${locEnc}`, { headers: { Accept: "application/json" } })
-    .then((r) => r.json().then((j) => ({ ok: r.ok, j })))
-    .catch(() => ({ ok: false, j: null }));
+    .then((r) => (r.ok ? r.json() : null))
+    .catch(() => null);
 
-  const [wRes, nRes] = await Promise.all([weatherP, newsP]);
+  const [pData, nData] = await Promise.all([predictP, newsP]);
   if (seq !== loadSeq) return;
 
-  $("weather-section").classList.remove("card-is-loading");
-  $("news-section").classList.remove("card-is-loading");
-
-  if (wRes.ok && wRes.j) {
-    renderWeatherCard(wRes.j, label);
+  if (pData && pData.regional_weather_impact) {
+    renderWeatherCard(pData.regional_weather_impact);
     $("weather-error").hidden = true;
   } else {
     $("weather-body").innerHTML = "";
@@ -614,8 +597,9 @@ async function onMarketChanged() {
     $("weather-error").hidden = false;
   }
 
-  if (nRes.ok && nRes.j) {
-    renderNewsCard(nRes.j);
+
+  if (nData) {
+    renderNewsCard(nData);
     $("news-error").hidden = true;
   } else {
     $("news-body").innerHTML = "";
@@ -633,71 +617,138 @@ function selectedTargetDateIso() {
   return (($("target-date") && $("target-date").value) || "").trim();
 }
 
-/** Query string for GET /weather/ (location + optional target_date for horizon alignment). */
-function weatherQueryString(location) {
-  const enc = encodeURIComponent(location);
-  let q = `location=${enc}`;
-  if (forecastMode() === "date") {
-    const td = selectedTargetDateIso();
-    if (/^\d{4}-\d{2}-\d{2}$/.test(td)) {
-      q += `&target_date=${encodeURIComponent(td)}`;
-    }
-  }
-  return q;
+function refreshTargetDateBounds() {
+  const inp = $("target-date");
+  if (!inp) return;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const min = new Date(today);
+  min.setDate(min.getDate() + 1);
+  const max = new Date(today);
+  max.setDate(max.getDate() + 365); // Allow target date up to 1 year ahead
+  inp.min = min.toISOString().slice(0, 10);
+  inp.max = max.toISOString().slice(0, 10);
 }
 
-async function refetchWeatherOnly() {
-  const m = resolvedMarket();
-  const sel = $("market-select");
-  if (!m || (sel && sel.value === "__other__" && !m)) return;
-  if ($("weather-section").hidden) return;
+function renderSeasonalForecast(data, targetDateStr) {
+  const wrap = $("forecast-result");
+  if (!wrap) return;
+  wrap.hidden = false;
 
-  const label = displayMarketLabel(m);
-  const dateMode = forecastMode() === "date";
-  const loadingOpts = dateMode && /^\d{4}-\d{2}-\d{2}$/.test(selectedTargetDateIso()) ? { forSellingDate: true } : undefined;
-  $("weather-section").classList.add("card-is-loading");
-  $("weather-body").innerHTML = weatherLoadingHtml(label, loadingOpts);
-  $("weather-error").hidden = true;
+  const nom = data.planning_estimates_nominal || {};
+  const real = data.real_price_estimates_constant_lkr || {};
+  const conf = (data.confidence_rating || "MODERATE").toUpperCase();
+  const confBadgeStyle = conf === "HIGH" ? "background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);" : conf === "MODERATE" ? "background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4);" : "background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4);";
+  const confLabel = conf === "HIGH" ? "🟢 HIGH CONFIDENCE" : conf === "MODERATE" ? "🟡 MODERATE CONFIDENCE" : "🔴 LOW CONFIDENCE (HIGH VOLATILITY)";
 
-  const q = weatherQueryString(m);
-  try {
-    const res = await fetch(`/weather/?${q}`, { headers: { Accept: "application/json" } });
-    const j = await res.json().catch(() => null);
-    if (resolvedMarket() !== m) return;
-    if (!res.ok || !j) {
-      $("weather-body").innerHTML = "";
-      $("weather-error").textContent = friendlyError("weather");
-      $("weather-error").hidden = false;
-    } else {
-      renderWeatherCard(j, label);
-      $("weather-error").hidden = true;
-    }
-  } catch {
-    if (resolvedMarket() !== m) return;
-    $("weather-body").innerHTML = "";
-    $("weather-error").textContent = friendlyError("weather");
-    $("weather-error").hidden = false;
-  } finally {
-    if (resolvedMarket() === m) {
-      $("weather-section").classList.remove("card-is-loading");
-    }
-  }
+  const weatherLabel = data.weather_outlook_label || "Near-Normal Rainfall Expected";
+  const weatherBadge = weatherLabel.includes("Above") ? "🌧️ " + weatherLabel : weatherLabel.includes("Below") ? "☀️ " + weatherLabel : "🌤️ " + weatherLabel;
+
+  wrap.innerHTML = `
+    <div class="forecast-result-card seasonal-mode-card" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); padding: 1.5rem; border-radius: 16px;">
+      <div class="seasonal-header" style="margin-bottom: 1rem;">
+        <h3 style="font-size: 1.25em; margin-bottom: 0.25rem;">📅 Seasonal Price Outlook — based on ${escapeHtml(data.historical_seasons_count || "10")} years of CPI-adjusted price patterns</h3>
+        <p style="color: var(--text-muted); font-size: 0.95em; margin: 0;">Target Horizon: <strong>${escapeHtml(data.target_month_name)} ${escapeHtml(data.target_year)}</strong> (${escapeHtml(displayMarketLabel(data.series))})</p>
+      </div>
+
+      <div class="seasonal-badges-row" style="display: flex; gap: 0.6rem; margin: 1rem 0; flex-wrap: wrap;">
+        <span style="padding: 0.4rem 0.8rem; border-radius: 20px; font-weight: 600; font-size: 0.85em; ${confBadgeStyle}">
+          ${escapeHtml(confLabel)} (${data.historical_interval_coverage_pct}% Historical Interval Coverage)
+        </span>
+        <span style="padding: 0.4rem 0.8rem; border-radius: 20px; font-weight: 600; font-size: 0.85em; background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4);">
+          ${escapeHtml(weatherBadge)}
+        </span>
+        <span style="padding: 0.4rem 0.8rem; border-radius: 20px; font-weight: 600; font-size: 0.85em; background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4);">
+          🏷️ CPI Inflation Normalized
+        </span>
+      </div>
+
+      <!-- Horizontal Price Range Bar (25th Core Low -> Median -> 75th Core High) -->
+      <div class="price-range-bar-container" style="background: rgba(255,255,255,0.03); padding: 1.25rem; border-radius: 12px; margin: 1.25rem 0; border: 1px solid rgba(255,255,255,0.05);">
+        <p style="margin-bottom: 0.75rem; font-weight: 600; font-size: 0.95em;">Expected Core Planning Range (Nominal LKR/kg):</p>
+        <div class="range-values-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; gap: 0.75rem;">
+          <div class="range-box range-low" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.25); padding: 0.75rem; border-radius: 8px;">
+            <span style="font-size: 0.75em; color: #fca5a5; display: block; margin-bottom: 0.2rem;">Core Low (25th Pctl)</span>
+            <strong style="font-size: 1.3em; color: #f87171;">${nom.core_p25 || "—"} LKR</strong>
+          </div>
+          <div class="range-box range-median" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); padding: 0.75rem; border-radius: 8px;">
+            <span style="font-size: 0.75em; color: #93c5fd; display: block; margin-bottom: 0.2rem;">Expected Median (50th)</span>
+            <strong style="font-size: 1.4em; color: #60a5fa;">${nom.median_p50 || "—"} LKR</strong>
+          </div>
+          <div class="range-box range-high" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25); padding: 0.75rem; border-radius: 8px;">
+            <span style="font-size: 0.75em; color: #6ee7b7; display: block; margin-bottom: 0.2rem;">Core High (75th Pctl)</span>
+            <strong style="font-size: 1.3em; color: #34d399;">${nom.core_p75 || "—"} LKR</strong>
+          </div>
+        </div>
+        <p style="font-size: 0.85em; color: var(--text-muted); text-align: center; margin-top: 0.85rem; margin-bottom: 0;">
+          Wider Risk Range (10th–90th percentile): <strong>${nom.low_p10} – ${nom.high_p90} LKR/kg</strong> | Constant Real Benchmark: <strong>${real.median_p50} LKR/kg</strong>
+        </p>
+      </div>
+
+      <div class="seasonal-recommendation-box" style="background: rgba(16, 185, 129, 0.08); border-left: 4px solid var(--accent-green); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+        <p style="margin: 0; line-height: 1.5; font-size: 0.95em;">💡 <strong>Planning Guidance:</strong> ${escapeHtml(data.planning_recommendation)}</p>
+      </div>
+
+      <p class="seasonal-disclaimer" style="font-size: 0.8em; color: var(--text-muted); font-style: italic; margin-top: 1rem; margin-bottom: 0;">
+        This is a planning estimate, not a precise forecast. Actual prices may differ due to weather, supply, and market conditions.
+      </p>
+    </div>
+  `;
 }
+
 
 async function runForecast() {
   const m = resolvedMarket();
   if (!m) {
-    showToast("Please choose where you are selling first.", true);
+    showToast("Please choose your market location first.", true);
     return;
   }
 
   const mode = forecastMode();
   refreshTargetDateBounds();
+  
   if (mode === "date") {
     const td = ($("target-date") && $("target-date").value) || "";
     if (!td.trim()) {
       showToast("Please choose your selling date.", true);
       $("target-date-wrap").hidden = false;
+      return;
+    }
+
+    // Check if target date is > 14 days away from today
+    const targetDt = new Date(td);
+    const todayDt = new Date();
+    todayDt.setHours(0, 0, 0, 0);
+    const diffDays = Math.ceil((targetDt - todayDt) / (1000 * 60 * 60 * 24));
+
+    if (diffDays > 14) {
+      // Activate Seasonal Planning Mode automatically
+      const mkt = m.includes("-") ? m.split("-")[0].trim() : m;
+      const tp = m.includes("-") ? m.split("-")[1].trim() : "Retail";
+      const targetMonth = targetDt.getMonth() + 1;
+      const targetYear = targetDt.getFullYear();
+
+      $("forecast-error").hidden = true;
+      $("forecast-loading").hidden = false;
+      $("btn-forecast").disabled = true;
+      $("btn-forecast").classList.add("btn-is-busy");
+      $("forecast-result").hidden = true;
+      $("forecast-result").innerHTML = "";
+
+      try {
+        const sData = await apiJson(`/seasonal-forecast/?market=${encodeURIComponent(mkt)}&type=${encodeURIComponent(tp)}&target_month=${targetMonth}&target_year=${targetYear}`);
+        renderSeasonalForecast(sData, td);
+        showToast("Your Seasonal Price Outlook is ready.");
+        $("forecast-result").scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch {
+        $("forecast-error").textContent = friendlyError("predict");
+        $("forecast-error").hidden = false;
+        showToast(friendlyError("predict"), true);
+      } finally {
+        $("forecast-loading").hidden = true;
+        $("btn-forecast").disabled = false;
+        $("btn-forecast").classList.remove("btn-is-busy");
+      }
       return;
     }
   }
@@ -711,13 +762,13 @@ async function runForecast() {
 
   const payload = {
     location: m,
+    market: m.includes("-") ? m.split("-")[0] : m,
+    type: m.includes("-") ? m.split("-")[1] : "Retail",
     currency: "LKR/kg",
-    window_size: 10,
+    forecast_horizon_days: 14,
   };
   if (mode === "date") {
     payload.target_date = ($("target-date") && $("target-date").value) || "";
-  } else {
-    payload.forecast_horizon_days = 7;
   }
 
   try {
@@ -727,8 +778,7 @@ async function runForecast() {
       body: JSON.stringify(payload),
     });
     renderForecast(body);
-    syncCardsFromPredict(body);
-    showToast("Your forecast is ready.");
+    showToast("Your AI selling recommendation is ready.");
     $("forecast-result").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch {
     $("forecast-error").textContent = friendlyError("predict");
@@ -741,32 +791,17 @@ async function runForecast() {
   }
 }
 
-/** After predict, refresh weather card from full prediction context when possible. */
-function syncCardsFromPredict(body) {
-  const m = body.location || resolvedMarket();
-  const label = displayMarketLabel(m);
-  let wq = weatherQueryString(m);
-  const td = body.target_date ? String(body.target_date).slice(0, 10) : "";
-  if (td && /^\d{4}-\d{2}-\d{2}$/.test(td)) {
-    wq = `location=${encodeURIComponent(m)}&target_date=${encodeURIComponent(td)}`;
-  }
-  fetch(`/weather/?${wq}`, { headers: { Accept: "application/json" } })
-    .then((r) => (r.ok ? r.json() : null))
-    .then((w) => {
-      if (w) renderWeatherCard(w, label);
-    })
-    .catch(() => {});
-  if (body.news_market_analysis) renderNewsCard(body.news_market_analysis);
-}
 
 function init() {
   $("market-select").addEventListener("change", onMarketChanged);
-  $("other-market").addEventListener(
-    "input",
-    debounce(() => {
-      if ($("market-select").value === "__other__") onMarketChanged();
-    }, 400)
-  );
+  if ($("other-market")) {
+    $("other-market").addEventListener(
+      "input",
+      debounce(() => {
+        if ($("market-select").value === "__other__") onMarketChanged();
+      }, 400)
+    );
+  }
   $("btn-forecast").addEventListener("click", runForecast);
 
   document.querySelectorAll('input[name="forecast-mode"]').forEach((radio) => {
@@ -775,18 +810,12 @@ function init() {
       const wrap = $("target-date-wrap");
       if (wrap) wrap.hidden = !dateMode;
       if (dateMode) refreshTargetDateBounds();
-      refetchWeatherOnly();
     });
   });
-  const targetDateInp = $("target-date");
-  if (targetDateInp) {
-    const onDateMaybeChange = debounce(() => {
-      if (forecastMode() === "date") refetchWeatherOnly();
-    }, 350);
-    targetDateInp.addEventListener("input", onDateMaybeChange);
-    targetDateInp.addEventListener("change", onDateMaybeChange);
-  }
   refreshTargetDateBounds();
+
+  // Initial load
+  onMarketChanged();
 }
 
 function debounce(fn, ms) {

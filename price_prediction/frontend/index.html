@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
   </head>
@@ -19,8 +19,7 @@
     <noscript>
       <div class="noscript-banner">
         <p>
-          Please turn on JavaScript to use the Tomato Price Advisor. This page
-          needs it to load weather and forecasts for you.
+          Please turn on JavaScript to use the Tomato Price Advisor.
         </p>
       </div>
     </noscript>
@@ -29,17 +28,15 @@
 
     <header class="site-header">
       <div class="header-inner">
-        <p class="brand">
-          <span class="brand-mark" aria-hidden="true">🌿</span> Agro
-          Intelligence
-        </p>
+        <div class="brand-badge-wrap">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span>Agro Intelligence · AI Price Advisor</span>
+        </div>
         <h1>
-          <span class="title-icon" aria-hidden="true">🍅</span> Tomato Price
-          Advisor
+          <span class="title-icon" aria-hidden="true">🍅</span> Tomato Price Advisor
         </h1>
-        <p class="tagline">Know your price before you sell</p>
         <p class="subtitle">
-          Helping Sri Lanka tomato farmers make smarter selling decisions
+          Smart AI selling recommendations for Sri Lankan tomato farmers.
         </p>
       </div>
     </header>
@@ -48,36 +45,23 @@
       <div class="page-grid">
         <div class="left-column">
           <section
-            class="card card-pad card-elevated card-accent card-accent-market"
+            class="card card-pad card-elevated"
             aria-labelledby="market-heading"
           >
             <h2 id="market-heading" class="card-title">
-              <span class="card-title-ico" aria-hidden="true">🏪</span> Where
-              are you selling?
+              <span class="card-title-ico" aria-hidden="true">🏪</span> Select Market & Type
             </h2>
-            <p class="card-lead">
-              Pick your wholesale market — we load weather and news for that
-              area.
-            </p>
             <label class="visually-hidden" for="market-select">Market</label>
-            <select
-              id="market-select"
-              class="select-lg"
-              autocomplete="address-level1"
-            >
-              <option value="">Choose your market…</option>
-              <option value="Dambulla">Dambulla</option>
-              <option value="Colombo">Colombo (Pettah)</option>
-              <option value="Nuwara Eliya">Nuwara Eliya</option>
-              <option value="Kandy">Kandy</option>
-              <option value="Kurunegala">Kurunegala</option>
-              <option value="Jaffna">Jaffna</option>
-              <option value="__other__">Other</option>
+            <select id="market-select" class="select-lg">
+              <option value="">Choose your market & series type…</option>
+              <option value="Dambulla-Retail">Dambulla — Retail</option>
+              <option value="Dambulla-Wholesale" selected>Dambulla — Wholesale</option>
+              <option value="Pettah-Retail">Pettah (Colombo) — Retail</option>
+              <option value="Pettah-Wholesale">Pettah (Colombo) — Wholesale</option>
             </select>
+
             <div id="other-market-wrap" class="other-wrap" hidden>
-              <label class="label-soft" for="other-market"
-                >Type your market name</label
-              >
+              <label class="label-soft" for="other-market">Type your market name</label>
               <input
                 type="text"
                 id="other-market"
@@ -90,12 +74,13 @@
 
           <section
             id="weather-section"
-            class="card card-pad weather-card card-elevated card-accent card-accent-sky"
+            class="card card-pad weather-card"
             hidden
+            style="margin-top: 1rem;"
           >
             <div class="card-head card-head--full">
               <h2 class="card-title" id="weather-title">
-                ☀️ Weather near your area
+                ☀️ Weather & Storage Context
               </h2>
             </div>
             <div id="weather-body" class="card-body-quiet"></div>
@@ -104,13 +89,13 @@
 
           <section
             id="news-section"
-            class="card card-pad card-elevated card-accent card-accent-amber"
+            class="card card-pad"
             hidden
+            style="margin-top: 1rem;"
           >
             <div class="card-head card-head--full">
               <h2 class="card-title">
-                <span class="card-title-ico" aria-hidden="true">📰</span> Market
-                news
+                <span class="card-title-ico" aria-hidden="true">📰</span> Market Intelligence
               </h2>
             </div>
             <div id="news-body" class="card-body-quiet"></div>
@@ -119,11 +104,9 @@
         </div>
 
         <div class="right-column">
-          <section
-            class="card card-pad cta-card card-elevated card-accent card-accent-cta"
-          >
-            <fieldset class="forecast-mode" id="forecast-mode-fieldset">
-              <legend class="forecast-mode-legend">Forecast type</legend>
+          <section class="card card-pad cta-card">
+            <fieldset class="forecast-mode" id="forecast-mode-fieldset" style="border: none; padding: 0;">
+              <legend class="forecast-mode-legend visually-hidden">Forecast Horizon Type</legend>
               <div class="forecast-mode-options">
                 <label class="forecast-mode-label">
                   <input
@@ -133,7 +116,7 @@
                     checked
                     class="forecast-mode-input"
                   />
-                  <span class="forecast-mode-card">Next 7 days</span>
+                  <span class="forecast-mode-card">📅 14-Day Horizon</span>
                 </label>
                 <label class="forecast-mode-label">
                   <input
@@ -142,36 +125,31 @@
                     value="date"
                     class="forecast-mode-input"
                   />
-                  <span class="forecast-mode-card">Price on a date I pick</span>
+                  <span class="forecast-mode-card">🎯 Target Selling Date</span>
                 </label>
               </div>
             </fieldset>
+
             <div id="target-date-wrap" class="target-date-wrap" hidden>
-              <label class="label-soft" for="target-date"
-                >Your selling date</label
-              >
+              <label class="label-soft" for="target-date">Your Target Selling Date</label>
               <input
                 type="date"
                 id="target-date"
                 class="input-lg"
                 autocomplete="off"
               />
-              <p class="hint-soft">
-                Choose a day from tomorrow up to 16 days ahead. We show the
-                price for that day and the path to get there.
-              </p>
             </div>
+
             <button
               type="button"
               id="btn-forecast"
               class="btn-primary-lg"
-              disabled
             >
-              <span class="btn-ico" aria-hidden="true">📈</span>
-              <span class="btn-text">Get My Price Forecast</span>
+              <span class="btn-ico" aria-hidden="true">⚡</span>
+              <span class="btn-text">Generate AI Selling Forecast</span>
             </button>
             <p id="forecast-loading" class="loading-msg" hidden>
-              Analysing prices, weather and market news for you…
+              Analyzing market price signals…
             </p>
             <p id="forecast-error" class="msg-error" hidden></p>
             <div id="forecast-result" hidden></div>
@@ -183,21 +161,15 @@
     <footer class="site-footer">
       <div class="footer-inner">
         <p class="footer-brand">
-          <span class="brand-mark" aria-hidden="true">🌿</span> Agro
-          Intelligence
+          <span class="brand-mark" aria-hidden="true">🌿</span> Agro Intelligence
         </p>
-        <p>
-          Developed to help Sri Lanka farmers · Data updated when you refresh
-          forecasts
-        </p>
-        <p class="disclaimer">
-          Forecasts are based on historical price patterns, weather data, and
-          market news. Always use your own judgement when making selling
-          decisions.
+        <p class="footer-coverage-note">
+          Model trained on historical price data from Aug 2016 to Aug 2026.
         </p>
       </div>
     </footer>
 
-    <script src="/ui/app.js" defer></script>
+    <script src="/ui/app.js?v=2" defer></script>
   </body>
 </html>
+
