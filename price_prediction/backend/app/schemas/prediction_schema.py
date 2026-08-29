@@ -1,4 +1,4 @@
-"""Request/response models for the prediction API (LSTM + explainability)."""
+"""Request/response models for the prediction API (Decision Engine + Weather + Anomaly Detection)."""
 
 from __future__ import annotations
 
@@ -8,108 +8,122 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field, model_validator
 from zoneinfo import ZoneInfo
 
-from app.schemas.market_news_schema import NewsMarketAnalysis
-
 TZ_COLOMBO = ZoneInfo("Asia/Colombo")
 
 
 class FarmerRecommendation(BaseModel):
     """Structured selling advice returned with each prediction."""
 
-    action: str = Field(..., description="SELL_NOW or WAIT")
-    confidence_score: float = Field(..., ge=0.0, le=1.0)
-    market_risk: str = Field(..., description="LOW | MEDIUM | HIGH")
-    sell_timing_hint: str = Field(..., description="Short caps instruction, e.g. SELL AFTER 5 DAYS")
+    action: str = Field(..., description="MONITOR | HOLD | SELL NOW | SELL NOW OR HOLD — prices expected to stay stable")
+    confidence_score: float = Field(0.90, ge=0.0, le=1.0)
+    market_risk: str = Field("LOW", description="LOW | MEDIUM | HIGH")
+    sell_timing_hint: str = Field("", description="Short caps instruction")
     expected_price_change_hint: str = Field(
-        ...,
+        "",
         description="Plain-language expectation vs recent prices.",
     )
 
 
 class PricePredictionRequest(BaseModel):
-    """Input for price forecast + explainability."""
+    """Input for price forecast + Decision Engine recommendation."""
 
-    location: str = Field(
-        "Dambulla",
-        description="Market / region (dropdown or free text), e.g. Colombo, Dambulla, Kandy.",
-    )
-    past_prices: Optional[List[float]] = Field(
-        None,
-        description="Recent prices (oldest→newest). Omit or [] to load the last N days from the training CSV (national series, same as train_model.py).",
-    )
-    currency: str = Field("LKR/kg", description="Currency label for responses")
-    forecast_horizon_days: int = Field(7, ge=1, le=30, description="Ignored when target_date is set.")
-    window_size: int = Field(
-        10,
-        ge=5,
-        le=60,
-        description="LSTM look-back; must match saved model input length.",
+    market: str = Field("Dambulla", description="Market location: Dambulla or Pettah.")
+    type: str = Field("Retail", description="Series type: Retail or Wholesale.")
+    location: Optional[str] = Field(
+        "Dambulla-Retail",
+        description="Market-Type location string, e.g. Dambulla-Retail, Dambulla-Wholesale, Pettah-Retail, Pettah-Wholesale.",
     )
     target_date: Optional[date] = Field(
         None,
-        description="If set, the service forecasts up to this date (Asia/Colombo calendar), max 16 days ahead.",
+        description="Optional target date (YYYY-MM-DD). If omitted, uses latest available dataset date.",
     )
-    market: Optional[str] = Field(
-        None,
-        description="Deprecated: use `location`. If only `market` is sent, it is copied to `location`.",
-    )
+    forecast_horizon_days: int = Field(14, ge=1, le=30, description="Forecast horizon days (default 14).")
+    currency: str = Field("LKR/kg", description="Currency label")
 
     @model_validator(mode="before")
     @classmethod
-    def _legacy_market_field(cls, data: Any) -> Any:
+    def _resolve_market_type(cls, data: Any) -> Any:
         if isinstance(data, dict):
             loc = data.get("location")
             mkt = data.get("market")
-            if (loc is None or str(loc).strip() == "") and mkt:
-                data = {**data, "location": mkt}
+            tp = data.get("type")
+
+            if loc and isinstance(loc, str):
+                loc_clean = loc.strip()
+                if "-" in loc_clean:
+                    parts = loc_clean.split("-", 1)
+                    data["market"] = parts[0].strip()
+                    data["type"] = parts[1].strip()
+                elif " " in loc_clean and not mkt:
+                    parts = loc_clean.split(" ", 1)
+                    data["market"] = parts[0].strip()
+                    data["type"] = parts[1].strip()
+                elif not mkt:
+                    data["market"] = loc_clean
+                    if not tp:
+                        data["type"] = "Retail"
         return data
 
 
 class PricePredictionResponse(BaseModel):
-    """Full prediction + XAI + recommendation payload."""
+    """Unified Decision Engine response payload."""
 
-    predicted_prices: List[str]
-    predicted_price: Optional[float] = Field(
-        None,
-        description="Single focal price: target date if set, else horizon average.",
-    )
-    target_date: Optional[str] = Field(None, description="Echo ISO date when a target was requested.")
-    target_date_note: Optional[str] = Field(
-        None,
-        description="Set when the requested date is beyond the forecast cap.",
-    )
-    currency: str
-    forecast_horizon_days: int
-    location: str = Field("", description="Echo of user location / market label.")
-    reasons: List[str] = Field(default_factory=list, description="Explainable AI bullet reasons.")
-    farmer_recommendation: FarmerRecommendation
-    news_market_analysis: NewsMarketAnalysis
-    recommended_action: str
-    confidence_score: float
-    weather_signal: str
-    news_uncertainty: str
-    explanation: str = Field("", description="Single paragraph summary.")
-    weather_market_impact_score: float = 0.0
-    weather_reason: str = ""
-    news_sentiment: str = ""
-    news_headlines: List[str] = Field(default_factory=list)
-    data_sources: Dict[str, str] = Field(default_factory=dict)
-    past_prices_used: List[str] = Field(
-        default_factory=list,
-        description="The exact past window fed to the model (strings for JSON).",
-    )
-    past_prices_source: str = Field(
-        "",
-        description="request | dataset — where the input window came from.",
-    )
+    series: str = Field(..., description="Series label (e.g. Dambulla-Retail)")
+    market: str = Field(..., description="Market name (e.g. Dambulla)")
+    type: str = Field(..., description="Series type (e.g. Retail)")
+    request_date: str = Field(..., description="Date prediction request was made (YYYY-MM-DD)")
+    target_date: Optional[str] = Field(None, description="Requested target selling date (YYYY-MM-DD), if provided")
+    current_price_lkr: float = Field(..., description="Recent observed actual price (LKR/kg)")
+    data_as_of_date: str = Field(..., description="Max cutoff date of historical dataset")
+    dataset_coverage: str = Field(..., description="Historical dataset date range coverage")
+    forecast_dates: List[str] = Field(default_factory=list, description="ISO calendar dates for each forecast day computed from data_as_of_date + 1")
+    forecast_start_date: str = Field(..., description="First forecast horizon date (data_as_of_date + 1 day)")
+    forecast_end_date: str = Field(..., description="Last forecast horizon date")
+    forecast_period_label: str = Field(..., description="Human-readable forecast date range label (e.g., March 11 – March 24, 2026)")
+    recommendation: str = Field(..., description="MONITOR | HOLD | SELL NOW | SELL NOW OR HOLD — prices expected to stay stable")
+    reasoning: str = Field(..., description="Plain-language farmer explanation")
+
+
+    # Forecast arrays
+    base_lstm_forecast: List[float] = Field(..., description="Raw LSTM base predictions per horizon day")
+    weather_adjusted_forecast: List[float] = Field(..., description="Weather-adjusted predictions per horizon day")
+    predicted_prices: List[str] = Field(..., description="Weather-adjusted forecast strings for UI charts")
+    predicted_price: float = Field(..., description="Day 1 weather-adjusted forecast price")
+
+    # Weather fields
+    weather_flag_level: str = Field(..., description="none | moderate | severe")
+    d14_cum_rain_mm: float = Field(..., description="Anuradhapura 14-day lagged cumulative rainfall change (mm)")
+    regional_weather_impact: Optional[Dict[str, Any]] = Field(None, description="Multi-station Sri Lankan regional weather impact analysis")
+
+    # News event flag fields
+    news_flag_level: str = Field("none", description="none | watch | alert")
+    news_events: List[Dict[str, Any]] = Field(default_factory=list, description="Relevant qualitative news events")
+
+    # SHAP Explainability field
+    shap_explanation: Optional[Dict[str, Any]] = Field(None, description="SHAP timestep attributions and summary")
+
+
+
+    # Anomaly fields
+    is_anomaly: bool = Field(..., description="True if IsolationForest residual anomaly detected")
+    anomaly_severity: str = Field(..., description="NORMAL | MODERATE | HIGH")
+    anomaly_score: float = Field(..., description="IsolationForest sample score")
+    residual_lkr: float = Field(..., description="Residual: actual price minus 1-day prediction")
+
+    # Metrics & Driver shares
+    pct_change_day1: float = Field(..., description="Day 1 forecast % change vs current price")
+    volatility_threshold_pct: float = Field(..., description="Empirical active-days 1-sigma volatility threshold %")
+    driver_share_lstm_pct: float = Field(..., description="Base LSTM contribution %")
+    driver_share_weather_pct: float = Field(..., description="Weather contribution %")
+    day1_forecast_lkr: float = Field(..., description="Day 1 forecast price")
+    day14_forecast_lkr: float = Field(..., description="Day 14 forecast price")
+
+    currency: str = "LKR/kg"
+    forecast_horizon_days: int = 14
 
 
 def compute_horizon_for_target(target: Optional[date], default_horizon: int) -> tuple[int, Optional[str], Optional[date]]:
-    """
-    Map optional target_date to LSTM iteration count (capped for weather/news alignment).
-
-    Returns: (horizon_days, note_if_truncated, resolved_target_date)
-    """
+    """Map optional target_date to horizon days."""
     if target is None:
         return default_horizon, None, None
 
@@ -123,10 +137,8 @@ def compute_horizon_for_target(target: Optional[date], default_horizon: int) -> 
     max_days = 16
     note = None
     if days_ahead > max_days:
-        note = (
-            f"target_date is {days_ahead} days ahead; forecast and weather are capped at {max_days} days. "
-            f"Price shown uses the last day in that window."
-        )
+        note = f"target_date is {days_ahead} days ahead; capped at {max_days} days."
         days_ahead = max_days
 
     return days_ahead, note, target
+

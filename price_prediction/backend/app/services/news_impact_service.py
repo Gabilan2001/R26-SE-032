@@ -13,11 +13,18 @@ from typing import Any, Dict, List, Set, Tuple
 from app.schemas.market_news_schema import NewsMarketAnalysis
 from app.services.news_service import _parse_titles_and_chunks, fetch_raw_articles_for_queries
 
-# Articles must mention at least one of these (tomato / market / risk context).
+# Articles must mention at least one genuine agricultural / market / crop supply term.
 _RELEVANCE_PATTERN = re.compile(
-    r"\b(tomato|vegetable|agricultur|farm|crop|harvest|market|price|food|"
-    r"rain|flood|drought|strike|import|export|inflation|fuel|disease|pest|"
-    r"lanka|ceylon|economic|supply|shortage)\b",
+    r"\b(tomato|tomatoes|vegetable|vegetables|crop|crops|harvest|harvests|farm|farmers|farming|"
+    r"food\s+price|food\s+prices|food\s+inflation|vegetable\s+price|vegetable\s+market|"
+    r"wholesale\s+market|agri|agriculture|agricultural\s+sector|agricultural\s+production|"
+    r"fertilizer|pesticide|drought|flood|flooding|landslide|transport\s+strike|fuel\s+price)\b",
+    re.IGNORECASE,
+)
+
+# Exclude non-market noise (wildlife, zoo, animal welfare, entertainment)
+_EXCLUDE_NOISE_PATTERN = re.compile(
+    r"\b(wildlife|animal\s+welfare|elephant\s+park|zoo|cricket|entertainment|movie|film|hotel|tourism\s+award)\b",
     re.IGNORECASE,
 )
 
@@ -102,16 +109,18 @@ def analyze_agriculture_news_for_location(location: str) -> NewsMarketAnalysis:
     Steps:
       1) Build broad Sri Lanka + agriculture queries including the location name.
       2) Pull raw articles via NewsAPI (shared low-level client).
-      3) Keep only tomato / agri / market-relevant rows.
-      4) Classify likely price pressure and summarise for farmers.
+      3) Keep only genuine tomato / agri / market-relevant rows (excluding non-market noise).
+      4) If fewer than 2 relevant articles pass, return an honest empty result.
+      5) Classify likely price pressure and summarise for farmers.
     """
     loc = (location or "Sri Lanka").strip()
     queries = [
-        f"Sri Lanka agriculture {loc}",
-        f"Sri Lanka vegetable market {loc}",
-        f"Sri Lanka tomato crop {loc}",
+        f"Sri Lanka vegetable price {loc}",
         f"Sri Lanka food inflation {loc}",
+        f"Sri Lanka crop harvest {loc}",
+        f"Sri Lanka farmer market {loc}",
         "Sri Lanka vegetable price",
+        "Sri Lanka food inflation",
         "Sri Lanka agriculture",
         "tomato price Asia",
     ]
@@ -137,26 +146,35 @@ def analyze_agriculture_news_for_location(location: str) -> NewsMarketAnalysis:
         title = (art.get("title") or "").strip()
         desc = (art.get("description") or "").strip()
         blob = _normalize_blob(title, desc)
-        if not title or not _RELEVANCE_PATTERN.search(blob):
+        
+        # Exclude empty titles, non-market noise, or non-agri topics
+        if not title:
             continue
+        if _EXCLUDE_NOISE_PATTERN.search(blob):
+            continue
+        if not _RELEVANCE_PATTERN.search(blob):
+            continue
+
         filtered.append(art)
         blobs.append(blob)
         headlines.append(title)
 
-    if not filtered:
+    # User requirement: If fewer than 2 relevant articles pass, return honest empty state
+    if len(filtered) < 2:
         return NewsMarketAnalysis(
-            price_impact_direction="uncertain",
-            market_impact_summary="News was fetched but little matched tomato or agriculture filters.",
+            price_impact_direction="neutral",
+            market_impact_summary="No major supply alerts reported in recent news monitoring.",
             matched_topics=[],
             relevant_headlines=[],
-            articles_analyzed=len(articles),
-            uncertainty_level="elevated",
+            articles_analyzed=len(filtered),
+            uncertainty_level="moderate",
             news_sentiment="neutral",
-            news_score=0.58,
-            data_source="NewsAPI.org (filtered empty)",
+            news_score=0.55,
+            data_source="NewsAPI.org",
         )
 
     mega_blob = " ".join(blobs)
+
     direction, topics = _score_direction(mega_blob)
     _, chunks = _parse_titles_and_chunks(filtered)
     joined = " ".join(chunks)
