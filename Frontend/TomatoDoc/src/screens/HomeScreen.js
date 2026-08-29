@@ -194,10 +194,10 @@ export default function HomeScreen({ navigation }) {
         <OptionCard
           emoji="🍃"
           thumbStyle={styles.thumbGreen}
-          title="Disease in Tomato Leaf"
-          subtitle="Leaf disease identification"
-          locked
+          title="Disease in Leaf"
+          subtitle="Pathology diagnostics"
           delay={150}
+          onPress={() => navigation.navigate('DiseaseModule', { screen: 'DiseaseScan' })}
         />
         <OptionCard
           emoji="🍅"

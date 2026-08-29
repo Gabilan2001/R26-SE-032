@@ -14,6 +14,8 @@ import FruitScanScreen from '../screens/FruitScanScreen';
 import FruitResultScreen from '../screens/FruitResultScreen';
 import FruitDetailScreen from '../screens/FruitDetailScreen';
 import DiseaseMonitoringFlowScreen from '../modules/diseaseMonitoring/DiseaseMonitoringFlowScreen';
+import DiseaseScanScreen from '../screens/DiseaseScanScreen';
+import DiseaseResultScreen from '../screens/DiseaseResultScreen';
 import { UIThemeContext } from '../context/UIThemeContext';
 
 const Stack = createNativeStackNavigator();
@@ -137,6 +139,48 @@ function FruitModuleTabs() {
   );
 }
 
+function DiseaseModuleTabs() {
+  const { palette } = useContext(UIThemeContext);
+  return (
+    <ModuleTabs.Navigator
+      initialRouteName="DiseaseScan"
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: palette.card,
+          position: 'absolute',
+          marginHorizontal: 14,
+          marginBottom: 10,
+          borderRadius: 20,
+          height: 64,
+          paddingBottom: 8,
+          paddingTop: 8,
+          borderTopWidth: 0,
+          elevation: 8,
+        },
+        tabBarActiveTintColor: palette.primary,
+        tabBarInactiveTintColor: palette.muted,
+        tabBarIcon: ({ color, size }) => {
+          const map = { Home: 'home', DiseaseScan: 'virus', User: 'account-circle' };
+          return <MaterialCommunityIcons name={map[route.name]} size={size} color={color} />;
+        },
+      })}
+    >
+      <ModuleTabs.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{ title: 'Home' }}
+      />
+      <ModuleTabs.Screen
+        name="DiseaseScan"
+        component={DiseaseScanScreen}
+        options={{ title: 'Scan' }}
+      />
+      <ModuleTabs.Screen name="User" component={UserScreen} />
+    </ModuleTabs.Navigator>
+  );
+}
+
 export default function AppNavigator() {
   return (
     <Stack.Navigator>
@@ -147,6 +191,12 @@ export default function AppNavigator() {
       />
       <Stack.Screen name="NutrientModule" component={NutrientModuleTabs} options={{ headerShown: false }} />
       <Stack.Screen name="FruitModule" component={FruitModuleTabs} options={{ headerShown: false }} />
+      <Stack.Screen name="DiseaseModule" component={DiseaseModuleTabs} options={{ headerShown: false }} />
+      <Stack.Screen
+        name="DiseaseResult"
+        component={DiseaseResultScreen}
+        options={{ title: 'Disease Result' }}
+      />
       <Stack.Screen
         name="MonitoringModule"
         component={DiseaseMonitoringFlowScreen}
