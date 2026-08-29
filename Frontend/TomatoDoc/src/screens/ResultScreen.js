@@ -11,7 +11,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import ResultCard from '../components/ResultCard';
 import TreatmentAdviceCard from '../components/TreatmentAdviceCard';
 import { saveHistory } from '../api/historyApi';
 import { exportScanReport } from '../utils/reportExport';
@@ -229,10 +228,7 @@ export default function ResultScreen({ route, navigation }) {
               <MetricCard label="Module"     value="Nutrient" />
             </View>
 
-            {/* Inline ResultCard (keeps existing component) */}
-            <ResultCard result={result} presentationMode={presentationMode} />
-
-            <TreatmentAdviceCard predictedClass={result.class} variant="nutrient" />
+            <TreatmentAdviceCard predictedClass={result.class} />
 
             {/* Recommendations */}
             {result.recommendations?.length > 0 && (
@@ -384,7 +380,6 @@ const styles = StyleSheet.create({
   btnOutlineSaved:{ opacity: 0.4 },
   btnOutlineIcon: { fontSize: 14 },
   btnOutlineTxt:  { fontSize: 13, fontWeight: '600', color: C.text },
-
   btnText:    { paddingVertical: 14, alignItems: 'center', marginTop: 4 },
   btnTextTxt: { fontSize: 13, fontWeight: '600', color: C.muted },
 });

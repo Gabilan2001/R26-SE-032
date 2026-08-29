@@ -319,7 +319,6 @@ const styles = StyleSheet.create({
 
   // Section
   sectionLabel: { fontSize: 10, fontWeight: '700', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.8, marginLeft: 2, marginBottom: -4 },
-
   // History
   histList:   { gap: 8 },
   histItem:   { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: C.surface2, borderRadius: 12, padding: 10 },

@@ -11,7 +11,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import FruitResultCard from '../components/FruitResultCard';
 import TreatmentAdviceCard from '../components/TreatmentAdviceCard';
 import { saveFruitHistory } from '../api/fruitHistoryApi';
 import { exportScanReport } from '../utils/reportExport';
@@ -92,28 +91,7 @@ function MetricCard({ label, value, valueColor }) {
 }
 
 // ── Detail item row ───────────────────────────────────────────────────────────
-function DetailItem({ text, type = 'warning', delay = 0 }) {
-  const op = useRef(new Animated.Value(0)).current;
-  const x  = useRef(new Animated.Value(-12)).current;
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(op, { toValue: 1, duration: 340, delay, useNativeDriver: true }),
-      Animated.spring(x,  { toValue: 0, delay,           useNativeDriver: true }),
-    ]).start();
-  }, []);
-  const bulletColor = type === 'symptom' ? C.tomato : C.accent;
-  const bulletDim   = type === 'symptom' ? C.tomatoDim : C.accentDim;
-  const bulletBorder= type === 'symptom' ? C.tomatoBorder : C.accentBorder;
-  const bulletLabel = type === 'symptom' ? '!' : '✓';
-  return (
-    <Animated.View style={[styles.detailItem, { opacity: op, transform: [{ translateX: x }] }]}>
-      <View style={[styles.detailBullet, { backgroundColor: bulletDim, borderColor: bulletBorder }]}>
-        <Text style={[styles.detailBulletTxt, { color: bulletColor }]}>{bulletLabel}</Text>
-      </View>
-      <Text style={styles.detailTxt}>{text}</Text>
-    </Animated.View>
-  );
-}
+// (removed — treatment guidance now comes from RAG TreatmentAdviceCard)
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 export default function FruitResultScreen({ route, navigation }) {
@@ -125,18 +103,6 @@ export default function FruitResultScreen({ route, navigation }) {
   const severity = computeSeverity(result, 'fruit');
   const healthy  = isHealthy(result.class);
   const sevMeta  = SEVERITY_MAP[severity] ?? SEVERITY_MAP.medium;
-  const symptomList = Array.isArray(result.symptoms)
-    ? result.symptoms
-    : String(result.symptoms || '')
-        .split(/\r?\n|,\s*/)
-        .map((s) => s.trim())
-        .filter(Boolean);
-  const treatmentList = Array.isArray(result.treatment)
-    ? result.treatment
-    : String(result.treatment || '')
-        .split(/\r?\n|,\s*/)
-        .map((s) => s.trim())
-        .filter(Boolean);
   const confidencePct = Number(result.confidence || 0);
 
   // Entrance animations
@@ -272,30 +238,7 @@ export default function FruitResultScreen({ route, navigation }) {
               <MetricCard label="Module"     value="Fruit" />
             </View>
 
-            {/* Existing FruitResultCard (keeps component) */}
-            <FruitResultCard result={result} presentationMode={presentationMode} />
-
-            <TreatmentAdviceCard predictedClass={result.class} variant="fruit" />
-
-            {/* Symptoms */}
-            {symptomList.length > 0 && (
-              <>
-                <Text style={styles.detailTitle}>Symptoms</Text>
-                {symptomList.map((s, i) => (
-                  <DetailItem key={i} text={s} type="symptom" delay={i * 70} />
-                ))}
-              </>
-            )}
-
-            {/* Treatment */}
-            {treatmentList.length > 0 && (
-              <>
-                <Text style={[styles.detailTitle, { marginTop: 14 }]}>Treatment</Text>
-                {treatmentList.map((t, i) => (
-                  <DetailItem key={i} text={t} type="treatment" delay={i * 70} />
-                ))}
-              </>
-            )}
+            <TreatmentAdviceCard predictedClass={result.class} />
           </View>
         </Animated.View>
 
@@ -436,7 +379,6 @@ const styles = StyleSheet.create({
   btnOutlineSaved:{ opacity: 0.4 },
   btnOutlineIcon: { fontSize: 14 },
   btnOutlineTxt:  { fontSize: 13, fontWeight: '600', color: C.text },
-
   btnText:    { paddingVertical: 14, alignItems: 'center', marginTop: 4 },
   btnTextTxt: { fontSize: 13, fontWeight: '600', color: C.muted },
 });

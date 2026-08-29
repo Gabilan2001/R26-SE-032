@@ -359,7 +359,6 @@ const styles = StyleSheet.create({
   histBadge:     { borderRadius: 100, paddingHorizontal: 9, paddingVertical: 3 },
   histBadgeTxt:  { fontSize: 9, fontWeight: '800', letterSpacing: 0.3 },
   histChevron:   { fontSize: 18, color: C.muted },
-
   // Empty
   empty:    { alignItems: 'center', paddingVertical: 48, gap: 12 },
   emptyIcon:{ fontSize: 44, opacity: 0.25 },
