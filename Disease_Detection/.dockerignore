@@ -1,0 +1,22 @@
+# Allowlist approach: ignore everything by default, then explicitly un-ignore
+# only what the Docker image actually needs (app_mobile.py + RAG + one
+# model's weights). Keeps the build-context upload small -- this folder also
+# holds the 5-model research set, full datasets, and the testing frontend,
+# none of which app_mobile.py touches.
+*
+
+!Dockerfile
+
+!pipeline
+!pipeline/stage4_inference
+!pipeline/stage4_inference/requirements.txt
+!pipeline/stage4_inference/app_mobile.py
+!pipeline/stage4_inference/rag.py
+!pipeline/stage4_inference/ingest.py
+!pipeline/stage4_inference/knowledge_base.json
+
+!models
+!models/yolov8m_final
+!models/yolov8m_final/weights
+!models/yolov8m_final/weights/best.pt
+!models/leaf_validator.pth
