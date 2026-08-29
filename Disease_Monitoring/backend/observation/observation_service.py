@@ -128,7 +128,9 @@ async def process_observation_upload(
 
     # Hidden secondary check (backend only). UI sees one validation result.
     secondary_ok, secondary_reason, secondary_status = verify_crop_image(
-        image_bytes, crop_part
+        image_bytes,
+        crop_part,
+        local_gate_confidence=gate_confidence,
     )
     if not secondary_ok:
         return {

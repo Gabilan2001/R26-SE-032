@@ -1,6 +1,9 @@
 """Hidden secondary image verification (backend only).
 
-Calls an external vision API after the local gate passes.
+Runs only after the local gate PASS.
+Primary decision remains the local gate; this layer reduces obvious false accepts
+and is designed not to falsely reject real tomato leaf/fruit photos.
+
 Never expose provider names, keys, or raw model output to clients.
 """
 
@@ -27,6 +30,22 @@ EXPECTED_OBJECT = {
 
 _DEFAULT_MODEL = "gemini-3.6-flash"
 
+# Accept aliases the model sometimes returns for valid tomato crops.
+_LEAF_ALIASES = {
+    "tomato_leaf",
+    "tomato leaf",
+    "leaf",
+    "tomato_plant_leaf",
+    "diseased_tomato_leaf",
+}
+_FRUIT_ALIASES = {
+    "tomato_fruit",
+    "tomato fruit",
+    "tomato",
+    "tomato_plant_fruit",
+    "diseased_tomato_fruit",
+}
+
 
 def secondary_gate_configured() -> bool:
     return bool(os.getenv("GEMINI_API_KEY", "").strip())
@@ -48,6 +67,9 @@ def _extract_json(text: str) -> Optional[Dict[str, Any]]:
     raw = (text or "").strip()
     if not raw:
         return None
+    # Strip markdown fences if present
+    raw = re.sub(r"^```(?:json)?\s*", "", raw, flags=re.IGNORECASE)
+    raw = re.sub(r"\s*```$", "", raw)
     try:
         data = json.loads(raw)
         if isinstance(data, dict):
@@ -68,20 +90,29 @@ def _build_prompt(crop_part: str) -> str:
     expected = EXPECTED_OBJECT[crop_part]
     if crop_part == "LEAF":
         task = (
-            "Decide if this photo is a suitable close-up of a tomato plant leaf "
-            "(may show disease spots). Reject if it is fruit, apple, orange, other crops, "
-            "people, screenshots, or unrelated objects."
+            "You are checking if this image is usable for tomato LEAF disease monitoring.\n"
+            "ACCEPT (valid=true, object_type=tomato_leaf) when the main subject is a tomato leaf "
+            "or tomato plant foliage — including diseased, yellowing, spotted, torn, wet, "
+            "partial, angled, or close-up leaves.\n"
+            "REJECT (valid=false, object_type=other) only for clearly unrelated subjects: "
+            "apple, orange, banana, people, animals, screenshots, documents, cars, "
+            "or tomato FRUIT with no leaf.\n"
+            "When unsure between tomato leaf vs other plant leaf, ACCEPT as tomato_leaf."
         )
     else:
         task = (
-            "Decide if this photo is a suitable close-up of a tomato fruit "
-            "(may show disease). Reject if it is leaf-only, apple, orange, other fruits, "
-            "people, screenshots, or unrelated objects."
+            "You are checking if this image is usable for tomato FRUIT disease monitoring.\n"
+            "ACCEPT (valid=true, object_type=tomato_fruit) when the main subject is a tomato fruit "
+            "— including unripe green, ripe red, diseased, cracked, or partial fruit.\n"
+            "REJECT (valid=false, object_type=other) only for clearly unrelated subjects: "
+            "apple, orange, banana, people, animals, screenshots, documents, "
+            "or leaf-only photos with no fruit.\n"
+            "When unsure between tomato fruit vs other round fruit, ACCEPT as tomato_fruit."
         )
     return (
         f"{task}\n"
         "Reply with JSON only, no markdown, no extra text:\n"
-        f'{{"valid": true or false, "object_type": "{expected}" or "other"}}'
+        f'{{"valid": true, "object_type": "{expected}"}}'
     )
 
 
@@ -96,7 +127,29 @@ def _candidate_text(body: Dict[str, Any]) -> Optional[str]:
     return None
 
 
-def _call_vision_api(image_bytes: bytes, crop_part: str, api_key: str) -> Tuple[Optional[Dict[str, Any]], str]:
+def _normalize_object_type(value: Any) -> str:
+    return str(value or "").strip().lower().replace("-", "_").replace(" ", "_")
+
+
+def _is_matching_crop(crop_part: str, parsed: Dict[str, Any]) -> bool:
+    """True when the secondary model agrees this is the expected tomato crop."""
+    object_type = _normalize_object_type(parsed.get("object_type"))
+    valid_flag = parsed.get("valid")
+
+    aliases = _LEAF_ALIASES if crop_part == "LEAF" else _FRUIT_ALIASES
+    if object_type in aliases:
+        return True
+    # Some responses omit object_type but set valid=true
+    if valid_flag is True and (
+        object_type in {"", "unknown", "none"} or object_type in aliases
+    ):
+        return True
+    return False
+
+
+def _call_vision_api(
+    image_bytes: bytes, crop_part: str, api_key: str
+) -> Tuple[Optional[Dict[str, Any]], str]:
     """
     Returns (parsed_json_or_none, error_kind)
     error_kind: "" | "http" | "network" | "parse"
@@ -160,13 +213,20 @@ def _call_vision_api(image_bytes: bytes, crop_part: str, api_key: str) -> Tuple[
 def verify_crop_image(
     image_bytes: bytes,
     crop_part: str,
+    local_gate_confidence: Optional[float] = None,
 ) -> Tuple[bool, Optional[str], str]:
     """
     Secondary verification after local gate PASS.
 
     Returns:
         (accepted, farmer_rejection_message, status)
-        status: "pass" | "reject" | "unavailable" | "skipped"
+        status: "pass" | "reject" | "unavailable" | "skipped" | "deferred_to_local"
+
+    Policy (accuracy-first for real tomato photos):
+      - Any secondary PASS → accept
+      - Transient API/parse failures → trust local gate (already passed)
+      - Explicit secondary REJECT → retry once; if still reject, reject
+      - High local gate confidence (>= 0.7) can override a single soft reject
     """
     crop_part = crop_part.upper()
     if crop_part not in EXPECTED_OBJECT:
@@ -174,27 +234,40 @@ def verify_crop_image(
 
     api_key = os.getenv("GEMINI_API_KEY", "").strip()
     if not api_key:
-        # Not configured — keep local gate only (dev / CI).
         return True, None, "skipped"
 
-    expected = EXPECTED_OBJECT[crop_part]
-    parsed = None
-    err = "network"
+    decisions: list[str] = []
+    last_parsed: Optional[Dict[str, Any]] = None
+
     for attempt in range(2):
         parsed, err = _call_vision_api(image_bytes, crop_part, api_key)
-        if parsed is not None:
+        if parsed is None:
+            decisions.append(f"error:{err}")
+            if attempt == 0:
+                time.sleep(1.0)
+                continue
             break
-        if attempt == 0 and err in {"http", "network"}:
-            time.sleep(1.2)
+
+        last_parsed = parsed
+        if _is_matching_crop(crop_part, parsed):
+            return True, None, "pass"
+
+        decisions.append("reject")
+        if attempt == 0:
+            # Model can flip-flop on diseased leaves — confirm once before rejecting.
+            time.sleep(0.8)
             continue
         break
 
-    if parsed is None:
-        return False, UNAVAILABLE, "unavailable"
+    # After local gate already passed: do not block farmers on API flakes.
+    if last_parsed is None:
+        return True, None, "deferred_to_local"
 
-    valid = parsed.get("valid") is True
-    object_type = str(parsed.get("object_type", "")).strip().lower()
-    if valid and object_type == expected:
-        return True, None, "pass"
+    # Explicit reject on both attempts.
+    # If local gate was highly confident, prefer local (Gemini soft veto only).
+    conf = float(local_gate_confidence) if local_gate_confidence is not None else 0.0
+    trust_local_floor = float(os.getenv("SECONDARY_TRUST_LOCAL_CONF", "0.70"))
+    if conf >= trust_local_floor:
+        return True, None, "deferred_to_local"
 
     return False, _farmer_reject(crop_part), "reject"

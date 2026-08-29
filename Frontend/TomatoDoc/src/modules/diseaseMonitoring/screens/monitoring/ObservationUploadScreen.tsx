@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -83,6 +83,7 @@ export function ObservationUploadScreen({
   const [location, setLocation] = useState<ObservationLocationSelection | null>(
     () => (isFirstObservation ? null : savedLocation)
   );
+  const uploadingRef = useRef(false);
   const cfg = MODALITY[cropPart];
   const p = useMonitoringPalette();
   const styles = useMemo(() => makeStyles(p), [p]);
@@ -157,6 +158,8 @@ export function ObservationUploadScreen({
   };
 
   const runUpload = async (uri: string, confirmSameCase: boolean) => {
+    if (uploadingRef.current) return;
+    uploadingRef.current = true;
     setLoading(true);
     setValidationMessage("Validating image…");
     try {
@@ -204,6 +207,7 @@ export function ObservationUploadScreen({
         listObservations(caseData.case_id),
       ]);
       setPending(null);
+      setValidationMessage(null);
       const committedLocation = isFirstObservation ? location : activeLocation;
       if (isFirstObservation) {
         onLocationCommitted?.(committedLocation);
@@ -228,6 +232,7 @@ export function ObservationUploadScreen({
       }
       setValidationMessage(null);
     } finally {
+      uploadingRef.current = false;
       setLoading(false);
     }
   };
@@ -284,7 +289,7 @@ export function ObservationUploadScreen({
           }}
         />
 
-        {previewUri ? (
+        {previewUri && !loading ? (
           <ImageQualityCard
             result={qualityResult}
             loading={qualityLoading}
