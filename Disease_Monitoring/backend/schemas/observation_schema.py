@@ -31,6 +31,7 @@ class ObservationResponse(BaseModel):
     recommendation: Optional[Dict[str, Any]] = None
     accepted: bool = True
     image_path: Optional[str] = None
+    location: Optional[Dict[str, Any]] = None
 
 
 class UploadObservationResponse(BaseModel):
@@ -58,6 +59,15 @@ class CaseStatusResponse(BaseModel):
     crop_part: str
     observation_count: int
     overall_status: str
+    monitoring_summary: Optional[Dict[str, Any]] = None
     latest_observation: Optional[ObservationResponse] = None
     latest_recommendation: Optional[Dict[str, Any]] = None
     observations_summary: List[Dict[str, Any]] = []
+
+
+class ImageQualityCheckResponse(BaseModel):
+    ok: bool
+    checks: Dict[str, Any]
+    overall: str
+    farmer_summary: str
+    can_upload: bool = True

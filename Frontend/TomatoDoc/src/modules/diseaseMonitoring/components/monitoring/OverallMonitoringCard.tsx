@@ -2,7 +2,13 @@ import React from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 import type { Observation } from "../../api/observations";
 import { palette, severityColors } from "../../theme/colors";
-import { formatScore, weatherSummary } from "../../utils/observationLabels";
+import { weatherSummary } from "../../utils/observationLabels";
+import {
+  consistencyHeadline,
+  formatSeverityPercent,
+  monitoringDayLabel,
+  trendHeadline,
+} from "../../utils/observationDisplay";
 
 type Props = {
   index: number;
@@ -10,16 +16,19 @@ type Props = {
   imageUri?: string | null;
 };
 
-export function OverallMonitoringCard({ index, observation, imageUri }: Props) {
+export function OverallMonitoringCard({
+  index,
+  observation,
+  imageUri,
+}: Props) {
   const high = observation.severity_class === "HIGH";
   const isBaseline = index === 0 || observation.consistency_status === "BASELINE";
+  const trend = trendHeadline(observation.trend);
 
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>
-        OBSERVATION {index + 1}
-        {isBaseline ? " · BASELINE" : ""}
-      </Text>
+      <Text style={styles.title}>OBSERVATION {index + 1}</Text>
+      <Text style={styles.day}>{monitoringDayLabel(index + 1)}</Text>
       {imageUri ? (
         <Image source={{ uri: imageUri }} style={styles.image} resizeMode="cover" />
       ) : (
@@ -34,14 +43,14 @@ export function OverallMonitoringCard({ index, observation, imageUri }: Props) {
           { color: high ? severityColors.high.main : severityColors.low.main },
         ]}
       >
-        Severity {observation.severity_class} · {formatScore(observation.severity_score)}
+        {formatSeverityPercent(observation)} · {observation.severity_class}
       </Text>
+      {!isBaseline && trend ? (
+        <Text style={styles.trend}>Trend: {trend}</Text>
+      ) : null}
       <Text style={styles.meta}>Weather: {weatherSummary(observation.weather_context)}</Text>
       <Text style={styles.consistency}>
-        {isBaseline ? "BASELINE" : observation.consistency_status}
-        {observation.similarity_score != null
-          ? ` · similarity ${formatScore(observation.similarity_score)}`
-          : ""}
+        {consistencyHeadline(observation.consistency_status)}
       </Text>
     </View>
   );
@@ -57,6 +66,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   title: { color: palette.textPrimary, fontWeight: "800", letterSpacing: 0.4 },
+  day: { color: palette.textMuted, marginTop: 2, fontWeight: "600" },
   image: {
     width: "100%",
     height: 140,
@@ -74,6 +84,7 @@ const styles = StyleSheet.create({
   },
   phText: { color: palette.textMuted },
   meta: { color: palette.textMuted, marginTop: 6, lineHeight: 18 },
-  severity: { marginTop: 6, fontWeight: "700" },
+  severity: { marginTop: 6, fontWeight: "700", fontSize: 16 },
+  trend: { color: palette.infoText, marginTop: 4, fontWeight: "700" },
   consistency: { color: palette.infoText, marginTop: 6, fontWeight: "600" },
 });

@@ -17,12 +17,12 @@ import {
 import { NEXT_OBSERVATION_GUIDANCE, TARGET_OBSERVATIONS, MODALITY } from "../../config/modality";
 import { useMonitoringPalette } from "../../theme/MonitoringThemeContext";
 import type { MonitoringPalette } from "../../theme/colors";
-import { trendFarmerLabel } from "../../utils/observationLabels";
 
 type Props = {
   caseId: string;
   observationNumber: number;
   observation: Observation;
+  previousObservation?: Observation | null;
   imageUri?: string | null;
   cropPart?: CropPart;
   onBack?: () => void;
@@ -34,6 +34,7 @@ export function ObservationResultScreen({
   caseId,
   observationNumber,
   observation,
+  previousObservation,
   imageUri,
   cropPart,
   onBack,
@@ -58,19 +59,12 @@ export function ObservationResultScreen({
         <ObservationProgress current={observationNumber} />
 
         <ObservationResultCard
-          caseId={caseId}
           observationNumber={observationNumber}
           observation={observation}
+          previousObservation={previousObservation}
+          cropPart={cropPart}
           imageUri={imageUri}
         />
-
-        {observation.trend && observation.trend !== "BASELINE" ? (
-          <View style={styles.trendBox}>
-            <Text style={styles.trendTitle}>Trend</Text>
-            <Text style={styles.trendBody}>{trendFarmerLabel(observation.trend)}</Text>
-            <Text style={styles.trendCode}>{observation.trend}</Text>
-          </View>
-        ) : null}
 
         {observation.recommendation ? (
           <View style={styles.guideBox}>
@@ -106,6 +100,7 @@ export function ObservationResultScreen({
             </Pressable>
           )}
         </View>
+        <Text style={styles.caseFootnote}>Case reference: {caseId}</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -115,17 +110,6 @@ function makeStyles(p: MonitoringPalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: p.bg },
     content: { padding: 18, paddingBottom: 40 },
-    trendBox: {
-      marginTop: 12,
-      backgroundColor: p.bgElevated,
-      borderRadius: 14,
-      padding: 14,
-      borderWidth: 1,
-      borderColor: p.cardBorder,
-    },
-    trendTitle: { color: p.textMuted, fontWeight: "700", fontSize: 12 },
-    trendBody: { color: p.textPrimary, marginTop: 6, fontWeight: "700", lineHeight: 20 },
-    trendCode: { color: p.infoText, marginTop: 4, fontWeight: "600" },
     guideBox: {
       marginTop: 12,
       backgroundColor: "#2a1012",
@@ -155,5 +139,11 @@ function makeStyles(p: MonitoringPalette) {
       alignItems: "center",
     },
     primaryText: { color: p.onAccent, fontWeight: "800" },
+    caseFootnote: {
+      color: p.textMuted,
+      fontSize: 11,
+      marginTop: 14,
+      textAlign: "center",
+    },
   });
 }

@@ -41,5 +41,7 @@ export const MODALITY: Record<CropPart, ModalityConfig> = {
 
 export const TARGET_OBSERVATIONS = 3;
 
+export const MONITORING_DAY_LABELS = [1, 3, 7] as const;
+
 export const NEXT_OBSERVATION_GUIDANCE =
-  "Next observation is recommended after the configured monitoring interval.";
+  "Take the next photo after a few days at the same plant to track how severity changes over time.";

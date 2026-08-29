@@ -195,11 +195,9 @@ export default function HomeScreen({ navigation }) {
           emoji="🍃"
           thumbStyle={styles.thumbGreen}
           title="Disease in Tomato Leaf"
-          subtitle="Leaf severity & recovery monitoring"
+          subtitle="Leaf disease identification"
+          locked
           delay={150}
-          onPress={() =>
-            navigation.navigate('MonitoringModule', { initialCropPart: 'LEAF' })
-          }
         />
         <OptionCard
           emoji="🍅"

@@ -15,12 +15,15 @@ import {
   ObservationProgress,
   ObservationTimeline,
   OverallMonitoringCard,
+  OverallMonitoringSummaryCard,
   RecoveryStatusCard,
+  SeverityTrendGraph,
   WeatherTimeline,
 } from "../../components/monitoring";
 import { MODALITY } from "../../config/modality";
 import { useMonitoringPalette } from "../../theme/MonitoringThemeContext";
 import type { MonitoringPalette } from "../../theme/colors";
+import { computeOverallSummary } from "../../utils/observationDisplay";
 
 type Props = {
   cropPart: CropPart;
@@ -52,6 +55,8 @@ export function OverallMonitoringScreen({
       : "n/a";
 
   const trend = status?.overall_status ?? last?.trend ?? null;
+  const monitoringSummary =
+    status?.monitoring_summary ?? computeOverallSummary(observations);
   const p = useMonitoringPalette();
   const styles = useMemo(() => makeStyles(p), [p]);
 
@@ -67,8 +72,16 @@ export function OverallMonitoringScreen({
         <ObservationProgress current={3} overview />
         <Text style={styles.title}>Overall Monitoring</Text>
 
+        {monitoringSummary ? (
+          <OverallMonitoringSummaryCard summary={monitoringSummary} />
+        ) : null}
+
+        <SeverityTrendGraph
+          observations={observations}
+          peakObservationNumber={monitoringSummary?.peak_observation_number}
+        />
+
         <View style={styles.summary}>
-          <Text style={styles.meta}>Case ID: {caseId}</Text>
           <Text style={styles.meta}>Type: {cfg.shortLabel}</Text>
           <Text style={styles.meta}>Monitoring period: {period}</Text>
           <Text style={styles.meta}>Observations: {observations.length}</Text>
@@ -83,7 +96,10 @@ export function OverallMonitoringScreen({
           />
         ))}
 
-        <ObservationTimeline observations={observations} />
+        <ObservationTimeline
+          observations={observations}
+          peakObservationNumber={monitoringSummary?.peak_observation_number}
+        />
         <RecoveryStatusCard trend={trend} />
         <WeatherTimeline observations={observations} />
         <ConsistencySummary observations={observations} />
@@ -105,6 +121,8 @@ export function OverallMonitoringScreen({
               : null}
           </View>
         ) : null}
+
+        <Text style={styles.caseFootnote}>Case ID: {caseId}</Text>
 
         <Pressable style={styles.primary} onPress={onRestart}>
           <Text style={styles.primaryText}>Start new monitoring case</Text>
@@ -160,5 +178,6 @@ function makeStyles(p: MonitoringPalette) {
       borderColor: p.cardBorder,
     },
     exitText: { color: p.textMuted, fontWeight: "700" },
+    caseFootnote: { color: p.textMuted, fontSize: 11, marginTop: 16, textAlign: "center" },
   });
 }

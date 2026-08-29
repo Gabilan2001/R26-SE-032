@@ -99,6 +99,7 @@ export default function DiseaseMonitoringFlowScreen({ navigation, route }: Props
             observations: [],
             status: null,
             imageUris: {},
+            caseLocation: null,
             uploadTarget: 1,
             step: "upload",
           }));
@@ -112,19 +113,24 @@ export default function DiseaseMonitoringFlowScreen({ navigation, route }: Props
         cropPart={session.cropPart}
         observationNumber={session.uploadTarget}
         attachWeather={attachWeather}
+        savedLocation={session.caseLocation}
+        onLocationCommitted={(loc) =>
+          setSession((s) => ({ ...s, caseLocation: loc }))
+        }
         onBack={() =>
           setSession((s) => ({
             ...s,
             step: s.observations.length > 0 ? "result" : "create",
           }))
         }
-        onSuccess={({ observation, status, observations, imageUri }) => {
+        onSuccess={({ observation, status, observations, imageUri, location }) => {
           setLatestObservation(observation);
           setLatestImageUri(imageUri);
           setSession((s) => ({
             ...s,
             status,
             observations,
+            caseLocation: location ?? s.caseLocation,
             imageUris: {
               ...s.imageUris,
               [observation.observation_id]: imageUri,
@@ -136,11 +142,14 @@ export default function DiseaseMonitoringFlowScreen({ navigation, route }: Props
     );
   } else if (session.step === "result" && session.caseData && latestObservation) {
     const observationNumber = session.observations.length;
+    const previousObservation =
+      observationNumber > 1 ? session.observations[observationNumber - 2] : null;
     body = (
       <ObservationResultScreen
         caseId={session.caseData.case_id}
         observationNumber={observationNumber}
         observation={latestObservation}
+        previousObservation={previousObservation}
         cropPart={session.cropPart ?? undefined}
         imageUri={
           latestImageUri ?? session.imageUris[latestObservation.observation_id]

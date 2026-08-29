@@ -13,6 +13,7 @@ from config.observation_config import (
 from consistency.consistency_checker import check_consistency
 from consistency.similarity import cosine_similarity
 from ml.predict.gate_predictor import is_valid_fruit, is_valid_leaf
+from ml.predict.secondary_image_verify import verify_crop_image
 from observation.observation_repository import (
     create_case,
     get_all_observations,
@@ -23,8 +24,13 @@ from observation.observation_repository import (
     save_observation_image,
 )
 from observation.recommendation_service import get_worsening_recommendation
-from observation.trend_analysis import compute_overall_status, compute_trend
+from observation.trend_analysis import (
+    compute_monitoring_summary,
+    compute_overall_status,
+    compute_trend,
+)
 from observation.weather_context import fetch_weather_context
+from utils.location_service import resolve_observation_location
 from severity.fruit.fruit_severity import (
     FruitModelNotConfiguredError,
     predict_fruit_severity,
@@ -88,6 +94,11 @@ async def process_observation_upload(
     disease: str,
     latitude: Optional[float] = None,
     longitude: Optional[float] = None,
+    area: Optional[str] = None,
+    district: Optional[str] = None,
+    province: Optional[str] = None,
+    location_label: Optional[str] = None,
+    location_source: Optional[str] = None,
     confirm_same_case: bool = False,
 ) -> Dict[str, Any]:
     case = get_case(case_id)
@@ -113,6 +124,25 @@ async def process_observation_upload(
             "image_valid": False,
             "gate_confidence": gate_confidence,
             "rejection_reason": rejection_reason,
+        }
+
+    # Hidden secondary check (backend only). UI sees one validation result.
+    secondary_ok, secondary_reason, secondary_status = verify_crop_image(
+        image_bytes, crop_part
+    )
+    if not secondary_ok:
+        return {
+            "accepted": False,
+            "case_id": case_id,
+            "crop_part": crop_part,
+            "image_valid": False,
+            "gate_confidence": gate_confidence,
+            "rejection_reason": secondary_reason
+            or (
+                "We couldn't validate the image right now. Please try again."
+                if secondary_status == "unavailable"
+                else rejection_reason
+            ),
         }
 
     severity_result = _run_severity(crop_part, image_bytes)
@@ -146,7 +176,19 @@ async def process_observation_upload(
 
     previous_score = previous["severity_score"] if previous else None
     trend = compute_trend(severity_result["severity_score"], previous_score)
-    weather_context = fetch_weather_context(latitude, longitude)
+
+    location = resolve_observation_location(
+        latitude=latitude,
+        longitude=longitude,
+        area=area,
+        district=district,
+        province=province,
+        location_label=location_label,
+        location_source=location_source,
+    )
+    weather_lat = location.get("latitude")
+    weather_lon = location.get("longitude")
+    weather_context = fetch_weather_context(weather_lat, weather_lon)
     recommendation = get_worsening_recommendation(disease, trend, weather_context)
 
     observation_id = f"OBS-{uuid.uuid4().hex[:8].upper()}"
@@ -170,6 +212,12 @@ async def process_observation_upload(
         "recommendation": recommendation,
         "accepted": True,
         "image_path": image_path,
+        "latitude": location.get("latitude"),
+        "longitude": location.get("longitude"),
+        "area": location.get("area"),
+        "district": location.get("district"),
+        "province": location.get("province"),
+        "location_source": location.get("source"),
     }
     insert_observation(record)
 
@@ -205,6 +253,8 @@ async def get_case_status(case_id: str) -> Dict[str, Any]:
     public = [public_observation(o) for o in accepted]
     trends = [o["trend"] for o in accepted if o.get("trend")]
     overall = compute_overall_status(trends)
+    severity_scores = [float(o["severity_score"]) for o in accepted]
+    monitoring_summary = compute_monitoring_summary(severity_scores)
 
     latest = public[-1] if public else None
     latest_recommendation = latest.get("recommendation") if latest else None
@@ -214,6 +264,7 @@ async def get_case_status(case_id: str) -> Dict[str, Any]:
         "crop_part": crop_part,
         "observation_count": len(public),
         "overall_status": overall,
+        "monitoring_summary": monitoring_summary,
         "latest_observation": latest,
         "latest_recommendation": latest_recommendation,
         "observations_summary": [

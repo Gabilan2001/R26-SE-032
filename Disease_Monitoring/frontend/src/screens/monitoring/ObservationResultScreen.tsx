@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import type { Observation } from "../../api/observations";
+import type { CropPart, Observation } from "../../api/observations";
 import { LeafScanAppHeader } from "../../components/LeafScanAppHeader";
 import {
   ObservationProgress,
@@ -16,13 +16,14 @@ import {
 } from "../../components/monitoring";
 import { NEXT_OBSERVATION_GUIDANCE, TARGET_OBSERVATIONS } from "../../config/modality";
 import { palette } from "../../theme/colors";
-import { trendFarmerLabel } from "../../utils/observationLabels";
 
 type Props = {
   caseId: string;
   observationNumber: number;
   observation: Observation;
+  previousObservation?: Observation | null;
   imageUri?: string | null;
+  cropPart?: CropPart;
   onNextObservation: () => void;
   onViewOverall: () => void;
 };
@@ -31,7 +32,9 @@ export function ObservationResultScreen({
   caseId,
   observationNumber,
   observation,
+  previousObservation,
   imageUri,
+  cropPart,
   onNextObservation,
   onViewOverall,
 }: Props) {
@@ -45,19 +48,12 @@ export function ObservationResultScreen({
         <ObservationProgress current={observationNumber} />
 
         <ObservationResultCard
-          caseId={caseId}
           observationNumber={observationNumber}
           observation={observation}
+          previousObservation={previousObservation}
+          cropPart={cropPart}
           imageUri={imageUri}
         />
-
-        {observation.trend && observation.trend !== "BASELINE" ? (
-          <View style={styles.trendBox}>
-            <Text style={styles.trendTitle}>Trend</Text>
-            <Text style={styles.trendBody}>{trendFarmerLabel(observation.trend)}</Text>
-            <Text style={styles.trendCode}>{observation.trend}</Text>
-          </View>
-        ) : null}
 
         {observation.recommendation ? (
           <View style={styles.guideBox}>
@@ -93,6 +89,7 @@ export function ObservationResultScreen({
             </Pressable>
           )}
         </View>
+        <Text style={styles.caseFootnote}>Case reference: {caseId}</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -101,17 +98,6 @@ export function ObservationResultScreen({
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: palette.bg },
   content: { padding: 18, paddingBottom: 40 },
-  trendBox: {
-    marginTop: 12,
-    backgroundColor: palette.bgElevated,
-    borderRadius: 14,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: palette.cardBorder,
-  },
-  trendTitle: { color: palette.textMuted, fontWeight: "700", fontSize: 12 },
-  trendBody: { color: palette.textPrimary, marginTop: 6, fontWeight: "700", lineHeight: 20 },
-  trendCode: { color: palette.infoText, marginTop: 4, fontWeight: "600" },
   guideBox: {
     marginTop: 12,
     backgroundColor: "#2a1012",
@@ -141,4 +127,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   primaryText: { color: "#04210f", fontWeight: "800" },
+  caseFootnote: {
+    color: palette.textMuted,
+    fontSize: 11,
+    marginTop: 14,
+    textAlign: "center",
+  },
 });

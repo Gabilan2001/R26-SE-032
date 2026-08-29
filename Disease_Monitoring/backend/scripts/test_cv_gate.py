@@ -87,6 +87,14 @@ def _apple_like() -> bytes:
     return _jpeg_bytes(img)
 
 
+def _orange_like() -> bytes:
+    """Saturated orange sphere (citrus proxy)."""
+    img = Image.new("RGB", (320, 320), (245, 245, 245))
+    draw = ImageDraw.Draw(img)
+    draw.ellipse([40, 40, 280, 280], fill=(245, 140, 30))
+    return _jpeg_bytes(img)
+
+
 def _other_leaf_like() -> bytes:
     """Flat green rectangle with low organic texture (clothing/other plant proxy)."""
     arr = np.zeros((320, 320, 3), dtype=np.uint8)
@@ -198,6 +206,8 @@ def main():
         )
 
     results.append(_run_case("apple_like", "FRUIT", _apple_like(), False))
+    results.append(_run_case("apple_like_LEAF", "LEAF", _apple_like(), False))
+    results.append(_run_case("orange_like_LEAF", "LEAF", _orange_like(), False))
     results.append(_run_case("banana_like", "FRUIT", _banana_like(), False))
     results.append(_run_case("other_leaf_flat", "LEAF", _other_leaf_like(), False))
     results.append(_run_case("face_like", "LEAF", _face_like(), False))

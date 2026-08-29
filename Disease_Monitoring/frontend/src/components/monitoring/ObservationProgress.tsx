@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { TARGET_OBSERVATIONS } from "../../config/modality";
+import { TARGET_OBSERVATIONS, MONITORING_DAY_LABELS } from "../../config/modality";
 import { palette } from "../../theme/colors";
 
 type Props = {
@@ -10,10 +10,10 @@ type Props = {
 };
 
 const STEPS = [
-  { key: 1, label: "Obs 1" },
-  { key: 2, label: "Obs 2" },
-  { key: 3, label: "Obs 3" },
-  { key: 4, label: "Overview" },
+  { key: 1, label: "Obs 1", sub: `Day ${MONITORING_DAY_LABELS[0]}` },
+  { key: 2, label: "Obs 2", sub: `Day ${MONITORING_DAY_LABELS[1]}` },
+  { key: 3, label: "Obs 3", sub: `Day ${MONITORING_DAY_LABELS[2]}` },
+  { key: 4, label: "Overview", sub: "Summary" },
 ];
 
 export function ObservationProgress({ current, overview }: Props) {
@@ -45,6 +45,7 @@ export function ObservationProgress({ current, overview }: Props) {
                 </Text>
               </View>
               <Text style={[styles.label, active && styles.labelActive]}>{s.label}</Text>
+              <Text style={styles.subLabel}>{s.sub}</Text>
             </View>
           </React.Fragment>
         );
@@ -90,6 +91,13 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   labelActive: { color: palette.textPrimary },
+  subLabel: {
+    marginTop: 2,
+    color: palette.textMuted,
+    fontSize: 9,
+    fontWeight: "600",
+    textAlign: "center",
+  },
   line: {
     flex: 1,
     height: 2,

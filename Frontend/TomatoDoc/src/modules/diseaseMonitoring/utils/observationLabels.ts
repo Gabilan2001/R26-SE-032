@@ -88,19 +88,4 @@ export function recoveryTone(
   }
 }
 
-export function weatherSummary(
-  wx: Record<string, unknown> | null | undefined
-): string {
-  if (!wx) return "Weather not attached";
-  if (typeof wx.interpretation === "string" && wx.interpretation) {
-    return wx.interpretation;
-  }
-  if (wx.available === false) return "Weather data unavailable";
-  const details = wx.details as
-    | { temperature?: number; humidity?: number; rainfall?: number }
-    | undefined;
-  if (!details) return "Weather context recorded";
-  return `Temp ${details.temperature ?? "n/a"}°C · Humidity ${
-    details.humidity ?? "n/a"
-  }% · Rain ${details.rainfall ?? "n/a"}`;
-}
+export { weatherSummary } from "./weatherDisplay";

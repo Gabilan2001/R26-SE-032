@@ -28,6 +28,7 @@ import { LeafScanAppHeader } from "../components/LeafScanAppHeader";
 import { SemicircularSeverityGauge } from "../components/SemicircularSeverityGauge";
 import { API_BASE_URL } from "../config/env";
 import { palette, severityColors } from "../theme/colors";
+import { formatGateRejection } from "../utils/gateMessages";
 import {
   consistencyFarmerHint,
   consistencyFarmerTitle,
@@ -128,9 +129,7 @@ export default function DiseaseDashboardScreen() {
         if (result.image_valid === false) {
           setPendingUri(null);
           setPendingMeta(null);
-          setMessage(
-            `This photo was not accepted as a valid leaf image. ${reason}`
-          );
+          setMessage(formatGateRejection(cropPart, result.rejection_reason));
           return;
         }
 

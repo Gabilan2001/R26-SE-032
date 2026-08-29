@@ -13,7 +13,7 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { createCase, type CropPart, type MonitoringCase } from "../../api/observations";
 import { LeafScanAppHeader } from "../../components/LeafScanAppHeader";
-import { DEMO_WEATHER_COORDS, MODALITY } from "../../config/modality";
+import { MODALITY } from "../../config/modality";
 import { useMonitoringPalette } from "../../theme/MonitoringThemeContext";
 import type { MonitoringPalette } from "../../theme/colors";
 
@@ -70,12 +70,12 @@ export function CreateCaseScreen({
           <Row label="Selected type" value={cfg.shortLabel} styles={styles} />
           <Row label="Case ID" value="Created when you start" styles={styles} />
           <Row label="Start date / time" value={startedAt} styles={styles} />
-          <Row label="Location" value={DEMO_WEATHER_COORDS.label} styles={styles} />
+          <Row label="Location" value="Set once on Observation 1 (reused later)" styles={styles} />
           <View style={styles.weatherRow}>
             <View style={{ flex: 1 }}>
               <Text style={styles.rowLabel}>Weather context</Text>
               <Text style={styles.rowHint}>
-                Attach OpenWeather context on each upload using demo coordinates.
+                When enabled, local weather uses the location you set on the first observation.
               </Text>
             </View>
             <Switch
