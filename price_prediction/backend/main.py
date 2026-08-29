@@ -12,6 +12,8 @@ from app.routes.news_routes import router as news_router
 from app.routes.recommendation_routes import router as recommendation_router
 from app.routes.history_routes import router as history_router
 from app.routes.stats_routes import router as stats_router
+from app.routes.data_routes import router as data_router
+from app.routes.seasonal_routes import router as seasonal_router
 
 app = FastAPI(
     title="Tomato Price Prediction Service",
@@ -32,6 +34,9 @@ app.include_router(news_router, prefix="/news", tags=["News"])
 app.include_router(recommendation_router, prefix="/recommendation", tags=["Recommendation"])
 app.include_router(history_router, prefix="/history", tags=["History"])
 app.include_router(stats_router, prefix="/stats", tags=["Statistics"])
+app.include_router(data_router, prefix="/prices", tags=["Data Updates"])
+app.include_router(seasonal_router, prefix="/seasonal-forecast", tags=["Seasonal Forecast"])
+
 
 # Local dashboard (HTML/JS) next to backend/ — open http://127.0.0.1:8000/ui/
 _FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"

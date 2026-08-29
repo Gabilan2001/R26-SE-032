@@ -1,0 +1,30 @@
+# Environment variables & secrets
+.env
+backend/.env
+*.env
+
+# Python bytecode & cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node.js dependencies
+node_modules/
+
+# Logs
+*.log
+
+# OS & IDE files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Temporary / Scratch directories
+.tempmediaStorage/
+scratch/
+*.tmp
