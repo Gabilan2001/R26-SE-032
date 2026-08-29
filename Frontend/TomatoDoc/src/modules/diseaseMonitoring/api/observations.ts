@@ -35,6 +35,15 @@ export type MonitoringCase = {
   created_at: string;
 };
 
+export type ObservationLocation = {
+  latitude?: number;
+  longitude?: number;
+  area?: string;
+  district?: string;
+  province?: string;
+  source?: string;
+};
+
 export type Observation = {
   observation_id: string;
   case_id: string;
@@ -50,6 +59,19 @@ export type Observation = {
   status?: string | null;
   recommendation?: Record<string, unknown> | null;
   weather_context?: Record<string, unknown> | null;
+  location?: ObservationLocation | null;
+};
+
+export type MonitoringSummary = {
+  initial_severity_pct: number;
+  peak_severity_pct: number;
+  final_severity_pct: number;
+  overall_change_pct: number;
+  overall_trend: string;
+  peak_observation_number: number;
+  severity_timeline: string;
+  peak_note?: string | null;
+  observation_count: number;
 };
 
 export type CaseStatus = {
@@ -57,6 +79,7 @@ export type CaseStatus = {
   crop_part: CropPart;
   observation_count: number;
   overall_status: string;
+  monitoring_summary?: MonitoringSummary | null;
   latest_observation?: Observation | null;
   latest_recommendation?: Record<string, unknown> | null;
   observations_summary: Array<{
@@ -113,6 +136,11 @@ export async function uploadObservation(params: {
   uri: string;
   latitude?: number;
   longitude?: number;
+  area?: string;
+  district?: string;
+  province?: string;
+  locationLabel?: string;
+  locationSource?: "gps" | "manual" | "none";
   confirmSameCase?: boolean;
 }): Promise<Record<string, unknown>> {
   const form = new FormData();
@@ -120,6 +148,13 @@ export async function uploadObservation(params: {
   form.append("disease", params.disease);
   if (params.latitude != null) form.append("latitude", String(params.latitude));
   if (params.longitude != null) form.append("longitude", String(params.longitude));
+  if (params.area) form.append("area", params.area);
+  if (params.district) form.append("district", params.district);
+  if (params.province) form.append("province", params.province);
+  if (params.locationLabel) form.append("location_label", params.locationLabel);
+  if (params.locationSource && params.locationSource !== "none") {
+    form.append("location_source", params.locationSource);
+  }
   if (params.confirmSameCase) form.append("confirm_same_case", "true");
 
   await appendImageFile(form, params.uri);

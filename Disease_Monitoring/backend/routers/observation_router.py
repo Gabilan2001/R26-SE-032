@@ -3,15 +3,27 @@ from typing import Optional
 from fastapi import APIRouter, File, Form, UploadFile
 
 from observation import observation_service as svc
+from utils.image_quality import analyze_image_quality
 from schemas.observation_schema import (
     CaseResponse,
     CaseStatusResponse,
     CreateCaseRequest,
+    ImageQualityCheckResponse,
     ObservationsListResponse,
     UploadObservationResponse,
 )
 
 router = APIRouter()
+
+
+@router.post("/observations/quality-check", response_model=ImageQualityCheckResponse)
+async def quality_check(
+    file: UploadFile = File(...),
+    crop_part: str = Form(default="LEAF"),
+):
+    """Advisory blur / brightness / distance hints before upload (does not gate)."""
+    data = await file.read()
+    return analyze_image_quality(data, crop_part=crop_part.upper())
 
 
 @router.post("/cases", response_model=CaseResponse)
@@ -32,6 +44,11 @@ async def upload_observation(
     disease: str = Form(...),
     latitude: Optional[float] = Form(default=None),
     longitude: Optional[float] = Form(default=None),
+    area: Optional[str] = Form(default=None),
+    district: Optional[str] = Form(default=None),
+    province: Optional[str] = Form(default=None),
+    location_label: Optional[str] = Form(default=None),
+    location_source: Optional[str] = Form(default=None),
     confirm_same_case: bool = Form(default=False),
 ):
     return await svc.process_observation_upload(
@@ -41,6 +58,11 @@ async def upload_observation(
         disease=disease,
         latitude=latitude,
         longitude=longitude,
+        area=area,
+        district=district,
+        province=province,
+        location_label=location_label,
+        location_source=location_source,
         confirm_same_case=confirm_same_case,
     )
 

@@ -52,6 +52,7 @@ export default function App() {
             observations: [],
             status: null,
             imageUris: {},
+            caseLocation: null,
             uploadTarget: 1,
             step: "upload",
           }));
@@ -71,13 +72,18 @@ export default function App() {
         cropPart={session.cropPart}
         observationNumber={session.uploadTarget}
         attachWeather={attachWeather}
-        onSuccess={({ observation, status, observations, imageUri }) => {
+        savedLocation={session.caseLocation}
+        onLocationCommitted={(loc) =>
+          setSession((s) => ({ ...s, caseLocation: loc }))
+        }
+        onSuccess={({ observation, status, observations, imageUri, location }) => {
           setLatestObservation(observation);
           setLatestImageUri(imageUri);
           setSession((s) => ({
             ...s,
             status,
             observations,
+            caseLocation: location ?? s.caseLocation,
             imageUris: {
               ...s.imageUris,
               [observation.observation_id]: imageUri,
@@ -95,11 +101,15 @@ export default function App() {
     latestObservation
   ) {
     const observationNumber = session.observations.length;
+    const previousObservation =
+      observationNumber > 1 ? session.observations[observationNumber - 2] : null;
     return (
       <ObservationResultScreen
         caseId={session.caseData.case_id}
         observationNumber={observationNumber}
         observation={latestObservation}
+        previousObservation={previousObservation}
+        cropPart={session.cropPart ?? undefined}
         imageUri={
           latestImageUri ?? session.imageUris[latestObservation.observation_id]
         }

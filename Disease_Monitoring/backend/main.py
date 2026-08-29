@@ -5,7 +5,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import observation_router
+from routers import location_router, observation_router
 
 app = FastAPI(
     title="Observation-Based Disease Recovery Monitoring",
@@ -24,6 +24,7 @@ app.add_middleware(
 )
 
 app.include_router(observation_router.router, tags=["Observation Monitoring"])
+app.include_router(location_router.router, tags=["Location"])
 
 
 @app.get("/")

@@ -92,15 +92,27 @@ export function weatherSummary(
   wx: Record<string, unknown> | null | undefined
 ): string {
   if (!wx) return "Weather not attached";
+  if (wx.available === false) {
+    return typeof wx.interpretation === "string"
+      ? wx.interpretation
+      : "Weather data unavailable";
+  }
+  const details = wx.details as
+    | {
+        temperature?: number;
+        humidity?: number;
+        rainfall?: number;
+        rainfall_1h?: number;
+      }
+    | undefined;
+  if (details && (details.temperature != null || details.humidity != null)) {
+    const rain = details.rainfall ?? details.rainfall_1h ?? "n/a";
+    return `Temp ${details.temperature ?? "n/a"}°C · Humidity ${
+      details.humidity ?? "n/a"
+    }% · Rain ${rain} mm`;
+  }
   if (typeof wx.interpretation === "string" && wx.interpretation) {
     return wx.interpretation;
   }
-  if (wx.available === false) return "Weather data unavailable";
-  const details = wx.details as
-    | { temperature?: number; humidity?: number; rainfall?: number }
-    | undefined;
-  if (!details) return "Weather context recorded";
-  return `Temp ${details.temperature ?? "n/a"}°C · Humidity ${
-    details.humidity ?? "n/a"
-  }% · Rain ${details.rainfall ?? "n/a"}`;
+  return "Weather context recorded";
 }

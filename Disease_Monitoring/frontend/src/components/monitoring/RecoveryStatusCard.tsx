@@ -26,7 +26,6 @@ export function RecoveryStatusCard({ trend }: Props) {
       <Text style={[styles.headline, { color: colors.text }]}>
         {recoveryHeadline(trend)}
       </Text>
-      <Text style={styles.code}>{trend ?? "n/a"}</Text>
       <Text style={styles.hint}>
         Observation-based trend from the backend. Not a treatment prescription.
       </Text>
@@ -48,6 +47,5 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   headline: { fontSize: 24, fontWeight: "800", marginTop: 8, lineHeight: 30 },
-  code: { color: palette.textMuted, marginTop: 8, fontWeight: "700" },
   hint: { color: palette.textMuted, marginTop: 10, lineHeight: 18, fontSize: 12 },
 });
