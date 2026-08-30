@@ -1,3 +1,4 @@
+export { MonitoringInsightCard } from "./MonitoringInsightCard";
 export { ImageQualityCard } from "./ImageQualityCard";
 export { OverallMonitoringSummaryCard } from "./OverallMonitoringSummaryCard";
 export { SeverityTrendGraph } from "./SeverityTrendGraph";

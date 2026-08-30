@@ -60,6 +60,7 @@ class CaseStatusResponse(BaseModel):
     observation_count: int
     overall_status: str
     monitoring_summary: Optional[Dict[str, Any]] = None
+    farmer_insight: Optional[Dict[str, Any]] = None
     latest_observation: Optional[ObservationResponse] = None
     latest_recommendation: Optional[Dict[str, Any]] = None
     observations_summary: List[Dict[str, Any]] = []
@@ -71,3 +72,12 @@ class ImageQualityCheckResponse(BaseModel):
     overall: str
     farmer_summary: str
     can_upload: bool = True
+
+
+class FarmerInsightResponse(BaseModel):
+    case_id: str
+    available: bool
+    title: str
+    text: str
+    disclaimer: Optional[str] = None
+    source: Optional[str] = None

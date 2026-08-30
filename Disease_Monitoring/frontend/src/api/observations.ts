@@ -119,6 +119,51 @@ export async function getCaseStatus(caseId: string): Promise<CaseStatus> {
   return res.json();
 }
 
+export type FarmerInsight = {
+  case_id: string;
+  available: boolean;
+  title: string;
+  text: string;
+  disclaimer?: string | null;
+};
+
+export async function getFarmerInsight(caseId: string): Promise<FarmerInsight> {
+  const res = await fetch(apiUrl(`/cases/${caseId}/insight`));
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export function caseReportPdfUrl(caseId: string): string {
+  return apiUrl(`/cases/${caseId}/report.pdf`);
+}
+
+export async function downloadCaseReport(caseId: string): Promise<void> {
+  const url = caseReportPdfUrl(caseId);
+  if (Platform.OS === "web") {
+    if (typeof window !== "undefined") {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+    return;
+  }
+
+  const FileSystem = await import("expo-file-system");
+  const target = `${FileSystem.cacheDirectory}monitoring-report-${caseId}.pdf`;
+  const result = await FileSystem.downloadAsync(url, target);
+  try {
+    const Sharing = await import("expo-sharing");
+    if (await Sharing.isAvailableAsync()) {
+      await Sharing.shareAsync(result.uri, {
+        mimeType: "application/pdf",
+        dialogTitle: "Monitoring report",
+      });
+      return;
+    }
+  } catch {
+    // optional
+  }
+  throw new Error(`Report saved to ${result.uri}`);
+}
+
 export async function listObservations(caseId: string): Promise<{
   case_id: string;
   crop_part: CropPart;

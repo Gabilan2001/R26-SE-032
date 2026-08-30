@@ -20,6 +20,7 @@ export type WeatherContext = {
   environmental_conditions?: string;
   details?: WeatherDetails;
   city?: string;
+  used_default_location?: boolean;
 };
 
 function rainMm(details?: WeatherDetails): number | undefined {
@@ -56,19 +57,20 @@ export function weatherSummary(
   if (parsed.available === false) {
     const reason = String(parsed.reason ?? "").toLowerCase();
     if (reason.includes("location") || reason.includes("coordinate")) {
-      return "No location from Observation 1 — weather not retrieved.";
+      return "No location — weather not retrieved.";
     }
     if (reason.includes("api") || reason.includes("key") || reason.includes("fail")) {
-      return "Weather temporarily unavailable for this observation.";
+      return "Weather temporarily unavailable.";
     }
-    return parsed.interpretation || "Weather temporarily unavailable for this observation.";
+    return parsed.interpretation || "Weather temporarily unavailable.";
   }
   const d = parsed.details;
+  const defaultNote = parsed.used_default_location ? " (Colombo default)" : "";
   if (d && (d.temperature != null || d.humidity != null)) {
     return `Temp ${fmt(d.temperature, 0)}°C · Humidity ${fmt(d.humidity, 0)}% · Rain ${fmt(
       rainMm(d),
       1
-    )} mm`;
+    )} mm${defaultNote}`;
   }
   if (typeof parsed.interpretation === "string" && parsed.interpretation) {
     return parsed.interpretation;
