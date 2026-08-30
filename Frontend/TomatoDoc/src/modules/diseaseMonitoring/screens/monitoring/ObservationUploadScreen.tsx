@@ -32,11 +32,20 @@ import { checkImageQuality, type ImageQualityResult } from "../../api/imageQuali
 import { useMonitoringPalette } from "../../theme/MonitoringThemeContext";
 import type { MonitoringPalette } from "../../theme/colors";
 import { formatGateRejection } from "../../utils/gateMessages";
+import { formatDiseaseName } from "../../utils/observationLabels";
 import {
   formatLocationSummary,
   manualLocationSelection,
   type ObservationLocationSelection,
 } from "../../utils/locationCapture";
+
+function showFarmerAlert(title: string, message: string) {
+  if (typeof window !== "undefined" && typeof window.alert === "function") {
+    window.alert(`${title}\n\n${message}`);
+    return;
+  }
+  Alert.alert(title, message);
+}
 
 type Props = {
   caseData: MonitoringCase;
@@ -267,7 +276,20 @@ export function ObservationUploadScreen({
         <ObservationProgress current={observationNumber} />
         <Text style={styles.title}>Observation {observationNumber}</Text>
         <Text style={styles.meta}>Case ID: {caseData.case_id}</Text>
-        <Text style={styles.meta}>{cfg.shortLabel} · disease context: external default</Text>
+        <Pressable
+          onPress={() =>
+            showFarmerAlert(
+              "Disease context",
+              `Case ID: ${caseData.case_id}\nDisease: ${formatDiseaseName(
+                cfg.defaultDisease
+              )}\nThis is an external default - not detected in this module.`
+            )
+          }
+        >
+          <Text style={styles.meta}>
+            {cfg.shortLabel} - disease context: external default
+          </Text>
+        </Pressable>
 
         {isFirstObservation ? (
           <LocationAccessCard
@@ -316,9 +338,11 @@ export function ObservationUploadScreen({
         <Pressable
           style={styles.link}
           onPress={() =>
-            Alert.alert(
+            showFarmerAlert(
               "Disease context",
-              "Disease identification belongs to another component. This app sends a modality default required by the observation API."
+              `Case ID: ${caseData.case_id}\nDisease: ${formatDiseaseName(
+                cfg.defaultDisease
+              )}\nThis is an external default - not detected in this module.`
             )
           }
         >

@@ -10,8 +10,27 @@ export type ObservationLocationSelection = {
   label?: string;
 };
 
-/** Request device GPS coordinates (Expo Location with web geolocation fallback). */
+/** Request device GPS coordinates (web geolocation first, then Expo Location). */
 export async function requestGpsLocation(): Promise<ObservationLocationSelection | null> {
+  if (
+    Platform.OS === "web" &&
+    typeof navigator !== "undefined" &&
+    navigator.geolocation
+  ) {
+    return new Promise((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) =>
+          resolve({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            source: "gps",
+          }),
+        () => resolve(null),
+        { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
+      );
+    });
+  }
+
   try {
     const Location = await import("expo-location");
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -27,24 +46,6 @@ export async function requestGpsLocation(): Promise<ObservationLocationSelection
       source: "gps",
     };
   } catch {
-    if (
-      Platform.OS === "web" &&
-      typeof navigator !== "undefined" &&
-      navigator.geolocation
-    ) {
-      return new Promise((resolve) => {
-        navigator.geolocation.getCurrentPosition(
-          (pos) =>
-            resolve({
-              latitude: pos.coords.latitude,
-              longitude: pos.coords.longitude,
-              source: "gps",
-            }),
-          () => resolve(null),
-          { enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 }
-        );
-      });
-    }
     return null;
   }
 }
@@ -57,7 +58,7 @@ export function formatLocationSummary(
   }
   const parts = [location.area, location.district, location.province].filter(Boolean);
   if (parts.length > 0) {
-    return parts.join(" · ");
+    return parts.join(" - ");
   }
   if (location.label) {
     return location.label;

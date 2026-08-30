@@ -10,13 +10,14 @@ Never expose provider names, keys, or raw model output to clients.
 from __future__ import annotations
 
 import base64
+import io
 import json
 import os
 import re
-import time
 from typing import Any, Dict, Optional, Tuple
 
 import requests
+from PIL import Image
 
 # Farmer-facing messages only — no provider branding.
 REJECT_LEAF = "Please upload a valid tomato leaf image."
@@ -52,11 +53,25 @@ def secondary_gate_configured() -> bool:
 
 
 def _timeout_sec() -> float:
-    return float(os.getenv("GEMINI_TIMEOUT_SEC", "45"))
+    return float(os.getenv("IMAGE_VERIFY_TIMEOUT_SEC", "6"))
 
 
 def _model_name() -> str:
     return os.getenv("GEMINI_MODEL", _DEFAULT_MODEL).strip() or _DEFAULT_MODEL
+
+
+def _jpeg_for_vision(image_bytes: bytes, max_side: int = 640) -> bytes:
+    try:
+        im = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        w, h = im.size
+        scale = max_side / float(max(w, h, 1))
+        if scale < 1.0:
+            im = im.resize((max(1, int(w * scale)), max(1, int(h * scale))), Image.BILINEAR)
+        buf = io.BytesIO()
+        im.save(buf, format="JPEG", quality=72)
+        return buf.getvalue()
+    except Exception:
+        return image_bytes
 
 
 def _farmer_reject(crop_part: str) -> str:
@@ -154,7 +169,7 @@ def _call_vision_api(
     Returns (parsed_json_or_none, error_kind)
     error_kind: "" | "http" | "network" | "parse"
     """
-    b64 = base64.b64encode(image_bytes).decode("ascii")
+    b64 = base64.b64encode(_jpeg_for_vision(image_bytes)).decode("ascii")
     model = _model_name()
     url = (
         f"https://generativelanguage.googleapis.com/v1beta/models/"
@@ -236,35 +251,14 @@ def verify_crop_image(
     if not api_key:
         return True, None, "skipped"
 
-    decisions: list[str] = []
-    last_parsed: Optional[Dict[str, Any]] = None
-
-    for attempt in range(2):
-        parsed, err = _call_vision_api(image_bytes, crop_part, api_key)
-        if parsed is None:
-            decisions.append(f"error:{err}")
-            if attempt == 0:
-                time.sleep(1.0)
-                continue
-            break
-
-        last_parsed = parsed
-        if _is_matching_crop(crop_part, parsed):
-            return True, None, "pass"
-
-        decisions.append("reject")
-        if attempt == 0:
-            # Model can flip-flop on diseased leaves — confirm once before rejecting.
-            time.sleep(0.8)
-            continue
-        break
-
-    # After local gate already passed: do not block farmers on API flakes.
-    if last_parsed is None:
+    parsed, _err = _call_vision_api(image_bytes, crop_part, api_key)
+    if parsed is None:
         return True, None, "deferred_to_local"
 
-    # Explicit reject on both attempts.
-    # If local gate was highly confident, prefer local (Gemini soft veto only).
+    if _is_matching_crop(crop_part, parsed):
+        return True, None, "pass"
+
+    # One-shot reject: high local gate confidence still prefers local PASS.
     conf = float(local_gate_confidence) if local_gate_confidence is not None else 0.0
     trust_local_floor = float(os.getenv("SECONDARY_TRUST_LOCAL_CONF", "0.70"))
     if conf >= trust_local_floor:

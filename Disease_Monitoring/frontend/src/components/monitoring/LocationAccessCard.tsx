@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Modal,
   Pressable,
   ScrollView,
@@ -41,7 +42,13 @@ export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
     setLoading(true);
     try {
       const gps = await requestGpsLocation();
+      if (!gps) {
+        onChange(null);
+        Alert.alert("Location", "Location was not enabled. Pick an area or use Colombo default.");
+        return;
+      }
       onChange(gps);
+      Alert.alert("Location on", "Weather will use your current location.");
     } finally {
       setLoading(false);
     }
@@ -53,7 +60,7 @@ export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
       <Text style={styles.body}>
         {attachWeather
           ? "We use your location to retrieve local weather conditions for this observation."
-          : "Optional — set your area so weather can be linked to this observation."}
+          : "Optional - set your area so weather can be linked to this observation."}
       </Text>
 
       {summary ? (
@@ -64,7 +71,7 @@ export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
       ) : (
         <Text style={styles.missing}>
           {attachWeather
-            ? "No location yet — GPS, pick an area, or use Colombo default for weather."
+            ? "No location yet - GPS, pick an area, or use Colombo default for weather."
             : "No location selected."}
         </Text>
       )}
@@ -87,13 +94,14 @@ export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
       </View>
 
       <Pressable
-        onPress={() =>
-          onChange(
-            attachWeather
-              ? manualLocationSelection("Colombo")
-              : { source: "none" }
-          )
-        }
+        onPress={() => {
+          if (attachWeather) {
+            onChange(manualLocationSelection("Colombo"));
+            Alert.alert("Location on", "Weather will use Colombo (default).");
+          } else {
+            onChange({ source: "none" });
+          }
+        }}
         style={styles.skip}
       >
         <Text style={styles.skipText}>
@@ -115,6 +123,7 @@ export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
                   onPress={() => {
                     onChange(manualLocationSelection(label));
                     setPickerOpen(false);
+                    Alert.alert("Location on", `Weather will use ${label}.`);
                   }}
                 >
                   <Text style={styles.optionText}>{label}</Text>

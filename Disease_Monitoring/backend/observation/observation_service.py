@@ -1,6 +1,7 @@
 """Orchestrates the observation-based monitoring pipeline."""
 
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
@@ -181,14 +182,7 @@ async def process_observation_upload(
     trend = compute_trend(severity_result["severity_score"], previous_score)
 
     primary_severity = str(severity_result["severity_class"]).upper()
-    secondary_verify = verify_secondary_severity(
-        image_bytes, crop_part, primary_severity
-    )
     cnn_high_prob = severity_result.get("cnn_high_prob")
-    severity_evidence = {
-        "cnn_high_prob": cnn_high_prob,
-        **secondary_verify,
-    }
 
     location = resolve_observation_location(
         latitude=latitude,
@@ -219,7 +213,18 @@ async def process_observation_upload(
                 "source": location.get("source") or "default",
             }
 
-    weather_context = fetch_weather_context(weather_lat, weather_lon)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        wx_fut = pool.submit(fetch_weather_context, weather_lat, weather_lon)
+        sv_fut = pool.submit(
+            verify_secondary_severity, image_bytes, crop_part, primary_severity
+        )
+        weather_context = wx_fut.result()
+        secondary_verify = sv_fut.result()
+
+    severity_evidence = {
+        "cnn_high_prob": cnn_high_prob,
+        **secondary_verify,
+    }
     if used_default_weather_location and weather_context.get("available"):
         weather_context = {
             **weather_context,

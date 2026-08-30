@@ -9,12 +9,14 @@ Does not replace ml.predict.secondary_image_verify (image gate).
 from __future__ import annotations
 
 import base64
+import io
 import json
 import os
 import re
 from typing import Any, Dict, Optional, Tuple
 
 import requests
+from PIL import Image
 
 _DEFAULT_MODEL = "gemini-3.6-flash"
 STATUS_CONSISTENT = "CONSISTENT"
@@ -22,8 +24,22 @@ STATUS_INCONSISTENT = "INCONSISTENT"
 STATUS_UNAVAILABLE = "SECONDARY_UNAVAILABLE"
 
 
+def _jpeg_for_vision(image_bytes: bytes, max_side: int = 640) -> bytes:
+    try:
+        im = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        w, h = im.size
+        scale = max_side / float(max(w, h, 1))
+        if scale < 1.0:
+            im = im.resize((max(1, int(w * scale)), max(1, int(h * scale))), Image.BILINEAR)
+        buf = io.BytesIO()
+        im.save(buf, format="JPEG", quality=72)
+        return buf.getvalue()
+    except Exception:
+        return image_bytes
+
+
 def _timeout_sec() -> float:
-    return float(os.getenv("SECONDARY_SEVERITY_TIMEOUT_SEC", "10"))
+    return float(os.getenv("SECONDARY_SEVERITY_TIMEOUT_SEC", "5"))
 
 
 def _model_name() -> str:
@@ -129,7 +145,7 @@ def _call_vision_api(image_bytes: bytes, crop_part: str) -> Tuple[Optional[Dict[
     key = _api_key()
     if not key:
         return None, False
-    b64 = base64.b64encode(image_bytes).decode("ascii")
+    b64 = base64.b64encode(_jpeg_for_vision(image_bytes)).decode("ascii")
     url = (
         f"https://generativelanguage.googleapis.com/v1beta/models/"
         f"{_model_name()}:generateContent"

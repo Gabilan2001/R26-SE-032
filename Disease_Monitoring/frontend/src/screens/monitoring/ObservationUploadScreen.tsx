@@ -256,7 +256,9 @@ export function ObservationUploadScreen({
         <ObservationProgress current={observationNumber} />
         <Text style={styles.title}>Observation {observationNumber}</Text>
         <Text style={styles.meta}>Case ID: {caseData.case_id}</Text>
-        <Text style={styles.meta}>{cfg.shortLabel} · disease context: external default</Text>
+        <Text style={styles.meta}>
+          {cfg.shortLabel} - disease context: external default
+        </Text>
 
         {isFirstObservation ? (
           <LocationAccessCard
@@ -306,7 +308,10 @@ export function ObservationUploadScreen({
           onPress={() =>
             Alert.alert(
               "Disease context",
-              "Disease identification belongs to another component. This app sends a modality default required by the observation API."
+              `Case ID: ${caseData.case_id}\nDisease: ${cfg.defaultDisease.replace(
+                /_/g,
+                " "
+              )}\nThis is an external default - not detected in this module.`
             )
           }
         >
