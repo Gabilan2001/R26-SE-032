@@ -31,6 +31,7 @@ from observation.trend_analysis import (
 )
 from observation.weather_context import fetch_weather_context
 from utils.location_service import resolve_manual_location, resolve_observation_location
+from utils.secondary_severity_verify import verify_secondary_severity
 from severity.fruit.fruit_severity import (
     FruitModelNotConfiguredError,
     predict_fruit_severity,
@@ -179,6 +180,16 @@ async def process_observation_upload(
     previous_score = previous["severity_score"] if previous else None
     trend = compute_trend(severity_result["severity_score"], previous_score)
 
+    primary_severity = str(severity_result["severity_class"]).upper()
+    secondary_verify = verify_secondary_severity(
+        image_bytes, crop_part, primary_severity
+    )
+    cnn_high_prob = severity_result.get("cnn_high_prob")
+    severity_evidence = {
+        "cnn_high_prob": cnn_high_prob,
+        **secondary_verify,
+    }
+
     location = resolve_observation_location(
         latitude=latitude,
         longitude=longitude,
@@ -232,7 +243,7 @@ async def process_observation_upload(
         "created_at": created_at,
         "disease": disease,
         "severity_score": severity_result["severity_score"],
-        "severity_class": severity_result["severity_class"],
+        "severity_class": primary_severity,
         "embedding": embedding,
         "similarity_score": similarity_score,
         "consistency_status": consistency_status,
@@ -248,6 +259,7 @@ async def process_observation_upload(
         "district": location.get("district"),
         "province": location.get("province"),
         "location_source": location.get("source"),
+        "severity_evidence": severity_evidence,
     }
     insert_observation(record)
 
