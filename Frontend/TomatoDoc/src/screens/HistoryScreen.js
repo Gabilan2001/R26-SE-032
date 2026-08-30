@@ -9,13 +9,17 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Dimensions,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AuthContext } from '../context/AuthContext';
 import { UIThemeContext } from '../context/UIThemeContext';
 import { getHistory } from '../api/historyApi';
 import { getFruitHistory } from '../api/fruitHistoryApi';
 import { formatDateTime } from '../utils/formatters';
+
+const { width } = Dimensions.get('window');
 
 // ── Tokens ────────────────────────────────────────────────────────────────────
 const C = {
@@ -37,6 +41,8 @@ const C = {
   success:      '#4adf6f',
   successDim:   'rgba(74,223,111,0.10)',
   successBorder:'rgba(74,223,111,0.20)',
+  glass:        'rgba(255,255,255,0.04)',
+  glassBorder:  'rgba(255,255,255,0.06)',
 };
 
 // ── Status helpers ────────────────────────────────────────────────────────────
@@ -53,37 +59,68 @@ const STATUS_META = {
   deficiency: { label: 'Deficiency',  color: C.warn,    dim: C.warnDim,    border: C.warnBorder,    emoji: '🍃', accentColor: C.warn },
 };
 
-// ── Summary card ──────────────────────────────────────────────────────────────
+// ── Components ──
+
+function GlassCard({ children, style }) {
+  return (
+    <View style={[styles.glassCard, style]}>
+      <LinearGradient
+        colors={['rgba(255,255,255,0.04)', 'rgba(255,255,255,0.01)']}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
+      {children}
+    </View>
+  );
+}
+
 function SummaryCard({ num, label, numColor, delay = 0 }) {
   const op = useRef(new Animated.Value(0)).current;
-  const y  = useRef(new Animated.Value(12)).current;
+  const y  = useRef(new Animated.Value(15)).current;
+  const scale = useRef(new Animated.Value(0.9)).current;
+  
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(op, { toValue: 1, duration: 320, delay, useNativeDriver: true }),
-      Animated.spring(y,  { toValue: 0, delay,           useNativeDriver: true }),
+      Animated.timing(op, { toValue: 1, duration: 400, delay, useNativeDriver: true }),
+      Animated.spring(y,  { toValue: 0, delay, useNativeDriver: true }),
+      Animated.spring(scale, { toValue: 1, delay, useNativeDriver: true }),
     ]).start();
   }, [num]);
+  
   return (
-    <Animated.View style={[styles.sumCard, { opacity: op, transform: [{ translateY: y }] }]}>
+    <Animated.View style={[
+      styles.sumCard,
+      { 
+        opacity: op, 
+        transform: [{ translateY: y }, { scale }] 
+      }
+    ]}>
+      <LinearGradient
+        colors={['rgba(255,255,255,0.03)', 'rgba(255,255,255,0.01)']}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
       <Text style={[styles.sumNum, { color: numColor }]}>{num}</Text>
       <Text style={styles.sumLabel}>{label}</Text>
     </Animated.View>
   );
 }
 
-// ── History list item ─────────────────────────────────────────────────────────
 function HistoryItem({ item, mode, onPress, index }) {
   const status = getStatus(item.class_name, mode);
   const meta   = STATUS_META[status];
 
   const op    = useRef(new Animated.Value(0)).current;
-  const slideX= useRef(new Animated.Value(-16)).current;
-  const scale = useRef(new Animated.Value(1)).current;
+  const slideX= useRef(new Animated.Value(-20)).current;
+  const scale = useRef(new Animated.Value(0.95)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(op,     { toValue: 1, duration: 300, delay: index * 55, useNativeDriver: true }),
-      Animated.spring(slideX, { toValue: 0, delay: index * 55,               useNativeDriver: true }),
+      Animated.timing(op,     { toValue: 1, duration: 400, delay: index * 40, useNativeDriver: true }),
+      Animated.spring(slideX, { toValue: 0, delay: index * 40, useNativeDriver: true }),
+      Animated.spring(scale,  { toValue: 1, delay: index * 40, useNativeDriver: true }),
     ]).start();
   }, []);
 
@@ -91,55 +128,69 @@ function HistoryItem({ item, mode, onPress, index }) {
   const onPressOut = () => Animated.spring(scale, { toValue: 1,    useNativeDriver: true }).start();
 
   return (
-    <Animated.View style={[{ opacity: op, transform: [{ translateX: slideX }, { scale }] }]}>
+    <Animated.View style={[
+      { opacity: op, transform: [{ translateX: slideX }] }
+    ]}>
       <Pressable
-        style={styles.histCard}
+        style={[styles.histCard, { transform: [{ scale }] }]}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
         onPress={onPress}
       >
-        {/* Left accent bar */}
+        <LinearGradient
+          colors={['rgba(255,255,255,0.03)', 'rgba(255,255,255,0.01)']}
+          style={StyleSheet.absoluteFill}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        />
+        
         <View style={[styles.histAccentBar, { backgroundColor: meta.accentColor }]} />
 
-        {/* Thumbnail */}
         <View style={[styles.histThumb, { backgroundColor: meta.dim, borderColor: meta.border }]}>
-          <Text style={{ fontSize: 22 }}>{meta.emoji}</Text>
+          <Text style={{ fontSize: 24 }}>{meta.emoji}</Text>
         </View>
 
-        {/* Body */}
         <View style={styles.histBody}>
           <Text style={styles.histName} numberOfLines={1}>{item.class_name}</Text>
-          <Text style={styles.histConf}>Confidence: {item.confidence}%</Text>
-          <Text style={styles.histDate}>🕐 {formatDateTime(item.created_at)}</Text>
+          <View style={styles.histMetaRow}>
+            <View style={styles.histConfidence}>
+              <View style={[styles.histConfDot, { backgroundColor: meta.color }]} />
+              <Text style={styles.histConf}>{item.confidence}%</Text>
+            </View>
+            <Text style={styles.histDate}>{formatDateTime(item.created_at)}</Text>
+          </View>
         </View>
 
-        {/* Right */}
-        <View style={styles.histRight}>
-          <View style={[styles.histBadge, { backgroundColor: meta.dim }]}>
-            <Text style={[styles.histBadgeTxt, { color: meta.color }]}>{meta.label}</Text>
-          </View>
-          <Text style={styles.histChevron}>›</Text>
+        <View style={styles.histBadge}>
+          <Text style={[styles.histBadgeTxt, { color: meta.color }]}>{meta.label}</Text>
         </View>
       </Pressable>
     </Animated.View>
   );
 }
 
-// ── Empty state ───────────────────────────────────────────────────────────────
 function EmptyState({ query }) {
   return (
     <View style={styles.empty}>
-      <Text style={styles.emptyIcon}>{query ? '🔍' : '🌱'}</Text>
+      <View style={styles.emptyIconWrap}>
+        <Text style={styles.emptyIcon}>{query ? '🔍' : '📊'}</Text>
+      </View>
       <Text style={styles.emptyTxt}>
         {query
-          ? `No results for "${query}".\nTry a different search term.`
-          : 'No scan history yet.\nStart your first scan!'}
+          ? `No results found for "${query}"`
+          : 'No scan history yet'}
+      </Text>
+      <Text style={styles.emptySub}>
+        {query
+          ? 'Try a different search term'
+          : 'Start your first scan to track your plants'}
       </Text>
     </View>
   );
 }
 
-// ── Main Screen ───────────────────────────────────────────────────────────────
+// ── Main Screen ──
+
 export default function HistoryScreen({ navigation, route }) {
   const { token }            = useContext(AuthContext);
   const { presentationMode } = useContext(UIThemeContext);
@@ -149,32 +200,51 @@ export default function HistoryScreen({ navigation, route }) {
   const [query,   setQuery]   = useState('');
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const modeRef = useRef(mode);
 
-  // Mode toggle scale
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
+
   const nutrientScale = useRef(new Animated.Value(1)).current;
   const fruitScale    = useRef(new Animated.Value(1)).current;
+  const headerOp = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(headerOp, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   const switchMode = (m) => {
+    if (m === mode) return;
     const anim = m === 'nutrient' ? nutrientScale : fruitScale;
     Animated.sequence([
-      Animated.timing(anim, { toValue: 0.93, duration: 80, useNativeDriver: true }),
-      Animated.spring(anim, { toValue: 1,    useNativeDriver: true }),
+      Animated.timing(anim, { toValue: 0.92, duration: 80, useNativeDriver: true }),
+      Animated.spring(anim, { toValue: 1, useNativeDriver: true }),
     ]).start();
     setMode(m);
     setQuery('');
   };
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (showRefreshing = false) => {
     if (!token) {
       setHistory([]);
       setError('Log in to view your scan history.');
       return;
     }
 
-    setLoading(true);
+    const currentMode = modeRef.current;
+
+    if (showRefreshing) setRefreshing(true);
+    else setLoading(true);
     setError('');
+    
     try {
-      const res = mode === 'fruit'
+      const res = currentMode === 'fruit'
         ? await getFruitHistory(token)
         : await getHistory(token);
       setHistory(res.data.history || []);
@@ -188,22 +258,20 @@ export default function HistoryScreen({ navigation, route }) {
       );
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  }, [token, mode]);
+  }, [token]);
 
   useFocusEffect(
     useCallback(() => {
-      if (route?.params?.initialMode === 'fruit') setMode('fruit');
-      if (route?.params?.initialMode === 'nutrient') setMode('nutrient');
       fetchData();
-    }, [fetchData, route?.params?.initialMode])
+    }, [fetchData])
   );
 
   useEffect(() => {
     fetchData();
   }, [mode, fetchData]);
 
-  // Navigate to correct result screen
   const onPressItem = useCallback((item) => {
     if (mode === 'fruit') {
       navigation.navigate('FruitResult', {
@@ -233,7 +301,6 @@ export default function HistoryScreen({ navigation, route }) {
     }
   }, [mode, navigation]);
 
-  // Filter
   const filtered = history.filter(h =>
     h.class_name?.toLowerCase().includes(query.toLowerCase())
   );
@@ -245,28 +312,16 @@ export default function HistoryScreen({ navigation, route }) {
     <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
-      {/* ── Header ── */}
-      <View style={styles.header}>
-        <View>
-          <Text style={[styles.title, presentationMode && { fontSize: 28 }]}>Scan History</Text>
-          <Text style={styles.headerSub}>{filtered.length} records total</Text>
-        </View>
-        <View style={styles.headerIcons}>
-          <TouchableOpacity style={styles.iconBtn}>
-            <Text style={styles.iconBtnTxt}>🔍</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconBtn}>
-            <Text style={styles.iconBtnTxt}>⚙</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <Animated.View style={[styles.header, { opacity: headerOp }]}>
+        <Text style={[styles.title, presentationMode && { fontSize: 28 }]}>History</Text>
+        <Text style={styles.headerSub}>{filtered.length} records</Text>
+      </Animated.View>
 
-      {/* ── Search ── */}
       <View style={styles.searchWrap}>
         <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search by class name…"
+          placeholder="Search records..."
           placeholderTextColor={C.muted}
           value={query}
           onChangeText={setQuery}
@@ -279,49 +334,79 @@ export default function HistoryScreen({ navigation, route }) {
         )}
       </View>
 
-      {/* ── Mode toggle ── */}
       <View style={styles.modeRow}>
         {['nutrient', 'fruit'].map((m) => (
           <Animated.View
             key={m}
-            style={[{ flex: 1 }, { transform: [{ scale: m === 'nutrient' ? nutrientScale : fruitScale }] }]}
+            style={[
+              styles.modeWrap,
+              { transform: [{ scale: m === 'nutrient' ? nutrientScale : fruitScale }] }
+            ]}
           >
             <TouchableOpacity
               style={[styles.modeChip, mode === m && styles.modeChipActive]}
               onPress={() => switchMode(m)}
               activeOpacity={0.85}
             >
+              {mode === m && (
+                <LinearGradient
+                  colors={['rgba(200,241,53,0.08)', 'rgba(200,241,53,0.02)']}
+                  style={StyleSheet.absoluteFill}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                />
+              )}
               <Text style={[styles.modeChipTxt, mode === m && styles.modeChipTxtActive]}>
-                {m === 'nutrient' ? '🍃 Nutrient' : '🍅 Fruit Disease'}
+                {m === 'nutrient' ? 'Nutrient' : 'Fruit Disease'}
               </Text>
             </TouchableOpacity>
           </Animated.View>
         ))}
       </View>
 
-      {/* ── Summary strip ── */}
       <View style={styles.summaryRow}>
-        <SummaryCard num={filtered.length} label="Total"   numColor={C.accent}  delay={0}  />
-        <SummaryCard num={totalHealthy}    label="Healthy" numColor={C.success} delay={60} />
-        <SummaryCard num={totalIssues}     label="Issues"  numColor={C.danger}  delay={120}/>
+        <SummaryCard 
+          num={filtered.length} 
+          label="Total" 
+          numColor={C.accent}  
+          delay={0}  
+        />
+        <SummaryCard 
+          num={totalHealthy}    
+          label="Healthy" 
+          numColor={C.success} 
+          delay={80} 
+        />
+        <SummaryCard 
+          num={totalIssues}     
+          label="Issues"  
+          numColor={C.danger}  
+          delay={160}
+        />
       </View>
 
-      {/* ── Section label ── */}
-      <Text style={styles.sectionLabel}>
-        Recent — {mode === 'nutrient' ? 'Nutrient' : 'Fruit Disease'}
-      </Text>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionLabel}>
+          Recent {mode === 'nutrient' ? 'Nutrient' : 'Fruit Disease'} Scans
+        </Text>
+        <Text style={styles.sectionCount}>{filtered.length}</Text>
+      </View>
 
-      {/* ── List ── */}
       {!!error && !loading && (
-        <Text style={styles.errorText}>{error}</Text>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorIcon}>⚠️</Text>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
       )}
+
       <FlatList
         data={filtered}
+        key={mode}
         keyExtractor={item => String(item._id)}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-        refreshing={loading}
-        onRefresh={fetchData}
+        refreshing={refreshing}
+        onRefresh={() => fetchData(true)}
         renderItem={({ item, index }) => (
           <HistoryItem
             item={item}
@@ -337,61 +422,311 @@ export default function HistoryScreen({ navigation, route }) {
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
+  root: { 
+    flex: 1, 
+    backgroundColor: C.bg,
+  },
 
-  // Header
-  header:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingHorizontal: 18, paddingTop: 58, paddingBottom: 12 },
-  title:       { fontSize: 24, fontWeight: '800', color: C.text },
-  headerSub:   { fontSize: 11, color: C.muted, marginTop: 3 },
-  headerIcons: { flexDirection: 'row', gap: 8 },
-  iconBtn:     { width: 32, height: 32, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  iconBtnTxt:  { fontSize: 14 },
+  // ── Header ──
+  header: {
+    paddingHorizontal: 18,
+    paddingTop: 58,
+    paddingBottom: 14,
+    gap: 2,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: C.text,
+  },
+  headerSub: {
+    fontSize: 12,
+    color: C.muted,
+    fontWeight: '500',
+  },
 
-  // Search
-  searchWrap:  { flexDirection: 'row', alignItems: 'center', marginHorizontal: 18, marginBottom: 12,
-                 backgroundColor: C.surface, borderWidth: 1.5, borderColor: C.border, borderRadius: 12 },
-  searchIcon:  { paddingLeft: 13, fontSize: 13 },
-  searchInput: { flex: 1, padding: 11, paddingLeft: 8, color: C.text, fontSize: 13 },
-  clearBtn:    { paddingRight: 13, paddingLeft: 4 },
-  clearBtnTxt: { fontSize: 12, color: C.muted },
+  // ── Search ──
+  searchWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 18,
+    marginBottom: 14,
+    backgroundColor: C.surface,
+    borderWidth: 1.5,
+    borderColor: C.border,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  searchIcon: {
+    paddingLeft: 14,
+    fontSize: 14,
+    opacity: 0.5,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 13,
+    paddingHorizontal: 10,
+    color: C.text,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  clearBtn: {
+    paddingRight: 14,
+    paddingLeft: 6,
+  },
+  clearBtnTxt: {
+    fontSize: 14,
+    color: C.muted,
+    fontWeight: '600',
+  },
 
-  // Mode
-  modeRow:         { flexDirection: 'row', gap: 8, marginHorizontal: 18, marginBottom: 14 },
-  modeChip:        { flex: 1, paddingVertical: 10, borderRadius: 12, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.surface, alignItems: 'center' },
-  modeChipActive:  { backgroundColor: C.accentDim, borderColor: C.accentBorder },
-  modeChipTxt:     { fontSize: 12, fontWeight: '700', color: C.muted },
-  modeChipTxtActive:{ color: C.accent },
+  // ── Mode Toggle ──
+  modeRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginHorizontal: 18,
+    marginBottom: 16,
+  },
+  modeWrap: {
+    flex: 1,
+  },
+  modeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: C.border,
+    backgroundColor: C.surface,
+    overflow: 'hidden',
+  },
+  modeChipActive: {
+    borderColor: C.accentBorder,
+  },
+  modeIcon: {
+    fontSize: 16,
+  },
+  modeChipTxt: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: C.muted,
+  },
+  modeChipTxtActive: {
+    color: C.accent,
+  },
 
-  // Summary
-  summaryRow: { flexDirection: 'row', gap: 8, marginHorizontal: 18, marginBottom: 14 },
-  sumCard:    { flex: 1, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 14, padding: 10, alignItems: 'center' },
-  sumNum:     { fontSize: 20, fontWeight: '800', lineHeight: 24 },
-  sumLabel:   { fontSize: 9, color: C.muted, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4, marginTop: 3 },
+  // ── Glass Card ──
+  glassCard: {
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
 
-  // Section
-  sectionLabel: { fontSize: 10, fontWeight: '700', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.8, marginHorizontal: 20, marginBottom: 10 },
-  errorText: { fontSize: 12, color: C.danger, marginHorizontal: 18, marginBottom: 10, lineHeight: 18 },
+  // ── Summary ──
+  summaryRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginHorizontal: 18,
+    marginBottom: 18,
+  },
+  sumCard: {
+    flex: 1,
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 16,
+    padding: 14,
+    alignItems: 'center',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  sumNum: {
+    fontSize: 22,
+    fontWeight: '800',
+    lineHeight: 28,
+  },
+  sumLabel: {
+    fontSize: 10,
+    color: C.muted,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginTop: 2,
+  },
 
-  // List
-  listContent: { paddingHorizontal: 18, paddingBottom: 32 },
+  // ── Section ──
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: 18,
+    marginBottom: 12,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: C.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  sectionCount: {
+    fontSize: 12,
+    color: C.accent,
+    fontWeight: '600',
+    backgroundColor: C.accentDim,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 100,
+  },
 
-  // History card
-  histCard:      { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.surface,
-                   borderWidth: 1, borderColor: C.border, borderRadius: 18, padding: 14,
-                   marginBottom: 10, overflow: 'hidden', position: 'relative' },
-  histAccentBar: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, borderRadius: 3 },
-  histThumb:     { width: 48, height: 48, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  histBody:      { flex: 1, minWidth: 0 },
-  histName:      { fontSize: 13, fontWeight: '700', color: C.text },
-  histConf:      { fontSize: 11, color: C.muted, marginTop: 2 },
-  histDate:      { fontSize: 10, color: C.muted, marginTop: 3 },
-  histRight:     { alignItems: 'flex-end', gap: 6 },
-  histBadge:     { borderRadius: 100, paddingHorizontal: 9, paddingVertical: 3 },
-  histBadgeTxt:  { fontSize: 9, fontWeight: '800', letterSpacing: 0.3 },
-  histChevron:   { fontSize: 18, color: C.muted },
-  // Empty
-  empty:    { alignItems: 'center', paddingVertical: 48, gap: 12 },
-  emptyIcon:{ fontSize: 44, opacity: 0.25 },
-  emptyTxt: { fontSize: 13, color: C.muted, textAlign: 'center', lineHeight: 20 },
+  // ── Error ──
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginHorizontal: 18,
+    marginBottom: 12,
+    padding: 12,
+    backgroundColor: C.dangerDim,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: C.dangerBorder,
+  },
+  errorIcon: {
+    fontSize: 16,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 12,
+    color: C.danger,
+    lineHeight: 18,
+  },
+
+  // ── List ──
+  listContent: {
+    paddingHorizontal: 18,
+    paddingBottom: 40,
+    paddingTop: 2,
+  },
+
+  // ── History Item ──
+  histCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 18,
+    padding: 14,
+    marginBottom: 10,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  histAccentBar: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+    borderTopLeftRadius: 18,
+    borderBottomLeftRadius: 18,
+  },
+  histThumb: {
+    width: 50,
+    height: 50,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  histBody: {
+    flex: 1,
+    minWidth: 0,
+    gap: 4,
+  },
+  histName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: C.text,
+  },
+  histMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  histConfidence: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  histConfDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+  },
+  histConf: {
+    fontSize: 11,
+    color: C.muted,
+    fontWeight: '600',
+  },
+  histDate: {
+    fontSize: 10,
+    color: C.muted,
+    opacity: 0.7,
+  },
+  histBadge: {
+    borderRadius: 100,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  histBadgeTxt: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+
+  // ── Empty ──
+  empty: {
+    alignItems: 'center',
+    paddingVertical: 60,
+    gap: 12,
+  },
+  emptyIconWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderWidth: 1,
+    borderColor: C.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  emptyIcon: {
+    fontSize: 36,
+    opacity: 0.5,
+  },
+  emptyTxt: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: C.text,
+    textAlign: 'center',
+  },
+  emptySub: {
+    fontSize: 13,
+    color: C.muted,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
 });

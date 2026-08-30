@@ -132,6 +132,11 @@ export default function StatsScreen({ route }) {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const modeRef = useRef(mode);
+
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
 
   const fetchStats = useCallback(async () => {
     if (!token) {
@@ -148,7 +153,8 @@ export default function StatsScreen({ route }) {
     setLoading(true);
     setError('');
     try {
-      const res = mode === 'fruit'
+      const currentMode = modeRef.current;
+      const res = currentMode === 'fruit'
         ? await getFruitStats(token)
         : await getStats(token);
       setStats(res.data);
@@ -162,14 +168,12 @@ export default function StatsScreen({ route }) {
     } finally {
       setLoading(false);
     }
-  }, [token, mode]);
+  }, [token]);
 
   useFocusEffect(
     useCallback(() => {
-      if (route?.params?.initialMode === 'fruit') setMode('fruit');
-      if (route?.params?.initialMode === 'nutrient') setMode('nutrient');
       fetchStats();
-    }, [fetchStats, route?.params?.initialMode])
+    }, [fetchStats])
   );
 
   useEffect(() => {
@@ -193,6 +197,7 @@ export default function StatsScreen({ route }) {
   };
 
   const switchMode = (m) => {
+    if (m === mode) return;
     animateChip(m === 'nutrient' ? nutrientScale : fruitScale);
     setMode(m);
   };
@@ -209,14 +214,6 @@ export default function StatsScreen({ route }) {
         {/* ── Header ── */}
         <View style={styles.header}>
           <Text style={[styles.title, presentationMode && { fontSize: 28 }]}>Scan Statistics</Text>
-          <View style={styles.headerIcons}>
-            <TouchableOpacity style={styles.iconBtn}>
-              <Text style={styles.iconBtnTxt}>⬇</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconBtn}>
-              <Text style={styles.iconBtnTxt}>📈</Text>
-            </TouchableOpacity>
-          </View>
         </View>
 
         {/* ── Mode toggle ── */}
@@ -232,7 +229,7 @@ export default function StatsScreen({ route }) {
                 activeOpacity={0.85}
               >
                 <Text style={[styles.modeChipTxt, mode === m && styles.modeChipTxtActive]}>
-                  {m === 'nutrient' ? '🍃 Nutrient' : '🍅 Fruit Disease'}
+                  {m === 'nutrient' ? 'Nutrient' : 'Fruit Disease'}
                 </Text>
               </TouchableOpacity>
             </Animated.View>
@@ -254,12 +251,6 @@ export default function StatsScreen({ route }) {
             sub={`Most: ${stats.most_common_deficiency}`}
             accent
             delay={0}
-          />
-          <KpiCard
-            num="85%"
-            label="Avg Accuracy"
-            sub="Last 30 days"
-            delay={80}
           />
         </View>
 
@@ -332,12 +323,8 @@ const styles = StyleSheet.create({
   content: { padding: 16, gap: 14, paddingBottom: 40 },
 
   // Header
-  header:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, paddingBottom: 4 },
+  header:      { paddingTop: 8, paddingBottom: 4 },
   title:       { fontSize: 24, fontWeight: '800', color: C.text },
-  headerIcons: { flexDirection: 'row', gap: 8 },
-  iconBtn:     { width: 32, height: 32, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border,
-                 borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  iconBtnTxt:  { fontSize: 14 },
 
   // Mode toggle
   modeRow:         { flexDirection: 'row', gap: 8 },
