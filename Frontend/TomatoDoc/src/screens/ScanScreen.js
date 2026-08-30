@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useState, useEffect } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -13,78 +13,73 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { predictNutrient } from '../api/scanApi';
 import { AuthContext } from '../context/AuthContext';
-import { UIThemeContext } from '../context/UIThemeContext';
 import LoadingOverlay from '../components/LoadingOverlay';
 
-// ── Tokens ────────────────────────────────────────────────────────────────────
 const C = {
-  bg:           '#0f0f0f',
-  surface:      '#1a1a1a',
-  surface2:     '#222222',
-  accent:       '#c8f135',
-  accentDim:    'rgba(200,241,53,0.10)',
+  bg: '#0f0f0f',
+  surface: '#1a1a1a',
+  surface2: '#222222',
+  accent: '#c8f135',
+  accentDim: 'rgba(200,241,53,0.10)',
   accentBorder: 'rgba(200,241,53,0.22)',
-  text:         '#f0f0f0',
-  muted:        '#666666',
-  border:       'rgba(255,255,255,0.07)',
-  danger:       '#ff5c5c',
+  text: '#f0f0f0',
+  muted: '#666666',
+  border: 'rgba(255,255,255,0.07)',
+  leaf: '#4adf6f',
+  leafDim: 'rgba(74,223,111,0.10)',
 };
 
-// ── Sample thumbnails ─────────────────────────────────────────────────────────
-const SAMPLES = [
-  { key: 'a', src: require('../../assets/images/tomato7.jpeg') },
-  { key: 'b', src: require('../../assets/images/tomato9.jpeg') },
-  { key: 'c', src: require('../../assets/images/tomato10.jpeg') },
-];
-
-// ── Animated corner brackets for the viewfinder ───────────────────────────────
 function ViewfinderFrame() {
-  const size = 22;
-  const t = 14;
-  const cornerStyle = (pos) => ({
+  const size = 24;
+  const t = 18;
+  const corner = (pos) => ({
     position: 'absolute',
     width: size,
     height: size,
     borderColor: C.accent,
-    borderStyle: 'solid',
-    ...(pos.top    !== undefined && { top:    pos.top }),
+    ...(pos.top !== undefined && { top: pos.top }),
     ...(pos.bottom !== undefined && { bottom: pos.bottom }),
-    ...(pos.left   !== undefined && { left:   pos.left }),
-    ...(pos.right  !== undefined && { right:  pos.right }),
-    borderTopWidth:    pos.top    !== undefined ? 2.5 : 0,
+    ...(pos.left !== undefined && { left: pos.left }),
+    ...(pos.right !== undefined && { right: pos.right }),
+    borderTopWidth: pos.top !== undefined ? 2.5 : 0,
     borderBottomWidth: pos.bottom !== undefined ? 2.5 : 0,
-    borderLeftWidth:   pos.left   !== undefined ? 2.5 : 0,
-    borderRightWidth:  pos.right  !== undefined ? 2.5 : 0,
-    borderTopLeftRadius:     (pos.top    !== undefined && pos.left  !== undefined) ? 5 : 0,
-    borderTopRightRadius:    (pos.top    !== undefined && pos.right !== undefined) ? 5 : 0,
-    borderBottomLeftRadius:  (pos.bottom !== undefined && pos.left  !== undefined) ? 5 : 0,
-    borderBottomRightRadius: (pos.bottom !== undefined && pos.right !== undefined) ? 5 : 0,
+    borderLeftWidth: pos.left !== undefined ? 2.5 : 0,
+    borderRightWidth: pos.right !== undefined ? 2.5 : 0,
+    borderTopLeftRadius: pos.top !== undefined && pos.left !== undefined ? 6 : 0,
+    borderTopRightRadius: pos.top !== undefined && pos.right !== undefined ? 6 : 0,
+    borderBottomLeftRadius: pos.bottom !== undefined && pos.left !== undefined ? 6 : 0,
+    borderBottomRightRadius: pos.bottom !== undefined && pos.right !== undefined ? 6 : 0,
   });
+
   return (
     <>
-      <View style={cornerStyle({ top: t, left: t })} />
-      <View style={cornerStyle({ top: t, right: t })} />
-      <View style={cornerStyle({ bottom: t, left: t })} />
-      <View style={cornerStyle({ bottom: t, right: t })} />
+      <View style={corner({ top: t, left: t })} />
+      <View style={corner({ top: t, right: t })} />
+      <View style={corner({ bottom: t, left: t })} />
+      <View style={corner({ bottom: t, right: t })} />
     </>
   );
 }
 
-// ── Animated scan line ────────────────────────────────────────────────────────
 function ScanLine() {
   const anim = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(anim, { toValue: 1, duration: 2400, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(anim, { toValue: 0, duration: 2400, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 1, duration: 2200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 0, duration: 2200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
       ])
     ).start();
-  }, []);
-  const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [0, 140] });
+  }, [anim]);
+
+  const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [0, 200] });
+
   return (
     <Animated.View
       pointerEvents="none"
@@ -93,56 +88,33 @@ function ScanLine() {
   );
 }
 
-// ── Feature chip ──────────────────────────────────────────────────────────────
-function Chip({ emoji, label }) {
-  return (
-    <View style={styles.chip}>
-      <Text style={styles.chipEmoji}>{emoji}</Text>
-      <Text style={styles.chipTxt}>{label}</Text>
-    </View>
-  );
-}
-
-// ── Sample card ───────────────────────────────────────────────────────────────
-function SampleCard({ src, active, onPress }) {
-  return (
-    <TouchableOpacity
-      style={[styles.sampleCard, active && styles.sampleCardActive]}
-      onPress={onPress}
-      activeOpacity={0.8}
-    >
-      <Image source={src} style={styles.sampleImg} />
-      {active && (
-        <View style={styles.sampleCheck}>
-          <Text style={styles.sampleCheckTxt}>✓</Text>
-        </View>
-      )}
-    </TouchableOpacity>
-  );
-}
-
-// ── Main Screen ───────────────────────────────────────────────────────────────
 export default function ScanScreen({ navigation }) {
-  const { token }              = useContext(AuthContext);
-  const { presentationMode }   = useContext(UIThemeContext);
-  const [image, setImage]      = useState(null);
-  const [loading, setLoading]  = useState(false);
-  const [activeSample, setActiveSample] = useState(0);
+  const { token } = useContext(AuthContext);
+  const insets = useSafeAreaInsets();
+  const [image, setImage] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  // Hero entrance
-  const heroOp = useRef(new Animated.Value(0)).current;
-  const heroY  = useRef(new Animated.Value(24)).current;
+  const fadeIn = useRef(new Animated.Value(0)).current;
+  const slideUp = useRef(new Animated.Value(16)).current;
+  const btnScale = useRef(new Animated.Value(1)).current;
+  const pulse = useRef(new Animated.Value(1)).current;
+
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(heroOp, { toValue: 1, duration: 400, useNativeDriver: true }),
-      Animated.spring(heroY,  { toValue: 0, useNativeDriver: true }),
+      Animated.timing(fadeIn, { toValue: 1, duration: 400, useNativeDriver: true }),
+      Animated.spring(slideUp, { toValue: 0, useNativeDriver: true }),
     ]).start();
-  }, []);
 
-  // Analyze button scale
-  const btnScale = useRef(new Animated.Value(1)).current;
-  const onPressIn  = () => Animated.spring(btnScale, { toValue: 0.96, useNativeDriver: true }).start();
-  const onPressOut = () => Animated.spring(btnScale, { toValue: 1,    useNativeDriver: true }).start();
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1.04, duration: 1400, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 1400, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    ).start();
+  }, [fadeIn, slideUp, pulse]);
+
+  const onPressIn = () => Animated.spring(btnScale, { toValue: 0.97, useNativeDriver: true }).start();
+  const onPressOut = () => Animated.spring(btnScale, { toValue: 1, useNativeDriver: true }).start();
 
   const pickImage = async (fromCamera = false) => {
     const launcher = fromCamera
@@ -150,7 +122,7 @@ export default function ScanScreen({ navigation }) {
       : ImagePicker.launchImageLibraryAsync;
     const res = await launcher({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8,
+      quality: 0.85,
     });
     if (!res.canceled) setImage(res.assets[0]);
   };
@@ -162,12 +134,12 @@ export default function ScanScreen({ navigation }) {
       const formData = new FormData();
       if (Platform.OS === 'web') {
         const response = await fetch(image.uri);
-        const blob     = await response.blob();
-        const file     = new File([blob], 'leaf.jpg', { type: blob.type || 'image/jpeg' });
+        const blob = await response.blob();
+        const file = new File([blob], 'leaf.jpg', { type: blob.type || 'image/jpeg' });
         formData.append('image', file);
       } else {
         formData.append('image', {
-          uri:  image.uri,
+          uri: image.uri,
           name: image.fileName || `leaf-${Date.now()}.jpg`,
           type: image.mimeType || 'image/jpeg',
         });
@@ -190,214 +162,379 @@ export default function ScanScreen({ navigation }) {
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 100 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Back row ── */}
-        <View style={styles.backRow}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-            <Text style={styles.backArrow}>←</Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.75}>
+            <MaterialCommunityIcons name="arrow-left" size={20} color={C.text} />
           </TouchableOpacity>
-          <Text style={styles.screenTitle}>Leaf Scanner</Text>
+          <View style={styles.headerText}>
+            <Text style={styles.screenTitle}>Leaf Scanner</Text>
+            <Text style={styles.screenSub}>Nutrient deficiency detection</Text>
+          </View>
+          <View style={styles.readyBadge}>
+            <View style={styles.readyDot} />
+            <Text style={styles.readyText}>Ready</Text>
+          </View>
         </View>
 
-        {/* ── Hero card ── */}
-        <Animated.View style={[styles.heroCard, { opacity: heroOp, transform: [{ translateY: heroY }] }]}>
-          {/* Corner accent icon */}
-          <View style={styles.heroCornerIcon}>
-            <Text style={{ fontSize: 20 }}>🍃</Text>
+        <Animated.View style={{ opacity: fadeIn, transform: [{ translateY: slideUp }] }}>
+          {/* Module strip */}
+          <View style={styles.moduleStrip}>
+            <View style={styles.moduleIcon}>
+              <MaterialCommunityIcons name="leaf" size={22} color={C.leaf} />
+            </View>
+            <View style={styles.moduleBody}>
+              <Text style={styles.moduleTitle}>Scan a tomato leaf</Text>
+              <Text style={styles.moduleSub}>
+                Photograph one clear leaf — we will detect nutrient issues and suggest fertilizer.
+              </Text>
+            </View>
           </View>
 
-          <View style={styles.heroBadge}>
-            <View style={styles.badgeDot} />
-            <Text style={styles.badgeTxt}>AI Powered</Text>
+          {/* Scan card */}
+          <View style={styles.scanCard}>
+            <View style={styles.viewfinder}>
+              <ViewfinderFrame />
+              {!image && <ScanLine />}
+
+              {image ? (
+                <Image source={{ uri: image.uri }} style={styles.vfImage} />
+              ) : (
+                <View style={styles.vfEmpty}>
+                  <Animated.View style={[styles.vfIconWrap, { transform: [{ scale: pulse }] }]}>
+                    <MaterialCommunityIcons name="camera-outline" size={32} color={C.muted} />
+                  </Animated.View>
+                  <Text style={styles.vfEmptyTitle}>No photo yet</Text>
+                  <Text style={styles.vfEmptySub}>Center the leaf in the frame below</Text>
+                </View>
+              )}
+
+              {image && (
+                <View style={styles.capturedBar}>
+                  <View style={styles.capturedLeft}>
+                    <MaterialCommunityIcons name="check-circle" size={16} color={C.accent} />
+                    <Text style={styles.capturedText}>Image captured</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => setImage(null)} activeOpacity={0.75}>
+                    <Text style={styles.retakeText}>Retake</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              <View style={styles.sourceBar}>
+                <TouchableOpacity
+                  style={styles.sourceBtn}
+                  onPress={() => pickImage(false)}
+                  activeOpacity={0.8}
+                >
+                  <MaterialCommunityIcons name="image-outline" size={18} color={C.text} />
+                  <Text style={styles.sourceBtnText}>Gallery</Text>
+                </TouchableOpacity>
+                <View style={styles.sourceDivider} />
+                <TouchableOpacity
+                  style={[styles.sourceBtn, styles.sourceBtnPrimary]}
+                  onPress={() => pickImage(true)}
+                  activeOpacity={0.8}
+                >
+                  <MaterialCommunityIcons name="camera-outline" size={18} color="#0f0f0f" />
+                  <Text style={styles.sourceBtnTextDark}>Camera</Text>
+                </TouchableOpacity>
+              </View>
+
+              {loading && (
+                <View style={styles.vfLoading}>
+                  <LoadingOverlay text="Analyzing leaf..." />
+                </View>
+              )}
+            </View>
           </View>
 
-          <Text style={[styles.heroTitle, presentationMode && { fontSize: 26 }]}>
-            {'Nutrient Deficiency\nScan'}
-          </Text>
-          <Text style={styles.heroHelper}>
-            Take a clear photo of a single tomato leaf for instant diagnosis.
-          </Text>
+          {/* Photo tips */}
+          <View style={styles.tipsSection}>
+            <Text style={styles.tipsSectionLabel}>For best results</Text>
+            <View style={styles.tipsRow}>
+              <View style={styles.tipItem}>
+                <View style={styles.tipIconWrap}>
+                  <MaterialCommunityIcons name="white-balance-sunny" size={18} color={C.accent} />
+                </View>
+                <Text style={styles.tipItemText}>Natural{'\n'}light</Text>
+              </View>
+              <View style={styles.tipItem}>
+                <View style={styles.tipIconWrap}>
+                  <MaterialCommunityIcons name="crop-free" size={18} color={C.accent} />
+                </View>
+                <Text style={styles.tipItemText}>Fill the{'\n'}frame</Text>
+              </View>
+              <View style={styles.tipItem}>
+                <View style={styles.tipIconWrap}>
+                  <MaterialCommunityIcons name="leaf" size={18} color={C.leaf} />
+                </View>
+                <Text style={styles.tipItemText}>One leaf{'\n'}only</Text>
+              </View>
+            </View>
+          </View>
 
-          <View style={styles.chipRow}>
-            <Chip emoji="🧠" label="AI Insight" />
-            <Chip emoji="🧪" label="Fertilizer Plan" />
-            <Chip emoji="📋" label="History" />
+          {/* Analyze */}
+          <Animated.View style={{ transform: [{ scale: btnScale }] }}>
+            <Pressable
+              style={[styles.analyzeBtn, image ? styles.analyzeBtnActive : styles.analyzeBtnIdle]}
+              onPressIn={onPressIn}
+              onPressOut={onPressOut}
+              onPress={analyze}
+              disabled={!image || loading}
+            >
+              <MaterialCommunityIcons
+                name="magnify-scan"
+                size={20}
+                color={image ? '#0f0f0f' : C.muted}
+              />
+              <Text style={[styles.analyzeBtnText, !image && styles.analyzeBtnTextIdle]}>
+                Run analysis
+              </Text>
+            </Pressable>
+          </Animated.View>
+
+          {/* Tip */}
+          <View style={styles.tipBox}>
+            <MaterialCommunityIcons name="information-outline" size={16} color={C.accent} />
+            <Text style={styles.tipText}>
+              {image
+                ? 'Photo looks good. Tap Run analysis to get your diagnosis.'
+                : 'Use natural daylight and fill the frame with one leaf for best accuracy.'}
+            </Text>
           </View>
         </Animated.View>
-
-        {/* ── Viewfinder ── */}
-        <View style={styles.viewfinder}>
-          <ViewfinderFrame />
-          <ScanLine />
-
-          {image ? (
-            <Image source={{ uri: image.uri }} style={styles.vfImage} />
-          ) : (
-            <View style={styles.vfPlaceholder}>
-              <Text style={{ fontSize: 48, opacity: 0.3 }}>🍃</Text>
-              <Text style={styles.vfPlaceholderTxt}>Place leaf inside the frame</Text>
-            </View>
-          )}
-
-          {/* Loading overlay inside viewfinder */}
-          {loading && (
-            <View style={styles.vfLoadingOverlay}>
-              <LoadingOverlay text="Analyzing leaf…" />
-            </View>
-          )}
-        </View>
-
-        {/* ── Reference samples ── */}
-        <Text style={styles.sectionLabel}>Reference Quality Samples</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.sampleStrip}
-          contentContainerStyle={{ paddingRight: 4 }}
-        >
-          {SAMPLES.map((s, i) => (
-            <SampleCard
-              key={s.key}
-              src={s.src}
-              active={activeSample === i}
-              onPress={() => setActiveSample(i)}
-            />
-          ))}
-        </ScrollView>
-
-        {/* ── Image source buttons ── */}
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.actionBtnGallery]}
-            onPress={() => pickImage(false)}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.actionBtnIcon}>🖼</Text>
-            <Text style={styles.actionBtnTxtDark}>Gallery</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.actionBtnCamera]}
-            onPress={() => pickImage(true)}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.actionBtnIcon}>📷</Text>
-            <Text style={styles.actionBtnTxt}>Camera</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* ── Analyze CTA ── */}
-        <Animated.View style={{ transform: [{ scale: btnScale }] }}>
-          <Pressable
-            style={[styles.analyzeBtn, !image && styles.analyzeBtnDisabled]}
-            onPressIn={onPressIn}
-            onPressOut={onPressOut}
-            onPress={analyze}
-            disabled={!image || loading}
-          >
-            <Text style={styles.analyzeBtnIcon}>🔬</Text>
-            <Text style={styles.analyzeBtnTxt}>Analyze Leaf</Text>
-          </Pressable>
-        </Animated.View>
-
-        <Text style={styles.analyzeHint}>
-          {image ? 'Image ready · tap to analyze' : 'Select or capture an image to begin'}
-        </Text>
       </ScrollView>
     </View>
   );
 }
 
-// ── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  root:    { flex: 1, backgroundColor: C.bg },
-  scroll:  { flex: 1 },
-  content: { padding: 18, paddingBottom: 40 },
+  root: { flex: 1, backgroundColor: C.bg },
+  scroll: { flex: 1 },
+  content: { paddingHorizontal: 18 },
 
-  // Back row
-  backRow:  { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14, paddingTop: 4 },
-  backBtn:  { width: 32, height: 32, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  backArrow:{ fontSize: 16, color: C.text },
-  screenTitle: { fontSize: 18, fontWeight: '800', color: C.text },
-
-  // Hero
-  heroCard: {
-    backgroundColor: '#0f1a00',
-    borderRadius: 22,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 20,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerText: { flex: 1 },
+  screenTitle: { fontSize: 20, fontWeight: '700', color: C.text },
+  screenSub: { fontSize: 12, color: C.muted, marginTop: 2 },
+  readyBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: C.accentDim,
     borderWidth: 1,
     borderColor: C.accentBorder,
-    padding: 18,
-    marginBottom: 14,
-    overflow: 'hidden',
+    borderRadius: 100,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
-  heroCornerIcon: {
-    position: 'absolute', top: 14, right: 14,
-    width: 44, height: 44, borderRadius: 12,
-    backgroundColor: C.accentDim,
-    borderWidth: 1, borderColor: C.accentBorder,
-    alignItems: 'center', justifyContent: 'center',
+  readyDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.accent },
+  readyText: { fontSize: 11, fontWeight: '700', color: C.accent },
+
+  moduleStrip: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
   },
-  heroBadge:  { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start',
-                backgroundColor: 'rgba(200,241,53,0.12)', borderWidth: 1, borderColor: C.accentBorder,
-                borderRadius: 100, paddingHorizontal: 10, paddingVertical: 3, marginBottom: 12 },
-  badgeDot:   { width: 5, height: 5, borderRadius: 3, backgroundColor: C.accent },
-  badgeTxt:   { fontSize: 10, color: C.accent, fontWeight: '700', letterSpacing: 0.4 },
-  heroTitle:  { fontSize: 22, fontWeight: '800', color: '#fff', lineHeight: 28, marginBottom: 8 },
-  heroHelper: { fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 18, marginBottom: 14 },
+  moduleIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: C.leafDim,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  moduleBody: { flex: 1 },
+  moduleTitle: { fontSize: 15, fontWeight: '700', color: C.text, marginBottom: 4 },
+  moduleSub: { fontSize: 13, color: C.muted, lineHeight: 19 },
 
-  // Chips
-  chipRow: { flexDirection: 'row', gap: 7, flexWrap: 'wrap' },
-  chip:    { flexDirection: 'row', alignItems: 'center', gap: 5,
-             backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
-             borderRadius: 100, paddingHorizontal: 11, paddingVertical: 5 },
-  chipEmoji:{ fontSize: 11 },
-  chipTxt:  { fontSize: 11, color: 'rgba(255,255,255,0.7)', fontWeight: '500' },
-
-  // Viewfinder
-  viewfinder: {
-    width: '100%', height: 200,
-    backgroundColor: '#0a1400',
+  scanCard: {
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
     borderRadius: 18,
-    borderWidth: 1.5, borderColor: C.accentBorder,
-    overflow: 'hidden',
-    marginBottom: 14,
-    alignItems: 'center', justifyContent: 'center',
+    padding: 14,
+    marginBottom: 16,
   },
-  scanLine:        { position: 'absolute', left: 14, right: 14, height: 1.5, backgroundColor: C.accent, opacity: 0.75 },
-  vfImage:         { position: 'absolute', width: '100%', height: '100%', resizeMode: 'cover' },
-  vfPlaceholder:   { alignItems: 'center', gap: 8 },
-  vfPlaceholderTxt:{ fontSize: 11, color: C.muted, textAlign: 'center', lineHeight: 16 },
-  vfLoadingOverlay:{ position: 'absolute', inset: 0, backgroundColor: 'rgba(10,20,0,0.85)',
-                     alignItems: 'center', justifyContent: 'center' },
+  viewfinder: {
+    width: '100%',
+    height: 260,
+    backgroundColor: C.surface2,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: C.accentBorder,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scanLine: {
+    position: 'absolute',
+    left: 24,
+    right: 24,
+    height: 1.5,
+    backgroundColor: C.accent,
+    opacity: 0.45,
+  },
+  vfImage: { position: 'absolute', width: '100%', height: '100%', resizeMode: 'cover' },
+  vfEmpty: { alignItems: 'center', gap: 6, paddingHorizontal: 24, paddingBottom: 56 },
+  vfIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: C.bg,
+    borderWidth: 1,
+    borderColor: C.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  vfEmptyTitle: { fontSize: 15, fontWeight: '600', color: C.text },
+  vfEmptySub: { fontSize: 12, color: C.muted, textAlign: 'center' },
 
-  // Section
-  sectionLabel: { fontSize: 10, fontWeight: '700', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10, marginLeft: 2 },
+  capturedBar: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    right: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(15,15,15,0.85)',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  capturedLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  capturedText: { fontSize: 12, fontWeight: '600', color: C.text },
+  retakeText: { fontSize: 12, fontWeight: '700', color: C.accent },
 
-  // Sample strip
-  sampleStrip:      { marginBottom: 16 },
-  sampleCard:       { width: 100, height: 72, borderRadius: 12, overflow: 'hidden',
-                      backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, marginRight: 9 },
-  sampleCardActive: { borderColor: C.accent, borderWidth: 1.5 },
-  sampleImg:        { width: '100%', height: '100%', resizeMode: 'cover' },
-  sampleCheck:      { position: 'absolute', top: 5, right: 6, backgroundColor: C.accent,
-                      borderRadius: 10, width: 16, height: 16, alignItems: 'center', justifyContent: 'center' },
-  sampleCheckTxt:   { fontSize: 9, color: '#0f0f0f', fontWeight: '800' },
+  sourceBar: {
+    position: 'absolute',
+    bottom: 12,
+    left: 12,
+    right: 12,
+    flexDirection: 'row',
+    backgroundColor: 'rgba(15,15,15,0.90)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: C.border,
+    overflow: 'hidden',
+  },
+  sourceBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    paddingVertical: 12,
+  },
+  sourceBtnPrimary: { backgroundColor: C.accent },
+  sourceDivider: { width: 1, backgroundColor: C.border },
+  sourceBtnText: { fontSize: 13, fontWeight: '600', color: C.text },
+  sourceBtnTextDark: { fontSize: 13, fontWeight: '700', color: '#0f0f0f' },
 
-  // Action buttons
-  actionRow:       { flexDirection: 'row', gap: 10, marginBottom: 12 },
-  actionBtn:       { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, borderRadius: 14, paddingVertical: 14 },
-  actionBtnGallery:{ backgroundColor: C.accent },
-  actionBtnCamera: { backgroundColor: C.surface, borderWidth: 1.5, borderColor: C.border },
-  actionBtnIcon:   { fontSize: 16 },
-  actionBtnTxtDark:{ fontSize: 13, fontWeight: '700', color: '#0f0f0f' },
-  actionBtnTxt:    { fontSize: 13, fontWeight: '600', color: C.text },
-  // Analyze
-  analyzeBtn:         { backgroundColor: C.accent, borderRadius: 16, paddingVertical: 16,
-                         flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  analyzeBtnDisabled: { opacity: 0.3 },
-  analyzeBtnIcon:     { fontSize: 16 },
-  analyzeBtnTxt:      { fontSize: 15, fontWeight: '800', color: '#0f0f0f', letterSpacing: 0.3 },
-  analyzeHint:        { fontSize: 11, color: C.muted, textAlign: 'center', marginTop: 10 },
+  vfLoading: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15,15,15,0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  tipsSection: { marginBottom: 16 },
+  tipsSectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: C.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 10,
+  },
+  tipsRow: { flexDirection: 'row', gap: 10 },
+  tipItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: C.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: C.border,
+    paddingVertical: 14,
+    paddingHorizontal: 6,
+  },
+  tipIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: C.accentDim,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tipItemText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: C.text,
+    textAlign: 'center',
+    lineHeight: 15,
+    opacity: 0.85,
+  },
+
+  analyzeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 14,
+    paddingVertical: 16,
+    marginBottom: 14,
+  },
+  analyzeBtnActive: { backgroundColor: C.accent },
+  analyzeBtnIdle: {
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  analyzeBtnText: { fontSize: 15, fontWeight: '700', color: '#0f0f0f' },
+  analyzeBtnTextIdle: { color: C.muted },
+
+  tipBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: C.accentDim,
+    borderWidth: 1,
+    borderColor: C.accentBorder,
+  },
+  tipText: { flex: 1, fontSize: 12, color: C.text, lineHeight: 18, opacity: 0.85 },
 });

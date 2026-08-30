@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { AuthContext } from '../context/AuthContext';
 import { UIThemeContext } from '../context/UIThemeContext';
 import { getHistory } from '../api/historyApi';
@@ -41,7 +42,7 @@ const C = {
 // ── Status helpers ────────────────────────────────────────────────────────────
 const getStatus = (className, mode) => {
   if (mode === 'fruit') {
-    return className === 'Healthy_Tomato' ? 'healthy' : 'disease';
+    return className === 'Healthy_Tomato' || className === 'Healthy' ? 'healthy' : 'disease';
   }
   return className === 'Healthy' ? 'healthy' : 'deficiency';
 };
@@ -146,6 +147,8 @@ export default function HistoryScreen({ navigation, route }) {
   const [history, setHistory] = useState([]);
   const [mode,    setMode]    = useState(route?.params?.initialMode === 'fruit' ? 'fruit' : 'nutrient');
   const [query,   setQuery]   = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState('');
 
   // Mode toggle scale
   const nutrientScale = useRef(new Animated.Value(1)).current;
@@ -161,22 +164,44 @@ export default function HistoryScreen({ navigation, route }) {
     setQuery('');
   };
 
-  // Re-fetch on focus or mode change
-  useEffect(() => {
-    const unsub = navigation.addListener('focus', fetchData);
-    return unsub;
-  }, [navigation, token, mode]);
+  const fetchData = useCallback(async () => {
+    if (!token) {
+      setHistory([]);
+      setError('Log in to view your scan history.');
+      return;
+    }
 
-  useEffect(() => { fetchData(); }, [mode]);
-
-  const fetchData = async () => {
+    setLoading(true);
+    setError('');
     try {
       const res = mode === 'fruit'
         ? await getFruitHistory(token)
         : await getHistory(token);
       setHistory(res.data.history || []);
-    } catch (_) {}
-  };
+    } catch (e) {
+      setHistory([]);
+      setError(
+        e?.response?.data?.message ||
+        e?.response?.data?.msg ||
+        e?.message ||
+        'Could not load history.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [token, mode]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (route?.params?.initialMode === 'fruit') setMode('fruit');
+      if (route?.params?.initialMode === 'nutrient') setMode('nutrient');
+      fetchData();
+    }, [fetchData, route?.params?.initialMode])
+  );
+
+  useEffect(() => {
+    fetchData();
+  }, [mode, fetchData]);
 
   // Navigate to correct result screen
   const onPressItem = useCallback((item) => {
@@ -287,11 +312,16 @@ export default function HistoryScreen({ navigation, route }) {
       </Text>
 
       {/* ── List ── */}
+      {!!error && !loading && (
+        <Text style={styles.errorText}>{error}</Text>
+      )}
       <FlatList
         data={filtered}
         keyExtractor={item => String(item._id)}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        refreshing={loading}
+        onRefresh={fetchData}
         renderItem={({ item, index }) => (
           <HistoryItem
             item={item}
@@ -341,6 +371,7 @@ const styles = StyleSheet.create({
 
   // Section
   sectionLabel: { fontSize: 10, fontWeight: '700', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.8, marginHorizontal: 20, marginBottom: 10 },
+  errorText: { fontSize: 12, color: C.danger, marginHorizontal: 18, marginBottom: 10, lineHeight: 18 },
 
   // List
   listContent: { paddingHorizontal: 18, paddingBottom: 32 },

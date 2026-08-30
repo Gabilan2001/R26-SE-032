@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
+  Dimensions,
   Easing,
   Image,
   Platform,
@@ -12,6 +13,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Modal,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,63 +21,144 @@ import * as ImagePicker from 'expo-image-picker';
 import { predictFruitDisease } from '../api/fruitScanApi';
 import { UIThemeContext } from '../context/UIThemeContext';
 import LoadingOverlay from '../components/LoadingOverlay';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width, height } = Dimensions.get('window');
 
 const C = {
-  bg: '#0f0f0f',
-  surface: '#1a1a1a',
-  surface2: '#222222',
-  accent: '#c8f135',
-  accentDim: 'rgba(200,241,53,0.10)',
-  accentBorder: 'rgba(200,241,53,0.22)',
-  text: '#f0f0f0',
-  muted: '#666666',
-  border: 'rgba(255,255,255,0.07)',
-  danger: '#ff5c5c',
-  dangerDim: 'rgba(255,92,92,0.10)',
-  dangerBorder: 'rgba(255,92,92,0.22)',
-  success: '#4adf6f',
+  bg: '#0a0a0f',
+  surface: 'rgba(255,255,255,0.06)',
+  surface2: 'rgba(255,255,255,0.03)',
+  accent: '#7EE8FA',
+  accent2: '#EEC0C6',
+  gradient: ['#7EE8FA', '#EEC0C6'],
+  accentDim: 'rgba(126,232,250,0.10)',
+  accentBorder: 'rgba(126,232,250,0.20)',
+  text: '#ffffff',
+  textSecondary: 'rgba(255,255,255,0.7)',
+  muted: 'rgba(255,255,255,0.4)',
+  border: 'rgba(255,255,255,0.06)',
+  danger: '#ff6b8a',
+  dangerDim: 'rgba(255,107,138,0.12)',
+  dangerBorder: 'rgba(255,107,138,0.20)',
+  success: '#4ade80',
+  glass: 'rgba(255,255,255,0.04)',
+  glassBorder: 'rgba(255,255,255,0.08)',
 };
 
-const SAMPLES = [
-  { key: 'a', src: require('../../assets/images/tomato5.jpeg') },
-  { key: 'b', src: require('../../assets/images/tomato8.jpeg') },
-  { key: 'c', src: require('../../assets/images/tomato10.jpeg') },
-];
+// ============= NEW COMPONENTS =============
 
-const TAGS = [
-  { id: 'all', label: 'All types', icon: 'view-grid-outline' },
-  { id: 'disease', label: 'Disease', icon: 'virus' },
-  { id: 'healthy', label: 'Healthy', icon: 'check-circle-outline' },
-  { id: 'blight', label: 'Blight', icon: 'leaf-off' },
-];
+function AnimatedProgressBar({ progress }) {
+  const widthAnim = useRef(new Animated.Value(0)).current;
 
-const FEATURES = [
-  { icon: 'microscope', label: 'AI classifier' },
-  { icon: 'medical-bag', label: 'Treatment guide' },
-  { icon: 'chart-bar', label: 'Scan history' },
-];
+  useEffect(() => {
+    Animated.timing(widthAnim, {
+      toValue: progress,
+      duration: 600,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  }, [progress]);
+
+  return (
+    <View style={styles.progressContainer}>
+      <View style={styles.progressTrack}>
+        <Animated.View
+          style={[
+            styles.progressFill,
+            { width: widthAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) },
+          ]}
+        >
+          <LinearGradient
+            colors={C.gradient}
+            style={StyleSheet.absoluteFill}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          />
+        </Animated.View>
+      </View>
+    </View>
+  );
+}
+
+function QuickActionCard({ icon, label, description, onPress, gradient }) {
+  return (
+    <TouchableOpacity style={styles.quickAction} onPress={onPress} activeOpacity={0.7}>
+      <LinearGradient
+        colors={gradient || ['rgba(255,255,255,0.04)', 'rgba(255,255,255,0.01)']}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
+      <View style={styles.quickActionIcon}>
+        <MaterialCommunityIcons name={icon} size={24} color={C.accent} />
+      </View>
+      <Text style={styles.quickActionLabel}>{label}</Text>
+      <Text style={styles.quickActionDesc}>{description}</Text>
+    </TouchableOpacity>
+  );
+}
+
+function ImagePreviewModal({ visible, imageUri, onClose, onAnalyze }) {
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <TouchableOpacity style={styles.modalClose} onPress={onClose}>
+            <MaterialCommunityIcons name="close" size={24} color="#ffffff" />
+          </TouchableOpacity>
+          
+          <Image source={{ uri: imageUri }} style={styles.modalImage} />
+          
+          <View style={styles.modalActions}>
+            <TouchableOpacity style={styles.modalBtnSecondary} onPress={onClose}>
+              <Text style={styles.modalBtnText}>Retake</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.modalBtnPrimary} onPress={onAnalyze}>
+              <LinearGradient
+                colors={C.gradient}
+                style={StyleSheet.absoluteFill}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              />
+              <MaterialCommunityIcons name="microscope" size={20} color="#0a0a0f" />
+              <Text style={styles.modalBtnTextDark}>Analyze</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+// ============= EXISTING COMPONENTS (Enhanced) =============
 
 function ViewfinderFrame() {
-  const size = 22;
-  const t = 14;
+  const size = 28;
+  const t = 16;
   const corner = (pos) => ({
     position: 'absolute',
     width: size,
     height: size,
-    borderColor: C.accent,
+    borderColor: '#7EE8FA',
     borderStyle: 'solid',
     ...(pos.top !== undefined && { top: pos.top }),
     ...(pos.bottom !== undefined && { bottom: pos.bottom }),
     ...(pos.left !== undefined && { left: pos.left }),
     ...(pos.right !== undefined && { right: pos.right }),
-    borderTopWidth: pos.top !== undefined ? 2.5 : 0,
-    borderBottomWidth: pos.bottom !== undefined ? 2.5 : 0,
-    borderLeftWidth: pos.left !== undefined ? 2.5 : 0,
-    borderRightWidth: pos.right !== undefined ? 2.5 : 0,
-    borderTopLeftRadius: pos.top !== undefined && pos.left !== undefined ? 5 : 0,
-    borderTopRightRadius: pos.top !== undefined && pos.right !== undefined ? 5 : 0,
-    borderBottomLeftRadius: pos.bottom !== undefined && pos.left !== undefined ? 5 : 0,
-    borderBottomRightRadius: pos.bottom !== undefined && pos.right !== undefined ? 5 : 0,
+    borderTopWidth: pos.top !== undefined ? 3 : 0,
+    borderBottomWidth: pos.bottom !== undefined ? 3 : 0,
+    borderLeftWidth: pos.left !== undefined ? 3 : 0,
+    borderRightWidth: pos.right !== undefined ? 3 : 0,
+    borderTopLeftRadius: pos.top !== undefined && pos.left !== undefined ? 8 : 0,
+    borderTopRightRadius: pos.top !== undefined && pos.right !== undefined ? 8 : 0,
+    borderBottomLeftRadius: pos.bottom !== undefined && pos.left !== undefined ? 8 : 0,
+    borderBottomRightRadius: pos.bottom !== undefined && pos.right !== undefined ? 8 : 0,
   });
 
   return (
@@ -94,87 +177,67 @@ function ScanLine() {
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(anim, { toValue: 1, duration: 2400, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(anim, { toValue: 0, duration: 2400, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 1, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 0, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
       ])
     ).start();
   }, [anim]);
 
-  const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [0, 146] });
+  const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [0, 130] });
 
   return (
     <Animated.View
       pointerEvents="none"
       style={[styles.scanLine, { transform: [{ translateY }] }]}
-    />
-  );
-}
-
-function FeatureChip({ icon, label }) {
-  return (
-    <View style={styles.chip}>
-      <MaterialCommunityIcons name={icon} size={12} color={C.accent} />
-      <Text style={styles.chipTxt}>{label}</Text>
-    </View>
-  );
-}
-
-function FilterTag({ tag, active, onPress }) {
-  return (
-    <TouchableOpacity
-      style={[styles.filterTag, active && styles.filterTagActive]}
-      onPress={() => onPress(tag.id)}
-      activeOpacity={0.85}
     >
-      <MaterialCommunityIcons
-        name={tag.icon}
-        size={14}
-        color={active ? C.accent : C.muted}
+      <LinearGradient
+        colors={['transparent', '#7EE8FA', '#EEC0C6', 'transparent']}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
       />
-      <Text style={[styles.filterTagTxt, active && styles.filterTagTxtActive]}>
-        {tag.label}
-      </Text>
-    </TouchableOpacity>
+    </Animated.View>
   );
 }
 
-function SampleCard({ src, active, onPress }) {
-  return (
-    <TouchableOpacity
-      style={[styles.sampleCard, active && styles.sampleCardActive]}
-      onPress={onPress}
-      activeOpacity={0.8}
-    >
-      <Image source={src} style={styles.sampleImg} />
-      {active && (
-        <View style={styles.sampleCheck}>
-          <MaterialCommunityIcons name="check" size={11} color="#0f0f0f" />
-        </View>
-      )}
-    </TouchableOpacity>
-  );
-}
+// ============= MAIN SCREEN =============
 
 export default function FruitScanScreen({ navigation }) {
   const { presentationMode } = useContext(UIThemeContext);
   const insets = useSafeAreaInsets();
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [activeSample, setActiveSample] = useState(0);
-  const [activeTag, setActiveTag] = useState('all');
+  const [showPreview, setShowPreview] = useState(false);
+  const [scanProgress, setScanProgress] = useState(0);
 
   const heroOp = useRef(new Animated.Value(0)).current;
-  const heroY = useRef(new Animated.Value(24)).current;
+  const heroY = useRef(new Animated.Value(30)).current;
   const btnScale = useRef(new Animated.Value(1)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const floatAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(heroOp, { toValue: 1, duration: 420, useNativeDriver: true }),
+      Animated.timing(heroOp, { toValue: 1, duration: 500, useNativeDriver: true }),
       Animated.spring(heroY, { toValue: 0, useNativeDriver: true }),
     ]).start();
-  }, [heroOp, heroY]);
 
-  const onPressIn = () => Animated.spring(btnScale, { toValue: 0.96, useNativeDriver: true }).start();
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.05, duration: 1500, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1500, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim, { toValue: 1, duration: 3000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(floatAnim, { toValue: 0, duration: 3000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    ).start();
+  }, [heroOp, heroY, pulseAnim, floatAnim]);
+
+  const onPressIn = () => Animated.spring(btnScale, { toValue: 0.95, useNativeDriver: true }).start();
   const onPressOut = () => Animated.spring(btnScale, { toValue: 1, useNativeDriver: true }).start();
 
   const pickImage = async (fromCamera = false) => {
@@ -183,14 +246,31 @@ export default function FruitScanScreen({ navigation }) {
       : ImagePicker.launchImageLibraryAsync;
     const res = await launcher({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8,
+      quality: 0.85,
     });
-    if (!res.canceled) setImage(res.assets[0]);
+    if (!res.canceled) {
+      setImage(res.assets[0]);
+      setShowPreview(true);
+    }
   };
 
   const analyze = async () => {
     if (!image) return;
+    setShowPreview(false);
     setLoading(true);
+    setScanProgress(0);
+    
+    // Simulate progress
+    const progressInterval = setInterval(() => {
+      setScanProgress(prev => {
+        if (prev >= 0.9) {
+          clearInterval(progressInterval);
+          return 0.9;
+        }
+        return prev + 0.1;
+      });
+    }, 300);
+
     try {
       const formData = new FormData();
       if (Platform.OS === 'web') {
@@ -205,70 +285,123 @@ export default function FruitScanScreen({ navigation }) {
           type: image.mimeType || 'image/jpeg',
         });
       }
+      
       const res = await predictFruitDisease(formData);
-      navigation.navigate('FruitResult', { result: res.data, imageUri: image.uri });
+      setScanProgress(1);
+      setTimeout(() => {
+        navigation.navigate('FruitResult', { result: res.data, imageUri: image.uri });
+      }, 300);
     } catch (error) {
       Alert.alert(
-        'Analysis failed',
+        'Analysis Failed',
         error?.response?.data?.error || error?.message || 'Could not analyze this image.'
       );
     } finally {
-      setLoading(false);
+      clearInterval(progressInterval);
+      setTimeout(() => {
+        setLoading(false);
+        setScanProgress(0);
+      }, 500);
     }
   };
 
+  const floatY = floatAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -8] });
+
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="light-content" backgroundColor="#0a0a0f" />
+      <LinearGradient
+        colors={['#0a0a0f', '#14141e']}
+        style={StyleSheet.absoluteFill}
+      />
+
+      <ImagePreviewModal
+        visible={showPreview}
+        imageUri={image?.uri}
+        onClose={() => setShowPreview(false)}
+        onAnalyze={analyze}
+      />
 
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 100 },
+          { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 100 },
         ]}
         showsVerticalScrollIndicator={false}
       >
+        {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
-            <MaterialCommunityIcons name="arrow-left" size={20} color={C.text} />
+          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
+            <MaterialCommunityIcons name="arrow-left" size={22} color="#ffffff" />
           </TouchableOpacity>
           <View style={styles.headerText}>
-            <Text style={styles.screenTitle}>Fruit scanner</Text>
-            <Text style={styles.screenSub}>Tomato fruit disease detection</Text>
+            <Text style={styles.screenTitle}>Fruit Scanner</Text>
+            <Text style={styles.screenSub}>Tomato Disease Detection</Text>
           </View>
-          <View style={styles.headerIcon}>
-            <MaterialCommunityIcons name="food-apple" size={18} color={C.danger} />
-          </View>
+          <LinearGradient
+            colors={['#ff6b8a', '#ee5a6f']}
+            style={styles.headerIcon}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <MaterialCommunityIcons name="food-apple" size={18} color="#ffffff" />
+          </LinearGradient>
         </View>
 
+        {/* Hero Card */}
         <Animated.View style={[styles.heroCard, { opacity: heroOp, transform: [{ translateY: heroY }] }]}>
+          <LinearGradient
+            colors={['rgba(126,232,250,0.08)', 'rgba(238,192,198,0.05)']}
+            style={StyleSheet.absoluteFill}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          />
           <View style={styles.heroTop}>
             <View style={styles.heroBadge}>
               <View style={styles.badgeDot} />
-              <Text style={styles.badgeTxt}>Disease classifier</Text>
+              <Text style={styles.badgeTxt}>AI Disease Classifier</Text>
             </View>
-            <View style={styles.heroIconBox}>
-              <MaterialCommunityIcons name="food-apple" size={22} color={C.danger} />
-            </View>
+            <Animated.View style={{ transform: [{ translateY: floatY }] }}>
+              <View style={styles.heroIconBox}>
+                <MaterialCommunityIcons name="food-apple" size={22} color="#ff6b8a" />
+              </View>
+            </Animated.View>
           </View>
 
           <Text style={[styles.heroTitle, presentationMode && { fontSize: 24 }]}>
-            Capture fruit for{'\n'}
-            <Text style={styles.heroTitleAccent}>instant diagnosis</Text>
+            Detect Tomato{'\n'}
+            <Text style={styles.heroTitleAccent}>Diseases Instantly</Text>
           </Text>
           <Text style={styles.heroHelper}>
-            Photograph the affected area in natural light. Keep the fruit centred and in focus for best results.
+            Capture a photo or upload from gallery. Our AI will analyze and provide treatment recommendations.
           </Text>
 
-          <View style={styles.chipRow}>
-            {FEATURES.map((item) => (
-              <FeatureChip key={item.label} icon={item.icon} label={item.label} />
-            ))}
+          {/* Quick Actions */}
+          <View style={styles.quickActionsRow}>
+            <QuickActionCard
+              icon="camera-outline"
+              label="Camera"
+              description="Take a photo"
+              onPress={() => pickImage(true)}
+              gradient={['rgba(126,232,250,0.08)', 'rgba(126,232,250,0.02)']}
+            />
+            <QuickActionCard
+              icon="image-outline"
+              label="Gallery"
+              description="Choose from library"
+              onPress={() => pickImage(false)}
+              gradient={['rgba(238,192,198,0.08)', 'rgba(238,192,198,0.02)']}
+            />
           </View>
         </Animated.View>
 
+        {/* Viewfinder */}
         <View style={styles.viewfinder}>
+          <LinearGradient
+            colors={['rgba(126,232,250,0.05)', 'rgba(238,192,198,0.02)']}
+            style={StyleSheet.absoluteFill}
+          />
           <ViewfinderFrame />
           <ScanLine />
 
@@ -276,10 +409,16 @@ export default function FruitScanScreen({ navigation }) {
             <Image source={{ uri: image.uri }} style={styles.vfImage} />
           ) : (
             <View style={styles.vfPlaceholder}>
-              <View style={styles.vfIconWrap}>
-                <MaterialCommunityIcons name="camera-outline" size={32} color={C.muted} />
-              </View>
-              <Text style={styles.vfPlaceholderTitle}>No image selected</Text>
+              <Animated.View style={[styles.vfIconWrap, { transform: [{ scale: pulseAnim }] }]}>
+                <LinearGradient
+                  colors={['rgba(126,232,250,0.15)', 'rgba(238,192,198,0.10)']}
+                  style={StyleSheet.absoluteFill}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                />
+                <MaterialCommunityIcons name="camera-outline" size={36} color="rgba(255,255,255,0.4)" />
+              </Animated.View>
+              <Text style={styles.vfPlaceholderTitle}>No Image Selected</Text>
               <Text style={styles.vfPlaceholderTxt}>
                 Place tomato fruit inside the frame{'\n'}or choose from gallery
               </Text>
@@ -289,63 +428,64 @@ export default function FruitScanScreen({ navigation }) {
           {loading && (
             <View style={styles.vfLoadingOverlay}>
               <LoadingOverlay text="Analyzing tomato fruit..." />
+              <AnimatedProgressBar progress={scanProgress} />
             </View>
           )}
         </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.tagStrip}
-          contentContainerStyle={styles.tagStripContent}
-        >
-          {TAGS.map((tag) => (
-            <FilterTag
-              key={tag.id}
-              tag={tag}
-              active={activeTag === tag.id}
-              onPress={setActiveTag}
-            />
-          ))}
-        </ScrollView>
+        {/* Photo tips */}
+        <View style={styles.tipsSection}>
+          <Text style={styles.tipsSectionLabel}>For best results</Text>
+          <View style={styles.tipsRow}>
+            <View style={styles.tipItem}>
+              <View style={styles.tipIconWrap}>
+                <MaterialCommunityIcons name="white-balance-sunny" size={18} color={C.accent} />
+              </View>
+              <Text style={styles.tipItemText}>Natural{'\n'}light</Text>
+            </View>
+            <View style={styles.tipItem}>
+              <View style={styles.tipIconWrap}>
+                <MaterialCommunityIcons name="crop-free" size={18} color={C.accent} />
+              </View>
+              <Text style={styles.tipItemText}>Fill the{'\n'}frame</Text>
+            </View>
+            <View style={styles.tipItem}>
+              <View style={styles.tipIconWrap}>
+                <MaterialCommunityIcons name="food-apple" size={18} color={C.danger} />
+              </View>
+              <Text style={styles.tipItemText}>One fruit{'\n'}only</Text>
+            </View>
+          </View>
+        </View>
 
-        <Text style={styles.sectionLabel}>Reference samples</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.sampleStrip}
-          contentContainerStyle={styles.sampleStripContent}
-        >
-          {SAMPLES.map((sample, index) => (
-            <SampleCard
-              key={sample.key}
-              src={sample.src}
-              active={activeSample === index}
-              onPress={() => setActiveSample(index)}
-            />
-          ))}
-        </ScrollView>
-
+        {/* Action Buttons */}
         <View style={styles.actionRow}>
           <TouchableOpacity
             style={[styles.actionBtn, styles.actionBtnSecondary]}
             onPress={() => pickImage(false)}
-            activeOpacity={0.85}
+            activeOpacity={0.7}
           >
-            <MaterialCommunityIcons name="image-outline" size={18} color={C.text} />
+            <MaterialCommunityIcons name="image-outline" size={20} color="#ffffff" />
             <Text style={styles.actionBtnTxt}>Gallery</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.actionBtn, styles.actionBtnPrimary]}
             onPress={() => pickImage(true)}
-            activeOpacity={0.85}
+            activeOpacity={0.7}
           >
-            <MaterialCommunityIcons name="camera-outline" size={18} color="#0f0f0f" />
+            <LinearGradient
+              colors={C.gradient}
+              style={StyleSheet.absoluteFill}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            />
+            <MaterialCommunityIcons name="camera-outline" size={20} color="#0a0a0f" />
             <Text style={styles.actionBtnTxtDark}>Camera</Text>
           </TouchableOpacity>
         </View>
 
+        {/* Analyze Button */}
         <Animated.View style={{ transform: [{ scale: btnScale }] }}>
           <Pressable
             style={[styles.analyzeBtn, !image && styles.analyzeBtnDisabled]}
@@ -354,15 +494,24 @@ export default function FruitScanScreen({ navigation }) {
             onPress={analyze}
             disabled={!image || loading}
           >
-            <MaterialCommunityIcons name="microscope" size={18} color="#0f0f0f" />
-            <Text style={styles.analyzeBtnTxt}>Analyze fruit</Text>
+            <LinearGradient
+              colors={image ? ['#7EE8FA', '#EEC0C6'] : ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)']}
+              style={StyleSheet.absoluteFill}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            />
+            <MaterialCommunityIcons name="microscope" size={20} color={image ? '#0a0a0f' : 'rgba(255,255,255,0.3)'} />
+            <Text style={[styles.analyzeBtnTxt, !image && styles.analyzeBtnTxtDisabled]}>
+              {image ? 'Analyze Fruit' : 'Select an Image First'}
+            </Text>
           </Pressable>
         </Animated.View>
 
+        {/* Hint */}
         <View style={styles.hintBox}>
-          <MaterialCommunityIcons name="information-outline" size={15} color={C.accent} />
+          <MaterialCommunityIcons name="information-outline" size={16} color="#7EE8FA" />
           <Text style={styles.analyzeHint}>
-            {image ? 'Image ready. Tap analyze to run diagnosis.' : 'Select or capture an image to begin.'}
+            {image ? 'Image ready. Tap Analyze Fruit to continue.' : 'Select or capture an image to begin.'}
           </Text>
         </View>
       </ScrollView>
@@ -371,47 +520,47 @@ export default function FruitScanScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
+  root: { flex: 1 },
   scroll: { flex: 1 },
-  content: { paddingHorizontal: 18 },
+  content: { paddingHorizontal: 20 },
 
+  // ===== Header =====
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginBottom: 18,
+    gap: 14,
+    marginBottom: 20,
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: C.surface,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerText: { flex: 1 },
-  screenTitle: { fontSize: 18, fontWeight: '800', color: C.text },
-  screenSub: { fontSize: 12, color: C.muted, marginTop: 2 },
+  screenTitle: { fontSize: 20, fontWeight: '800', color: '#ffffff' },
+  screenSub: { fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 },
   headerIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: C.dangerDim,
-    borderWidth: 1,
-    borderColor: C.dangerBorder,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
+  // ===== Hero Card =====
   heroCard: {
-    backgroundColor: C.surface,
+    backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1,
-    borderColor: C.border,
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 16,
+    borderColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 18,
+    overflow: 'hidden',
   },
   heroTop: {
     flexDirection: 'row',
@@ -423,178 +572,285 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: C.accentDim,
+    backgroundColor: 'rgba(126,232,250,0.10)',
     borderWidth: 1,
-    borderColor: C.accentBorder,
+    borderColor: 'rgba(126,232,250,0.15)',
     borderRadius: 100,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
   },
-  badgeDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: C.accent },
-  badgeTxt: { fontSize: 10, color: C.accent, fontWeight: '700', letterSpacing: 0.4 },
+  badgeDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: '#7EE8FA' },
+  badgeTxt: { fontSize: 10, color: '#7EE8FA', fontWeight: '700', letterSpacing: 0.5 },
   heroIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: C.dangerDim,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,107,138,0.12)',
     borderWidth: 1,
-    borderColor: C.dangerBorder,
+    borderColor: 'rgba(255,107,138,0.20)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroTitle: { fontSize: 22, fontWeight: '800', color: C.text, lineHeight: 28, marginBottom: 8 },
-  heroTitleAccent: { color: C.accent },
-  heroHelper: { fontSize: 13, color: C.muted, lineHeight: 19, marginBottom: 14 },
+  heroTitle: { fontSize: 24, fontWeight: '800', color: '#ffffff', lineHeight: 30, marginBottom: 10 },
+  heroTitleAccent: { color: '#7EE8FA' },
+  heroHelper: { fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 20, marginBottom: 16 },
 
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
+  // ===== Quick Actions =====
+  quickActionsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: C.surface2,
-    borderWidth: 1,
-    borderColor: C.border,
-    borderRadius: 100,
-    paddingHorizontal: 11,
-    paddingVertical: 6,
+    gap: 10,
+    marginTop: 4,
   },
-  chipTxt: { fontSize: 11, color: C.text, fontWeight: '600' },
+  quickAction: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    overflow: 'hidden',
+    alignItems: 'center',
+  },
+  quickActionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(126,232,250,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  quickActionLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: 2,
+  },
+  quickActionDesc: {
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.4)',
+  },
 
+  // ===== Viewfinder =====
   viewfinder: {
     width: '100%',
     height: 220,
-    backgroundColor: C.surface2,
-    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: C.accentBorder,
+    borderColor: 'rgba(126,232,250,0.15)',
     overflow: 'hidden',
-    marginBottom: 16,
+    marginBottom: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
   scanLine: {
     position: 'absolute',
-    left: 14,
-    right: 14,
-    height: 1.5,
-    backgroundColor: C.accent,
-    opacity: 0.65,
+    left: 20,
+    right: 20,
+    height: 2,
+    opacity: 0.8,
   },
   vfImage: { position: 'absolute', width: '100%', height: '100%', resizeMode: 'cover' },
   vfPlaceholder: { alignItems: 'center', gap: 8, paddingHorizontal: 24 },
   vfIconWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: C.surface,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: 'rgba(255,255,255,0.03)',
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
+    overflow: 'hidden',
   },
-  vfPlaceholderTitle: { fontSize: 14, fontWeight: '700', color: C.text },
-  vfPlaceholderTxt: { fontSize: 12, color: C.muted, textAlign: 'center', lineHeight: 18 },
+  vfPlaceholderTitle: { fontSize: 15, fontWeight: '700', color: '#ffffff' },
+  vfPlaceholderTxt: { fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'center', lineHeight: 18 },
   vfLoadingOverlay: {
     position: 'absolute',
     inset: 0,
-    backgroundColor: 'rgba(15,15,15,0.88)',
+    backgroundColor: 'rgba(10,10,15,0.92)',
     alignItems: 'center',
     justifyContent: 'center',
   },
 
-  tagStrip: { marginBottom: 16 },
-  tagStripContent: { gap: 8, paddingRight: 4 },
-  filterTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 100,
-    borderWidth: 1,
-    borderColor: C.border,
-    backgroundColor: C.surface,
+  // ===== Progress Bar =====
+  progressContainer: {
+    width: '80%',
+    marginTop: 12,
   },
-  filterTagActive: { backgroundColor: C.accentDim, borderColor: C.accentBorder },
-  filterTagTxt: { fontSize: 12, color: C.muted, fontWeight: '600' },
-  filterTagTxtActive: { color: C.accent },
+  progressTrack: {
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
 
-  sectionLabel: {
+  // ===== Photo tips =====
+  tipsSection: {
+    marginBottom: 18,
+  },
+  tipsSectionLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: C.muted,
+    color: 'rgba(255,255,255,0.45)',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 10,
   },
-  sampleStrip: { marginBottom: 18 },
-  sampleStripContent: { paddingRight: 4 },
-  sampleCard: {
-    width: 104,
-    height: 76,
-    borderRadius: 14,
-    overflow: 'hidden',
-    backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.border,
-    marginRight: 10,
+  tipsRow: {
+    flexDirection: 'row',
+    gap: 10,
   },
-  sampleCardActive: { borderColor: C.accent, borderWidth: 2 },
-  sampleImg: { width: '100%', height: '100%', resizeMode: 'cover' },
-  sampleCheck: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    backgroundColor: C.accent,
-    borderRadius: 10,
-    width: 18,
-    height: 18,
+  tipItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    paddingVertical: 14,
+    paddingHorizontal: 6,
+  },
+  tipIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: C.accentDim,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  tipItemText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.75)',
+    textAlign: 'center',
+    lineHeight: 15,
+  },
 
-  actionRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  // ===== Action Buttons =====
+  actionRow: { flexDirection: 'row', gap: 12, marginBottom: 14 },
   actionBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    borderRadius: 14,
-    paddingVertical: 14,
+    borderRadius: 16,
+    paddingVertical: 15,
+    overflow: 'hidden',
   },
   actionBtnSecondary: {
-    backgroundColor: C.surface,
+    backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
-  actionBtnPrimary: { backgroundColor: C.accent },
-  actionBtnTxt: { fontSize: 14, fontWeight: '700', color: C.text },
-  actionBtnTxtDark: { fontSize: 14, fontWeight: '800', color: '#0f0f0f' },
+  actionBtnPrimary: {
+    overflow: 'hidden',
+  },
+  actionBtnTxt: { fontSize: 14, fontWeight: '700', color: '#ffffff' },
+  actionBtnTxtDark: { fontSize: 14, fontWeight: '800', color: '#0a0a0f' },
 
+  // ===== Analyze Button =====
   analyzeBtn: {
-    backgroundColor: C.accent,
-    borderRadius: 16,
-    paddingVertical: 16,
+    borderRadius: 18,
+    paddingVertical: 17,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  analyzeBtnDisabled: { opacity: 0.5 },
+  analyzeBtnTxt: { fontSize: 16, fontWeight: '800', color: '#0a0a0f', letterSpacing: 0.3 },
+  analyzeBtnTxtDisabled: { color: 'rgba(255,255,255,0.3)' },
+
+  // ===== Hint =====
+  hintBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 16,
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: 'rgba(126,232,250,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(126,232,250,0.10)',
+  },
+  analyzeHint: { flex: 1, fontSize: 12, color: 'rgba(255,255,255,0.7)', lineHeight: 18 },
+
+  // ===== Modal =====
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: width * 0.9,
+    maxHeight: height * 0.8,
+    backgroundColor: '#14141e',
+    borderRadius: 24,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  modalClose: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalImage: {
+    width: '100%',
+    height: 300,
+    resizeMode: 'cover',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+    padding: 16,
+  },
+  modalBtnSecondary: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    alignItems: 'center',
+  },
+  modalBtnPrimary: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 14,
+    overflow: 'hidden',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
   },
-  analyzeBtnDisabled: { opacity: 0.35 },
-  analyzeBtnTxt: { fontSize: 15, fontWeight: '800', color: '#0f0f0f', letterSpacing: 0.2 },
-
-  hintBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-    marginTop: 14,
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: C.accentDim,
-    borderWidth: 1,
-    borderColor: C.accentBorder,
+  modalBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#ffffff',
   },
-  analyzeHint: { flex: 1, fontSize: 12, color: C.text, lineHeight: 18 },
+  modalBtnTextDark: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0a0a0f',
+  },
 });

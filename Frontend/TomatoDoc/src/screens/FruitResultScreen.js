@@ -2,133 +2,184 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
+  ActivityIndicator,
+  Easing,
   Image,
+  Modal,
   Pressable,
   ScrollView,
+  Share,
   StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TreatmentAdviceCard from '../components/TreatmentAdviceCard';
 import { saveFruitHistory } from '../api/fruitHistoryApi';
 import { exportScanReport } from '../utils/reportExport';
 import { AuthContext } from '../context/AuthContext';
-import { UIThemeContext } from '../context/UIThemeContext';
 import { computeSeverity } from '../utils/severity';
 
-// ── Tokens ────────────────────────────────────────────────────────────────────
 const C = {
-  bg:           '#0f0f0f',
-  surface:      '#1a1a1a',
-  surface2:     '#222222',
-  accent:       '#c8f135',
-  accentDim:    'rgba(200,241,53,0.10)',
+  bg: '#0f0f0f',
+  surface: '#1a1a1a',
+  surface2: '#222222',
+  accent: '#c8f135',
+  accentDim: 'rgba(200,241,53,0.10)',
   accentBorder: 'rgba(200,241,53,0.22)',
-  text:         '#f0f0f0',
-  muted:        '#555555',
-  border:       'rgba(255,255,255,0.07)',
-  // Tomato-red palette (matches FruitScanScreen)
-  tomato:       '#ff5c5c',
-  tomatoDim:    'rgba(255,92,92,0.08)',
+  text: '#f0f0f0',
+  muted: '#666666',
+  border: 'rgba(255,255,255,0.07)',
+  tomato: '#ff5c5c',
+  tomatoDim: 'rgba(255,92,92,0.10)',
   tomatoBorder: 'rgba(255,92,92,0.22)',
-  warn:         '#f5a623',
-  warnDim:      'rgba(245,166,35,0.10)',
-  success:      '#4adf6f',
-  successDim:   'rgba(74,223,111,0.10)',
-  successBorder:'rgba(74,223,111,0.22)',
+  warn: '#f5a623',
+  warnDim: 'rgba(245,166,35,0.10)',
+  success: '#4adf6f',
+  successDim: 'rgba(74,223,111,0.10)',
+  successBorder: 'rgba(74,223,111,0.22)',
 };
 
-// ── Severity config ───────────────────────────────────────────────────────────
 const SEVERITY_MAP = {
-  low:    { label: 'Low',      color: C.success, dim: C.successDim, pct: '28%' },
-  medium: { label: 'Moderate', color: C.warn,    dim: C.warnDim,    pct: '62%' },
-  high:   { label: 'High',     color: C.tomato,  dim: C.tomatoDim,  pct: '90%' },
+  low: { label: 'Low', color: C.success, dim: C.successDim, pct: '28%', icon: 'leaf' },
+  medium: { label: 'Moderate', color: C.warn, dim: C.warnDim, pct: '62%', icon: 'alert' },
+  high: { label: 'High', color: C.tomato, dim: C.tomatoDim, pct: '90%', icon: 'alert-circle' },
 };
 
-// ── Healthy vs disease status ─────────────────────────────────────────────────
 const isHealthy = (cls) => cls === 'Healthy_Tomato' || cls === 'Healthy';
 
-// ── Animated severity bar ─────────────────────────────────────────────────────
-function SeverityBar({ severity }) {
-  const meta  = SEVERITY_MAP[severity] ?? SEVERITY_MAP.medium;
-  const width = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.timing(width, {
-      toValue: 1, duration: 700, delay: 300, useNativeDriver: false,
-    }).start();
-  }, []);
+function formatLabel(value) {
+  if (!value) return 'Unknown';
+  return String(value).replace(/_/g, ' ');
+}
+
+function ShareModal({ visible, onClose, onShare, onExport }) {
   return (
-    <View style={styles.sevRow}>
-      <Text style={styles.sevLabel}>Severity</Text>
-      <View style={styles.sevTrack}>
-        <Animated.View
-          style={[
-            styles.sevFill,
-            {
-              backgroundColor: meta.color,
-              width: width.interpolate({ inputRange: [0, 1], outputRange: ['0%', meta.pct] }),
-            },
-          ]}
-        />
-      </View>
-      <View style={[styles.sevPill, { backgroundColor: meta.dim }]}>
-        <Text style={[styles.sevPillTxt, { color: meta.color }]}>{meta.label}</Text>
-      </View>
-    </View>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={styles.modalOverlay} onPress={onClose}>
+        <Pressable onPress={(e) => e.stopPropagation()}>
+          <View style={styles.modalContent}>
+            <LinearGradient
+              colors={['rgba(255,255,255,0.03)', 'rgba(255,255,255,0.01)']}
+              style={StyleSheet.absoluteFill}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            />
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Share Report</Text>
+              <TouchableOpacity onPress={onClose}>
+                <MaterialCommunityIcons name="close" size={24} color={C.muted} />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity style={styles.modalOption} onPress={onShare}>
+              <View style={styles.modalOptionIcon}>
+                <MaterialCommunityIcons name="share-variant" size={24} color={C.accent} />
+              </View>
+              <View style={styles.modalOptionContent}>
+                <Text style={styles.modalOptionLabel}>Share</Text>
+                <Text style={styles.modalOptionDesc}>Share via messaging or social</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.modalOption} onPress={onExport}>
+              <View style={[styles.modalOptionIcon, { backgroundColor: C.tomatoDim }]}>
+                <MaterialCommunityIcons name="file-export" size={24} color={C.tomato} />
+              </View>
+              <View style={styles.modalOptionContent}>
+                <Text style={styles.modalOptionLabel}>Export .txt</Text>
+                <Text style={styles.modalOptionDesc}>Save as text file</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }
 
-// ── Metric card ───────────────────────────────────────────────────────────────
-function MetricCard({ label, value, valueColor }) {
-  return (
-    <View style={styles.metricCard}>
-      <Text style={styles.metricLabel}>{label}</Text>
-      <Text style={[styles.metricValue, valueColor && { color: valueColor }]}>{value}</Text>
-    </View>
-  );
-}
-
-// ── Detail item row ───────────────────────────────────────────────────────────
-// (removed — treatment guidance now comes from RAG TreatmentAdviceCard)
-
-// ── Main Screen ───────────────────────────────────────────────────────────────
 export default function FruitResultScreen({ route, navigation }) {
-  const { token }            = useContext(AuthContext);
-  const { presentationMode } = useContext(UIThemeContext);
+  const { token } = useContext(AuthContext);
+  const insets = useSafeAreaInsets();
   const { result, imageUri } = route.params;
-  const [saved, setSaved]    = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const severity = computeSeverity(result, 'fruit');
-  const healthy  = isHealthy(result.class);
-  const sevMeta  = SEVERITY_MAP[severity] ?? SEVERITY_MAP.medium;
-  const confidencePct = Number(result.confidence || 0);
+  const healthy = isHealthy(result.class);
+  const sevMeta = SEVERITY_MAP[severity] ?? SEVERITY_MAP.medium;
+  const confidencePct = Math.round(Number(result.confidence || 0));
+  const displayName = formatLabel(result.class);
+  const statusColor = healthy ? C.success : C.tomato;
 
-  // Entrance animations
-  const bannerOp = useRef(new Animated.Value(0)).current;
-  const bannerY  = useRef(new Animated.Value(28)).current;
-  const cardOp   = useRef(new Animated.Value(0)).current;
+  const fadeIn = useRef(new Animated.Value(0)).current;
+  const slideUp = useRef(new Animated.Value(30)).current;
+  const cardScale = useRef(new Animated.Value(0.95)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(bannerOp, { toValue: 1, duration: 400, useNativeDriver: true }),
-      Animated.spring(bannerY,  { toValue: 0, useNativeDriver: true }),
-    ]).start(() =>
-      Animated.timing(cardOp, { toValue: 1, duration: 350, useNativeDriver: true }).start()
-    );
-  }, []);
+      Animated.timing(fadeIn, { toValue: 1, duration: 500, useNativeDriver: true }),
+      Animated.spring(slideUp, { toValue: 0, useNativeDriver: true }),
+      Animated.spring(cardScale, { toValue: 1, useNativeDriver: true }),
+    ]).start();
 
-  // Button scale
-  const btnScale = useRef(new Animated.Value(1)).current;
-  const onPressIn  = () => Animated.spring(btnScale, { toValue: 0.97, useNativeDriver: true }).start();
-  const onPressOut = () => Animated.spring(btnScale, { toValue: 1,    useNativeDriver: true }).start();
+    if (!healthy) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.08,
+            duration: 1000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }
+  }, [fadeIn, slideUp, cardScale, pulseAnim, healthy]);
 
   const onSave = async () => {
+    if (!token) {
+      Alert.alert('Login required', 'Please log in to save scan results to your history.');
+      return;
+    }
+    if (saving || saved) return;
+
+    setSaving(true);
     try {
-      await saveFruitHistory(token, { ...result, image_uri: imageUri });
+      await saveFruitHistory(token, {
+        class: result.class,
+        confidence: result.confidence,
+        warning: result.warning || '',
+        description: result.description || '',
+        symptoms: result.symptoms || '',
+        solution: result.solution || '',
+        treatment: result.treatment || '',
+        image_uri: imageUri || null,
+      });
       setSaved(true);
+      Alert.alert('Saved', 'This scan was added to your fruit disease history.');
     } catch (e) {
-      Alert.alert('Save failed', e?.message || 'Could not save to history.');
+      const message =
+        e?.response?.data?.message ||
+        e?.response?.data?.msg ||
+        e?.response?.data?.error ||
+        e?.message ||
+        'Could not save to history.';
+      Alert.alert('Save failed', message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -141,8 +192,29 @@ export default function FruitResultScreen({ route, navigation }) {
         severity,
       });
       Alert.alert('Report Exported', `Saved at:\n${fileUri}`);
+      setShowShareModal(false);
     } catch (e) {
       Alert.alert('Export failed', e?.message || 'Could not export report.');
+    }
+  };
+
+  const onShare = async () => {
+    try {
+      const shareMessage =
+        `Fruit Disease Report\n\n` +
+        `Disease: ${displayName}\n` +
+        `Confidence: ${confidencePct}%\n` +
+        `Severity: ${sevMeta.label}\n` +
+        `Status: ${healthy ? 'Healthy' : 'Disease Detected'}\n\n` +
+        `Analyzed by TomatoDoc Fruit Scanner`;
+
+      await Share.share({
+        message: shareMessage,
+        title: 'Fruit Disease Report',
+      });
+      setShowShareModal(false);
+    } catch (e) {
+      Alert.alert('Share failed', e?.message || 'Could not share report.');
     }
   };
 
@@ -150,235 +222,441 @@ export default function FruitResultScreen({ route, navigation }) {
     <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
+      <ShareModal
+        visible={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        onShare={onShare}
+        onExport={onExport}
+      />
+
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 60 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Back row ── */}
-        <View style={styles.backRow}>
-          <View style={styles.backLeft}>
-            <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-              <Text style={styles.backArrow}>←</Text>
-            </TouchableOpacity>
-            <Text style={styles.screenTitle}>Disease Result</Text>
-          </View>
-          <TouchableOpacity style={styles.backBtn} onPress={onExport}>
-            <Text style={styles.backArrow}>⬆</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* ── Banner ── */}
-        <Animated.View
-          style={[styles.banner, { opacity: bannerOp, transform: [{ translateY: bannerY }] }]}
-        >
-          <View style={styles.bannerBlob} pointerEvents="none" />
-          <View style={styles.bannerRow}>
-            <Text style={[styles.bannerTitle, presentationMode && { fontSize: 17 }]}>
-              Disease Management Panel
-            </Text>
-            <Text style={{ fontSize: 16 }}>🛡</Text>
-          </View>
-          <Text style={styles.bannerText}>
-            Save and track disease trends for targeted spraying and better harvest quality.
-          </Text>
-          <SeverityBar severity={severity} />
-        </Animated.View>
-
-        {/* ── Result card ── */}
-        <Animated.View style={[styles.resultCard, { opacity: cardOp }]}>
-          {/* Image / placeholder */}
-          <View style={styles.resultImageWrap}>
-            {imageUri ? (
-              <Image source={{ uri: imageUri }} style={styles.resultImage} />
-            ) : (
-              <View style={[styles.resultImage, styles.resultImagePlaceholder]}>
-                <Text style={{ fontSize: 60, opacity: 0.3 }}>🍅</Text>
-              </View>
-            )}
-            <View style={styles.resultImageOverlay} />
-
-            {/* Class chip — red for disease, green for healthy */}
-            <View style={[styles.classChip, healthy && styles.classChipHealthy]}>
-              <View style={[styles.classChipDot, healthy && { backgroundColor: C.success }]} />
-              <Text style={[styles.classChipTxt, healthy && { color: C.success }]}>
-                {healthy ? 'Healthy' : 'Fruit Disease'}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.resultBody}>
-            {/* Name */}
-            <Text style={styles.resultName}>{result.class ?? 'Unknown'}</Text>
-
-            {/* Confidence */}
-            <View style={styles.confRow}>
-              <Text style={styles.confLabel}>Confidence</Text>
-              <View style={styles.confTrack}>
-                <View
-                  style={[
-                    styles.confFill,
-                    {
-                  width: `${Math.max(0, Math.min(100, confidencePct))}%`,
-                      backgroundColor: healthy ? C.success : C.tomato,
-                    },
-                  ]}
-                />
-              </View>
-              <Text style={[styles.confPct, { color: healthy ? C.success : C.tomato }]}>
-                {Math.round(confidencePct)}%
-              </Text>
-            </View>
-
-            {/* Metrics */}
-            <View style={styles.metricsGrid}>
-              <MetricCard label="Disease"    value={result.class ?? '—'} valueColor={healthy ? C.success : C.tomato} />
-              <MetricCard label="Confidence" value={`${Math.round(confidencePct)}%`} />
-              <MetricCard label="Severity"   value={sevMeta.label} valueColor={sevMeta.color} />
-              <MetricCard label="Module"     value="Fruit" />
-            </View>
-
-            <TreatmentAdviceCard predictedClass={result.class} />
-          </View>
-        </Animated.View>
-
-        {/* ── Warning box (disease only) ── */}
-        {!healthy && (
-          <View style={styles.warningBox}>
-            <Text style={styles.warningIcon}>⚠</Text>
-            <Text style={styles.warningTxt}>
-              Disease detected. Immediate treatment recommended to prevent spread to healthy plants.
-            </Text>
-          </View>
-        )}
-
-        {/* ── Primary CTA ── */}
-        <Animated.View style={{ transform: [{ scale: btnScale }] }}>
-          <Pressable
-            style={styles.btnPrimary}
-            onPressIn={onPressIn}
-            onPressOut={onPressOut}
-            onPress={() => navigation.navigate('FruitDetail', { result })}
-          >
-            <Text style={styles.btnPrimaryIcon}>🔍</Text>
-            <Text style={styles.btnPrimaryTxt}>View Treatment Guide</Text>
-          </Pressable>
-        </Animated.View>
-
-        {/* ── Secondary row ── */}
-        <View style={styles.btnRow}>
+        <View style={styles.header}>
           <TouchableOpacity
-            style={[styles.btnOutline, saved && styles.btnOutlineSaved]}
-            onPress={onSave}
-            disabled={saved}
-            activeOpacity={0.8}
+            style={styles.backBtn}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
           >
-            <Text style={styles.btnOutlineIcon}>{saved ? '✓' : '💾'}</Text>
-            <Text style={[styles.btnOutlineTxt, saved && { color: C.muted }]}>
-              {saved ? 'Saved' : 'Save'}
-            </Text>
+            <MaterialCommunityIcons name="arrow-left" size={22} color={C.text} />
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.btnOutline} onPress={onExport} activeOpacity={0.8}>
-            <Text style={styles.btnOutlineIcon}>📄</Text>
-            <Text style={styles.btnOutlineTxt}>Export .txt</Text>
+          <View style={styles.headerText}>
+            <Text style={styles.screenTitle}>Analysis Result</Text>
+            <Text style={styles.screenSub}>Fruit Disease Report</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.shareBtn}
+            onPress={() => setShowShareModal(true)}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons name="share-variant" size={20} color={C.accent} />
           </TouchableOpacity>
         </View>
 
-        {/* ── Text CTA ── */}
-        <TouchableOpacity style={styles.btnText} onPress={() => navigation.navigate('FruitScan')}>
-          <Text style={styles.btnTextTxt}>↩  Analyze Another</Text>
-        </TouchableOpacity>
+        <Animated.View style={{ opacity: fadeIn, transform: [{ translateY: slideUp }] }}>
+          <View style={[styles.statusAlert, healthy ? styles.statusAlertHealthy : styles.statusAlertDisease]}>
+            <LinearGradient
+              colors={
+                healthy
+                  ? ['rgba(74,223,111,0.08)', 'rgba(74,223,111,0.02)']
+                  : ['rgba(255,92,92,0.08)', 'rgba(255,92,92,0.02)']
+              }
+              style={StyleSheet.absoluteFill}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            />
+            <View style={styles.statusAlertIcon}>
+              <MaterialCommunityIcons
+                name={healthy ? 'check-circle' : 'alert-circle'}
+                size={24}
+                color={statusColor}
+              />
+            </View>
+            <View style={styles.statusAlertContent}>
+              <Text style={[styles.statusAlertTitle, { color: statusColor }]}>
+                {healthy ? 'Healthy Fruit Detected' : 'Disease Detected'}
+              </Text>
+              <Text style={styles.statusAlertDesc}>
+                {healthy
+                  ? 'No treatment needed. Continue regular monitoring.'
+                  : 'Immediate action recommended. Review treatment guide below.'}
+              </Text>
+            </View>
+            {!healthy && (
+              <Animated.View style={[styles.pulseBadge, { transform: [{ scale: pulseAnim }] }]}>
+                <View style={styles.pulseDot} />
+              </Animated.View>
+            )}
+          </View>
+
+          <Animated.View style={[styles.heroCard, { transform: [{ scale: cardScale }] }]}>
+            <LinearGradient
+              colors={['rgba(255,255,255,0.04)', 'rgba(255,255,255,0.01)']}
+              style={StyleSheet.absoluteFill}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            />
+            <View style={styles.heroImageWrap}>
+              {imageUri ? (
+                <Image source={{ uri: imageUri }} style={styles.heroImage} />
+              ) : (
+                <View style={[styles.heroImage, styles.heroPlaceholder]}>
+                  <MaterialCommunityIcons name="food-apple" size={60} color="rgba(255,255,255,0.05)" />
+                </View>
+              )}
+              <LinearGradient
+                colors={['transparent', 'rgba(15,15,15,0.9)']}
+                style={styles.imageGradient}
+                start={{ x: 0, y: 0.3 }}
+                end={{ x: 0, y: 1 }}
+              />
+
+              <View style={[styles.statusChip, healthy && styles.statusChipHealthy]}>
+                <View style={[styles.statusChipDot, { backgroundColor: statusColor }]} />
+                <Text style={[styles.statusChipText, { color: statusColor }]}>
+                  {healthy ? 'Healthy' : 'Disease'}
+                </Text>
+              </View>
+
+              <View style={styles.heroOverlay}>
+                <Text style={styles.heroName}>{displayName}</Text>
+              </View>
+            </View>
+          </Animated.View>
+
+          <TreatmentAdviceCard predictedClass={result.class} variant="dark" />
+
+          {!healthy && (
+            <View style={styles.warningBox}>
+              <MaterialCommunityIcons name="alert" size={20} color={C.tomato} />
+              <View style={styles.warningContent}>
+                <Text style={styles.warningTitle}>Action Required</Text>
+                <Text style={styles.warningText}>
+                  Treat affected fruit promptly to prevent spread to healthy plants.
+                </Text>
+              </View>
+            </View>
+          )}
+
+          <View style={styles.actionRow}>
+            <TouchableOpacity
+              style={[styles.btnSecondary, (saved || saving) && styles.btnSecondarySaved]}
+              onPress={onSave}
+              disabled={saved || saving}
+              activeOpacity={0.7}
+            >
+              {saving ? (
+                <ActivityIndicator size="small" color={C.text} />
+              ) : (
+                <MaterialCommunityIcons
+                  name={saved ? 'check' : 'content-save-outline'}
+                  size={18}
+                  color={saved ? C.muted : C.text}
+                />
+              )}
+              <Text style={[styles.btnSecondaryTxt, saved && { color: C.muted }]}>
+                {saved ? 'Saved' : saving ? 'Saving…' : 'Save Result'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.btnSecondary}
+              onPress={() => setShowShareModal(true)}
+              activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons name="share-outline" size={18} color={C.text} />
+              <Text style={styles.btnSecondaryTxt}>Share</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={styles.footerBtn}
+            onPress={() => navigation.navigate('FruitModule', { screen: 'FruitScan' })}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons name="camera-retake-outline" size={16} color={C.accent} />
+            <Text style={styles.footerBtnTxt}>Scan Another Fruit</Text>
+          </TouchableOpacity>
+        </Animated.View>
       </ScrollView>
     </View>
   );
 }
 
-// ── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  root:    { flex: 1, backgroundColor: C.bg },
-  scroll:  { flex: 1 },
-  content: { padding: 18, paddingBottom: 40 },
+  root: { flex: 1, backgroundColor: C.bg },
+  scroll: { flex: 1 },
+  content: { paddingHorizontal: 18 },
 
-  // Back
-  backRow:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, paddingTop: 4 },
-  backLeft:  { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  backBtn:   { width: 32, height: 32, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  backArrow: { fontSize: 15, color: C.text },
-  screenTitle: { fontSize: 18, fontWeight: '800', color: C.text },
-
-  // Banner (tomato dark red)
-  banner: {
-    backgroundColor: '#1a0500',
-    borderWidth: 1, borderColor: C.tomatoBorder,
-    borderRadius: 20, padding: 16, marginBottom: 14, overflow: 'hidden',
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    marginBottom: 20,
   },
-  bannerBlob:  { position: 'absolute', top: -30, right: -30, width: 100, height: 100, borderRadius: 50, backgroundColor: C.tomato, opacity: 0.07 },
-  bannerRow:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  bannerTitle: { fontSize: 15, fontWeight: '800', color: C.text, flex: 1 },
-  bannerText:  { fontSize: 12, color: 'rgba(255,255,255,0.45)', lineHeight: 18, marginBottom: 12 },
+  backBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shareBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: C.accentDim,
+    borderWidth: 1,
+    borderColor: C.accentBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerText: { flex: 1 },
+  screenTitle: { fontSize: 20, fontWeight: '800', color: C.text },
+  screenSub: { fontSize: 12, color: C.muted, marginTop: 2 },
 
-  // Severity
-  sevRow:    { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  sevLabel:  { fontSize: 10, color: C.muted, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-  sevTrack:  { flex: 1, height: 5, backgroundColor: C.surface2, borderRadius: 3, overflow: 'hidden' },
-  sevFill:   { height: '100%', borderRadius: 3 },
-  sevPill:   { borderRadius: 100, paddingHorizontal: 8, paddingVertical: 2 },
-  sevPillTxt:{ fontSize: 9, fontWeight: '800', letterSpacing: 0.3 },
+  statusAlert: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  statusAlertHealthy: {
+    backgroundColor: C.successDim,
+    borderColor: C.successBorder,
+  },
+  statusAlertDisease: {
+    backgroundColor: C.tomatoDim,
+    borderColor: C.tomatoBorder,
+  },
+  statusAlertIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statusAlertContent: { flex: 1 },
+  statusAlertTitle: { fontSize: 14, fontWeight: '700', marginBottom: 2 },
+  statusAlertDesc: { fontSize: 12, color: C.muted, lineHeight: 18 },
+  pulseBadge: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: C.tomatoDim,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pulseDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: C.tomato,
+  },
 
-  // Result card
-  resultCard:            { backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 20, overflow: 'hidden', marginBottom: 12 },
-  resultImageWrap:       { width: '100%', height: 170, backgroundColor: '#1a0500', justifyContent: 'center', alignItems: 'center' },
-  resultImage:           { position: 'absolute', width: '100%', height: '100%', resizeMode: 'cover' },
-  resultImagePlaceholder:{ justifyContent: 'center', alignItems: 'center', position: 'relative' },
-  resultImageOverlay:    { position: 'absolute', bottom: 0, left: 0, right: 0, height: 80, backgroundColor: 'transparent' },
-  classChip:             { position: 'absolute', top: 12, left: 12, flexDirection: 'row', alignItems: 'center', gap: 5,
-                           backgroundColor: 'rgba(255,92,92,0.15)', borderWidth: 1, borderColor: C.tomatoBorder,
-                           borderRadius: 100, paddingHorizontal: 10, paddingVertical: 3 },
-  classChipHealthy:      { backgroundColor: 'rgba(74,223,111,0.12)', borderColor: C.successBorder },
-  classChipDot:          { width: 5, height: 5, borderRadius: 3, backgroundColor: C.tomato },
-  classChipTxt:          { fontSize: 10, color: C.tomato, fontWeight: '700', letterSpacing: 0.3 },
+  heroCard: {
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 20,
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  heroImageWrap: {
+    width: '100%',
+    height: 220,
+    backgroundColor: C.surface2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  heroImage: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  heroPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 120,
+  },
+  statusChip: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(15,15,15,0.85)',
+    borderWidth: 1,
+    borderColor: C.tomatoBorder,
+    borderRadius: 100,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  statusChipHealthy: {
+    borderColor: C.successBorder,
+  },
+  statusChipDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  statusChipText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  heroOverlay: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    bottom: 16,
+  },
+  heroName: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: C.text,
+  },
 
-  resultBody: { padding: 14 },
-  resultName: { fontSize: 20, fontWeight: '800', color: C.text, marginBottom: 8 },
+  warningBox: {
+    flexDirection: 'row',
+    gap: 12,
+    backgroundColor: C.tomatoDim,
+    borderWidth: 1,
+    borderColor: C.tomatoBorder,
+    borderRadius: 14,
+    padding: 14,
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  warningContent: {
+    flex: 1,
+    gap: 2,
+  },
+  warningTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: C.tomato,
+  },
+  warningText: {
+    fontSize: 12,
+    color: C.muted,
+    lineHeight: 18,
+  },
 
-  confRow:   { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
-  confLabel: { fontSize: 11, color: C.muted },
-  confTrack: { flex: 1, height: 4, backgroundColor: C.surface2, borderRadius: 2, overflow: 'hidden' },
-  confFill:  { height: '100%', borderRadius: 2 },
-  confPct:   { fontSize: 11, fontWeight: '700' },
+  actionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 16,
+    marginBottom: 10,
+  },
+  btnSecondary: {
+    flex: 1,
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 14,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+  },
+  btnSecondarySaved: {
+    opacity: 0.4,
+  },
+  btnSecondaryTxt: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: C.text,
+  },
 
-  metricsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 },
-  metricCard:  { flex: 1, minWidth: '45%', backgroundColor: C.surface2, borderRadius: 12, padding: 10 },
-  metricLabel: { fontSize: 9, color: C.muted, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
-  metricValue: { fontSize: 17, fontWeight: '800', color: C.text },
+  footerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+  },
+  footerBtnTxt: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: C.accent,
+  },
 
-  detailTitle: { fontSize: 10, color: C.muted, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 8 },
-  detailItem:  { flexDirection: 'row', gap: 9, alignItems: 'flex-start', marginBottom: 8 },
-  detailBullet:{ width: 16, height: 16, borderRadius: 4, borderWidth: 1, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
-  detailBulletTxt: { fontSize: 8, fontWeight: '900' },
-  detailTxt:   { flex: 1, fontSize: 12, color: 'rgba(255,255,255,0.62)', lineHeight: 18 },
-
-  // Warning
-  warningBox:  { flexDirection: 'row', gap: 9, alignItems: 'flex-start',
-                 backgroundColor: C.tomatoDim, borderWidth: 1, borderColor: 'rgba(255,92,92,0.22)',
-                 borderRadius: 12, padding: 12, marginBottom: 12 },
-  warningIcon: { fontSize: 13, color: C.tomato, marginTop: 1 },
-  warningTxt:  { flex: 1, fontSize: 11, color: C.tomato, lineHeight: 17 },
-
-  // Buttons
-  btnPrimary:    { backgroundColor: C.accent, borderRadius: 14, paddingVertical: 15,
-                   flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
-  btnPrimaryIcon:{ fontSize: 15 },
-  btnPrimaryTxt: { fontSize: 14, fontWeight: '800', color: '#0f0f0f', letterSpacing: 0.3 },
-
-  btnRow:        { flexDirection: 'row', gap: 9, marginTop: 10 },
-  btnOutline:    { flex: 1, backgroundColor: C.surface, borderWidth: 1.5, borderColor: C.border,
-                   borderRadius: 14, paddingVertical: 13,
-                   flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  btnOutlineSaved:{ opacity: 0.4 },
-  btnOutlineIcon: { fontSize: 14 },
-  btnOutlineTxt:  { fontSize: 13, fontWeight: '600', color: C.text },
-  btnText:    { paddingVertical: 14, alignItems: 'center', marginTop: 4 },
-  btnTextTxt: { fontSize: 13, fontWeight: '600', color: C.muted },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: C.surface,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    paddingBottom: 40,
+    borderWidth: 1,
+    borderColor: C.border,
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: C.text,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
+  },
+  modalOptionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: C.accentDim,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalOptionContent: {
+    flex: 1,
+  },
+  modalOptionLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: C.text,
+  },
+  modalOptionDesc: {
+    fontSize: 12,
+    color: C.muted,
+    marginTop: 2,
+  },
 });

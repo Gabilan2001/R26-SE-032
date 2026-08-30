@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { BarChart, LineChart, PieChart } from 'react-native-chart-kit';
 import { getStats } from '../api/historyApi';
 import { getFruitStats } from '../api/fruitHistoryApi';
@@ -129,16 +130,51 @@ export default function StatsScreen({ route }) {
     class_counts: {},
     scans_per_day: [],
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  // Fetch on mode change
-  useEffect(() => {
-    (async () => {
+  const fetchStats = useCallback(async () => {
+    if (!token) {
+      setStats({
+        total_scans: 0,
+        most_common_deficiency: 'N/A',
+        class_counts: {},
+        scans_per_day: [],
+      });
+      setError('Log in to view scan statistics.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    try {
       const res = mode === 'fruit'
         ? await getFruitStats(token)
         : await getStats(token);
       setStats(res.data);
-    })();
+    } catch (e) {
+      setError(
+        e?.response?.data?.message ||
+        e?.response?.data?.msg ||
+        e?.message ||
+        'Could not load statistics.'
+      );
+    } finally {
+      setLoading(false);
+    }
   }, [token, mode]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (route?.params?.initialMode === 'fruit') setMode('fruit');
+      if (route?.params?.initialMode === 'nutrient') setMode('nutrient');
+      fetchStats();
+    }, [fetchStats, route?.params?.initialMode])
+  );
+
+  useEffect(() => {
+    fetchStats();
+  }, [mode, fetchStats]);
 
   const labels    = Object.keys(stats.class_counts);
   const values    = Object.values(stats.class_counts);
@@ -202,6 +238,13 @@ export default function StatsScreen({ route }) {
             </Animated.View>
           ))}
         </View>
+
+        {!!error && (
+          <Text style={styles.errorText}>{error}</Text>
+        )}
+        {loading && !error && (
+          <Text style={styles.loadingText}>Updating statistics…</Text>
+        )}
 
         {/* ── KPI row ── */}
         <View style={styles.kpiRow}>
@@ -303,6 +346,8 @@ const styles = StyleSheet.create({
   modeChipActive:  { backgroundColor: C.accentDim, borderColor: C.accentBorder },
   modeChipTxt:     { fontSize: 12, fontWeight: '700', color: C.muted },
   modeChipTxtActive:{ color: C.accent },
+  errorText: { fontSize: 12, color: C.danger, lineHeight: 18 },
+  loadingText: { fontSize: 12, color: C.muted },
 
   // KPI
   kpiRow:       { flexDirection: 'row', gap: 10 },

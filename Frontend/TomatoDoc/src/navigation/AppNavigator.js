@@ -205,7 +205,7 @@ export default function AppNavigator() {
       <Stack.Screen
         name="Result"
         component={ResultScreen}
-        options={{ title: 'Analysis Result' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="Detail"
@@ -220,7 +220,7 @@ export default function AppNavigator() {
       <Stack.Screen
         name="FruitResult"
         component={FruitResultScreen}
-        options={{ title: 'Fruit Disease Result' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="FruitDetail"
