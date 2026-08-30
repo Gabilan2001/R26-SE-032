@@ -1,0 +1,12 @@
+Affected-area measurement — fruit
+============================================================
+Generated: 2026-08-30T14:23:51
+Method: color/HSV segmentation (not YOLO boxes, not CNN).
+Leaf relevant = green/brown/yellow plant pixels; affected = brown/yellow/dark lesions.
+Fruit relevant = red/orange/green fruit pixels; affected = brown/dark/pale lesion pixels.
+Formula: affected_pixels / relevant_pixels * 100
+This is a MEASUREMENT only. It is not a LOW/HIGH label.
+Images: 210
+Failed segmentation (relevant=0): 23
+Mean % (valid): 49.058
+CSV: D:\Research\Tomato_Severity_Dataset\data\severity_calibration\fruit\results\affected_area_measurements.csv

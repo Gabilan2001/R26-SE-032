@@ -1,0 +1,211 @@
+image_id,image_path,plant_part,disease_class,relevant_area_pixels,affected_area_pixels,affected_area_percentage,width,height,segmentation_ok
+fruit_0001,data/severity_calibration/fruit/images/fruit_0001__IMG20240615121943_jpg.rf.a281f33047bdaf2b8e64df3a95e26f09.jpg,fruit,Anthracnose,76470,73114,95.6114,640,640,True
+fruit_0002,data/severity_calibration/fruit/images/fruit_0002__Kamatis_original_images-8-jpg_df983030-6fb5-48f5-8a30-297194dfeac8_jpg.rf.5b2b714358534403f8bbae8b988eada0.jpg,fruit,Anthracnose,350426,268388,76.5891,640,640,True
+fruit_0003,data/severity_calibration/fruit/images/fruit_0003__anthracnose_26_jpeg.rf.599f76d53d562e36b375529bae9943c5.jpg,fruit,Anthracnose,400836,99133,24.7316,640,640,True
+fruit_0004,data/severity_calibration/fruit/images/fruit_0004__main-qimg-323e7c38580591f6d1ee021e716af796_jpg.rf.cd23c4974a8564ec3c990afad656aa07.jpg,fruit,Anthracnose,253419,128666,50.772,640,640,True
+fruit_0005,data/severity_calibration/fruit/images/fruit_0005__00000019_jpg.rf.3c6783a59c341f74ec8f44f9cf9709e2.jpg,fruit,Anthracnose,231110,49513,21.424,640,640,True
+fruit_0006,data/severity_calibration/fruit/images/fruit_0006__00000193_jpg.rf.14e962c220142d4ca91ed7fa6593cbcd.jpg,fruit,Anthracnose,400821,202689,50.5685,640,640,True
+fruit_0007,data/severity_calibration/fruit/images/fruit_0007__1-6_thumb_png.rf.30269af4fb62dafd422ced7601471b82.jpg,fruit,Anthracnose,404309,144700,35.7895,640,640,True
+fruit_0008,data/severity_calibration/fruit/images/fruit_0008__1000_F_492853670_BFNynUVvXauJuSZAY14r1BZCHQbafR0x_jpg.rf.02e3dba8b009d5907ecf092693b23c9d.jpg,fruit,Anthracnose,373631,151841,40.6393,640,640,True
+fruit_0009,data/severity_calibration/fruit/images/fruit_0009__13_jpg.rf.9c8d7f3aa69e60dfa5cc2a7812f47fc7.jpg,fruit,Anthracnose,387606,154362,39.8245,640,640,True
+fruit_0010,data/severity_calibration/fruit/images/fruit_0010__18_jpg.rf.612445f960964432b4c1c794d6d681a0.jpg,fruit,Anthracnose,0,0,,640,640,False
+fruit_0011,data/severity_calibration/fruit/images/fruit_0011__1_jpg.rf.0c74692486417b7780d5b4415c367f98.jpg,fruit,Anthracnose,226137,153226,67.758,640,640,True
+fruit_0012,data/severity_calibration/fruit/images/fruit_0012__2-6_thumb_png.rf.4ccbd8967e7d03619cd8ca27b345d61a.jpg,fruit,Anthracnose,337049,177911,52.7849,640,640,True
+fruit_0013,data/severity_calibration/fruit/images/fruit_0013__29_jpg.rf.785b1f801edf4ce0295d202272292f18.jpg,fruit,Anthracnose,184997,75589,40.8596,640,640,True
+fruit_0014,data/severity_calibration/fruit/images/fruit_0014__32_jpg.rf.2c62ee3fbae6b91e156448f6c5ed6799.jpg,fruit,Anthracnose,367117,207692,56.5738,640,640,True
+fruit_0015,data/severity_calibration/fruit/images/fruit_0015__392-spoiled-rotten-red-tomato-isolated-on-white-background-PPFY5P_jpg.rf.651ba868ec133ac07e9adcc785798f8e.jpg,fruit,Anthracnose,0,0,,640,640,False
+fruit_0016,data/severity_calibration/fruit/images/fruit_0016__40_jpg.rf.7e3e06e714fce9c2464bbde7f63352a4.jpg,fruit,Anthracnose,251276,126584,50.3765,640,640,True
+fruit_0017,data/severity_calibration/fruit/images/fruit_0017__44_jpg.rf.0d3ccb4fc85bcd1fc758b3b439c575e3.jpg,fruit,Anthracnose,294693,84903,28.8107,640,640,True
+fruit_0018,data/severity_calibration/fruit/images/fruit_0018__4_jpg.rf.b516deb0124c0a886c33524129a2e72a.jpg,fruit,Anthracnose,244609,63662,26.026,640,640,True
+fruit_0019,data/severity_calibration/fruit/images/fruit_0019__Anthracnose-symptoms-on-tomato-fruit-a-sunken-necrotic-lesion-with-orange-conidial_W640_jpg.rf.41ee448147c3cf54199f6621f3db5f23.jpg,fruit,Anthracnose,321095,250649,78.0607,640,640,True
+fruit_0020,data/severity_calibration/fruit/images/fruit_0020__FS547-1_jpg.rf.88f45022c48e95a49c52f2ca8f00cc1d.jpg,fruit,Anthracnose,383524,124024,32.338,640,640,True
+fruit_0021,data/severity_calibration/fruit/images/fruit_0021__IMG20240615121344_jpg.rf.202810e538fff2cfafcd18e02e0b640a.jpg,fruit,Anthracnose,30938,30511,98.6198,640,640,True
+fruit_0022,data/severity_calibration/fruit/images/fruit_0022__IMG20240615121403_jpg.rf.5d28c57ac2cf6203da27d22867674a52.jpg,fruit,Anthracnose,50818,49972,98.3352,640,640,True
+fruit_0023,data/severity_calibration/fruit/images/fruit_0023__IMG20240615121634_jpg.rf.387a92630332b3e7ffb81459f1627e49.jpg,fruit,Anthracnose,84286,83122,98.619,640,640,True
+fruit_0024,data/severity_calibration/fruit/images/fruit_0024__IMG20240615121643_jpg.rf.928087e2b98ff592b9fd584f4219e0a8.jpg,fruit,Anthracnose,52069,50567,97.1154,640,640,True
+fruit_0025,data/severity_calibration/fruit/images/fruit_0025__IMG20240615121816_jpg.rf.78333fd99d84760ddf8835a0738fbe3a.jpg,fruit,Anthracnose,85260,84678,99.3174,640,640,True
+fruit_0026,data/severity_calibration/fruit/images/fruit_0026__IMG20240615121836_jpg.rf.42703bc5553c8c336b89ba8de22bc98a.jpg,fruit,Anthracnose,87583,86581,98.8559,640,640,True
+fruit_0027,data/severity_calibration/fruit/images/fruit_0027__IMG20240615121937_jpg.rf.39550416f91e5fa4c9c0618bd5c483ab.jpg,fruit,Anthracnose,113377,107550,94.8605,640,640,True
+fruit_0028,data/severity_calibration/fruit/images/fruit_0028__IMG20240615122350_jpg.rf.0c19ad9b326345b7ae510d91028ceeaa.jpg,fruit,Anthracnose,37744,37511,99.3827,640,640,True
+fruit_0029,data/severity_calibration/fruit/images/fruit_0029__Image_15_jpg.rf.11eba7f02a277b8e463edea8ddfb5d99.jpg,fruit,Anthracnose,379024,172893,45.6153,640,640,True
+fruit_0030,data/severity_calibration/fruit/images/fruit_0030__Tomato-anthracnose-1050-jw-400x284_jpg.rf.4166820b532b984cd2409ac6f3707ccd.jpg,fruit,Anthracnose,356315,94574,26.5422,640,640,True
+fruit_0031,data/severity_calibration/fruit/images/fruit_0031__anthracnose-of-tomato-2_jpg.rf.36d56f91907a0049f32baa309b12cd1f.jpg,fruit,Anthracnose,382998,311719,81.3892,640,640,True
+fruit_0032,data/severity_calibration/fruit/images/fruit_0032__anthracnose-tomato-1583845437_jpg.rf.2a2a4b515e00529890b8186b848f60b3.jpg,fruit,Anthracnose,349521,159630,45.6711,640,640,True
+fruit_0033,data/severity_calibration/fruit/images/fruit_0033__anthracnose1_600px_jpg.rf.2f3a1d918978d5699f732d6f64ffb3dd.jpg,fruit,Anthracnose,193962,115900,59.754,640,640,True
+fruit_0034,data/severity_calibration/fruit/images/fruit_0034__anthracnose_27_jpeg.rf.77fb06c1e8d67a9607652721d5ed9d89.jpg,fruit,Anthracnose,49010,17874,36.4701,640,640,True
+fruit_0035,data/severity_calibration/fruit/images/fruit_0035__anthracnose_36_jpeg.rf.6a885e19245fd0bf884479ec72869408.jpg,fruit,Anthracnose,369574,221882,60.0372,640,640,True
+fruit_0036,data/severity_calibration/fruit/images/fruit_0036__anthracnose_tomato2x1200_jpg.rf.5be1bbd9c7225d805642d5f2ef4baa9c.jpg,fruit,Anthracnose,285001,154674,54.2714,640,640,True
+fruit_0037,data/severity_calibration/fruit/images/fruit_0037__anthracnose_tomato3x1200_jpg.rf.2cb9d40630939aed3564f997e47db520.jpg,fruit,Anthracnose,309546,157590,50.91,640,640,True
+fruit_0038,data/severity_calibration/fruit/images/fruit_0038__black-mold-tomato_webp.rf.8e9786303835b02812ecd70434436ec1.jpg,fruit,Anthracnose,354603,210520,59.3678,640,640,True
+fruit_0039,data/severity_calibration/fruit/images/fruit_0039__download_jpg.rf.2203ee28778b0cb182da97144b5c7480.jpg,fruit,Anthracnose,379812,152899,40.2565,640,640,True
+fruit_0040,data/severity_calibration/fruit/images/fruit_0040__f6Pit3S5dahxrrhJ2nVjua-1280-80-jpg_webp.rf.18d018a0a86982ca51c12a43db8c8403.jpg,fruit,Anthracnose,0,0,,640,640,False
+fruit_0041,data/severity_calibration/fruit/images/fruit_0041__farmer-inspects-spoiled-tomatoes-spots_jpeg.rf.7ca29d760e4ae4722d45d5ce7ac27719.jpg,fruit,Anthracnose,0,0,,640,640,False
+fruit_0042,data/severity_calibration/fruit/images/fruit_0042__featured-pic_jpg.rf.2757f6bec7d26df9131f53c16b2fc88a.jpg,fruit,Anthracnose,408009,240006,58.8237,640,640,True
+fruit_0043,data/severity_calibration/fruit/images/fruit_0043__fpls-14-1200999-g001_webp.rf.1b7dbb858c16af00af2c65ed284e8371.jpg,fruit,Anthracnose,0,0,,640,640,False
+fruit_0044,data/severity_calibration/fruit/images/fruit_0044__images-14-_jpeg.rf.0f03cefecb1a8cf79931a033ef83d768.jpg,fruit,Anthracnose,332133,188635,56.795,640,640,True
+fruit_0045,data/severity_calibration/fruit/images/fruit_0045__images-15-_jpeg.rf.12eae2d12da20f2bac4fba947032ebea.jpg,fruit,Anthracnose,351047,214418,61.0796,640,640,True
+fruit_0046,data/severity_calibration/fruit/images/fruit_0046__images-17-_jpeg.rf.30f26b5669b9f0f8d9dd7623578b4e79.jpg,fruit,Anthracnose,387606,154362,39.8245,640,640,True
+fruit_0047,data/severity_calibration/fruit/images/fruit_0047__images-3-_jpeg.rf.3ef4612dffb62559d184d2e1fcba670b.jpg,fruit,Anthracnose,311111,207591,66.7257,640,640,True
+fruit_0048,data/severity_calibration/fruit/images/fruit_0048__rottenTomato-195-_jpg.rf.a0be0106c7207a43ccb67d2a43cb397d.jpg,fruit,Anthracnose,241179,71532,29.6593,640,640,True
+fruit_0049,data/severity_calibration/fruit/images/fruit_0049__rottenTomato-259-_jpg.rf.627802d0e058425e0ae7f508b0fdf970.jpg,fruit,Anthracnose,210359,51691,24.5728,640,640,True
+fruit_0050,data/severity_calibration/fruit/images/fruit_0050__tomato-anthracnose-colletotrichum-coccodes-fungal-260nw-1829895563-1-_webp.rf.44dd13848abc48fa81a7468911da8121.jpg,fruit,Anthracnose,249136,104131,41.7968,640,640,True
+fruit_0051,data/severity_calibration/fruit/images/fruit_0051__tomato-anthracnose1x640-1osy35o_jpg.rf.04eab774d623439996e13cfa260d93a5.jpg,fruit,Anthracnose,291108,84230,28.9343,640,640,True
+fruit_0052,data/severity_calibration/fruit/images/fruit_0052__tomato-anthracnose2x640-18upj97_jpg.rf.4f4a3ece21f9fc8c1dfe98b996b9a112.jpg,fruit,Anthracnose,409588,267140,65.2216,640,640,True
+fruit_0053,data/severity_calibration/fruit/images/fruit_0053__tomato-anthracnose_jpg.rf.7a35432998829c15081228a67db42295.jpg,fruit,Anthracnose,311967,30784,9.8677,640,640,True
+fruit_0054,data/severity_calibration/fruit/images/fruit_0054__IMG20240615121427_jpg.rf.6f90e47f23368d300c4d4894806e52af.jpg,fruit,Anthracnose,47925,47536,99.1883,640,640,True
+fruit_0055,data/severity_calibration/fruit/images/fruit_0055__IMG20240615121551_jpg.rf.2335957d8de8567ebb397a5e21f28312.jpg,fruit,Anthracnose,30127,30086,99.8639,640,640,True
+fruit_0056,data/severity_calibration/fruit/images/fruit_0056__IMG20240615122344_jpg.rf.a9376865bae050a47042a1533c3678a6.jpg,fruit,Anthracnose,102160,97912,95.8418,640,640,True
+fruit_0057,data/severity_calibration/fruit/images/fruit_0057__anthracnose_12_jpeg.rf.ffb121f44fcae86dc3e626e5a8db8475.jpg,fruit,Anthracnose,263855,107530,40.7534,640,640,True
+fruit_0058,data/severity_calibration/fruit/images/fruit_0058__images-6-_jpeg.rf.261cbfdd8047bfda5b057695b7a8f76c.jpg,fruit,Anthracnose,381871,276948,72.524,640,640,True
+fruit_0059,data/severity_calibration/fruit/images/fruit_0059__IMG20240615130652_jpg.rf.bd2de69138da44d42cb299b7329e6330.jpg,fruit,Bacterial Spot,92077,68011,73.8632,640,640,True
+fruit_0060,data/severity_calibration/fruit/images/fruit_0060__IMG20240615130907_jpg.rf.badff2934292b1986a0c9628dcf9d438.jpg,fruit,Bacterial Spot,115303,94458,81.9215,640,640,True
+fruit_0061,data/severity_calibration/fruit/images/fruit_0061__IMG20240615131744_jpg.rf.118e0561dc85c6502845f89877b6a911.jpg,fruit,Bacterial Spot,108304,105771,97.6612,640,640,True
+fruit_0062,data/severity_calibration/fruit/images/fruit_0062__download-4-_jpg.rf.8864a21c90bb4654fd4fa34df98b96ed.jpg,fruit,Bacterial Spot,343300,50642,14.7515,640,640,True
+fruit_0063,data/severity_calibration/fruit/images/fruit_0063__images-31-_jpg.rf.f7308128d90811979b330394510748d5.jpg,fruit,Bacterial Spot,294733,293861,99.7041,640,640,True
+fruit_0064,data/severity_calibration/fruit/images/fruit_0064__IMG20240615130410_jpg.rf.38c34aa00fc40989dbae834c31afea1e.jpg,fruit,Bacterial Spot,0,0,,640,640,False
+fruit_0065,data/severity_calibration/fruit/images/fruit_0065__IMG20240615130543_jpg.rf.732c02bf0764f1d66a5a6bc9c9b799a9.jpg,fruit,Bacterial Spot,100273,91851,91.6009,640,640,True
+fruit_0066,data/severity_calibration/fruit/images/fruit_0066__IMG20240615130655_jpg.rf.5183488ba97814b4e809bf0c36fee173.jpg,fruit,Bacterial Spot,0,0,,640,640,False
+fruit_0067,data/severity_calibration/fruit/images/fruit_0067__IMG20240615130704_jpg.rf.591d53d7fa0ab1b8b5eb8fe18d1344e3.jpg,fruit,Bacterial Spot,139629,118305,84.7281,640,640,True
+fruit_0068,data/severity_calibration/fruit/images/fruit_0068__IMG20240615130739_jpg.rf.5a3425fad8910f0581f9c84c4f8a4e39.jpg,fruit,Bacterial Spot,72425,67545,93.262,640,640,True
+fruit_0069,data/severity_calibration/fruit/images/fruit_0069__IMG20240615130840_jpg.rf.9ee29afe6fdc1c5d9fe760d0e9ba3ec0.jpg,fruit,Bacterial Spot,133086,114251,85.8475,640,640,True
+fruit_0070,data/severity_calibration/fruit/images/fruit_0070__IMG20240615130937_jpg.rf.4b436f7861a9ec884e950de9f75f2f4a.jpg,fruit,Bacterial Spot,0,0,,640,640,False
+fruit_0071,data/severity_calibration/fruit/images/fruit_0071__IMG20240615131017_jpg.rf.777b6c3eecd530c0be9d80b0a364c0d1.jpg,fruit,Bacterial Spot,89803,71678,79.8169,640,640,True
+fruit_0072,data/severity_calibration/fruit/images/fruit_0072__IMG20240615131058_jpg.rf.06124099c9cb0f0852cfd49a6026eae4.jpg,fruit,Bacterial Spot,101281,87405,86.2995,640,640,True
+fruit_0073,data/severity_calibration/fruit/images/fruit_0073__IMG20240615131126_jpg.rf.3a0c7e0f8be149034d27ebd304d3c65f.jpg,fruit,Bacterial Spot,125294,95208,75.9877,640,640,True
+fruit_0074,data/severity_calibration/fruit/images/fruit_0074__IMG20240615131236_jpg.rf.09bb2fb1e1f5e05747dccea4ef0ffe96.jpg,fruit,Bacterial Spot,117106,58545,49.9932,640,640,True
+fruit_0075,data/severity_calibration/fruit/images/fruit_0075__IMG20240615131243_jpg.rf.5ecf15677989e398f7b7df3290092a7f.jpg,fruit,Bacterial Spot,0,0,,640,640,False
+fruit_0076,data/severity_calibration/fruit/images/fruit_0076__IMG20240615131353_BURST000_COVER_jpg.rf.4c7b4733fa49a9b5a8258ebb9802be41.jpg,fruit,Bacterial Spot,92448,88054,95.2471,640,640,True
+fruit_0077,data/severity_calibration/fruit/images/fruit_0077__IMG20240615131620_jpg.rf.02f9ca9dbb77b3bf6b8eb0ec582fd8cd.jpg,fruit,Bacterial Spot,123116,104176,84.6161,640,640,True
+fruit_0078,data/severity_calibration/fruit/images/fruit_0078__IMG20240615131644_jpg.rf.15a7c0a96a0b814b7184619456695a85.jpg,fruit,Bacterial Spot,85348,80532,94.3572,640,640,True
+fruit_0079,data/severity_calibration/fruit/images/fruit_0079__download-1-_jpg.rf.56065563f12cbddb7d417b2d38cea5ca.jpg,fruit,Bacterial Spot,376011,91120,24.2333,640,640,True
+fruit_0080,data/severity_calibration/fruit/images/fruit_0080__download-12-_jpg.rf.72c428c3b9b0761c5e64f3448a30ab65.jpg,fruit,Bacterial Spot,405242,256417,63.275,640,640,True
+fruit_0081,data/severity_calibration/fruit/images/fruit_0081__download-14-_jpg.rf.466fd529377b9791a688ad7d03f3f279.jpg,fruit,Bacterial Spot,318614,14320,4.4945,640,640,True
+fruit_0082,data/severity_calibration/fruit/images/fruit_0082__download-17-_jpg.rf.b202e3618b2ee8d51a4298901e822949.jpg,fruit,Bacterial Spot,288944,46871,16.2215,640,640,True
+fruit_0083,data/severity_calibration/fruit/images/fruit_0083__download-18-_jpg.rf.5d5d9d57ade01a5fe266f588a4744bd3.jpg,fruit,Bacterial Spot,397236,92410,23.2632,640,640,True
+fruit_0084,data/severity_calibration/fruit/images/fruit_0084__download-2-_jpg.rf.8bea39233ac61676fc33926ce09daad5.jpg,fruit,Bacterial Spot,338841,113714,33.5597,640,640,True
+fruit_0085,data/severity_calibration/fruit/images/fruit_0085__download-5-_jpg.rf.675d9eadf463095dbc21c1856a242e05.jpg,fruit,Bacterial Spot,363449,243536,67.0069,640,640,True
+fruit_0086,data/severity_calibration/fruit/images/fruit_0086__download-7-_jpg.rf.085d2c7f56dfb4906f6facf6076cf6fa.jpg,fruit,Bacterial Spot,312361,133470,42.7294,640,640,True
+fruit_0087,data/severity_calibration/fruit/images/fruit_0087__download-8-_jpg.rf.0636656020119fee055edfa88cde0553.jpg,fruit,Bacterial Spot,263800,7599,2.8806,640,640,True
+fruit_0088,data/severity_calibration/fruit/images/fruit_0088__images-1-_jpg.rf.1edbc4733c43a7cf32c90d761ba9b87e.jpg,fruit,Bacterial Spot,0,0,,640,640,False
+fruit_0089,data/severity_calibration/fruit/images/fruit_0089__images-10-_jpg.rf.20faf7cfe17d952cd2688425e9f89152.jpg,fruit,Bacterial Spot,170562,81766,47.9392,640,640,True
+fruit_0090,data/severity_calibration/fruit/images/fruit_0090__images-11-_jpg.rf.5251f143a7794a444217ba174bd13bbd.jpg,fruit,Bacterial Spot,325221,197575,60.751,640,640,True
+fruit_0091,data/severity_calibration/fruit/images/fruit_0091__images-12-_jpg.rf.19be9de256b45ff4667a2c1178881c2f.jpg,fruit,Bacterial Spot,368386,2045,0.5551,640,640,True
+fruit_0092,data/severity_calibration/fruit/images/fruit_0092__images-14-_jpg.rf.b2f1c01c474c3462c922a0a7efa17c9a.jpg,fruit,Bacterial Spot,287890,80578,27.9892,640,640,True
+fruit_0093,data/severity_calibration/fruit/images/fruit_0093__images-16-_jpg.rf.1526007f3250f087dc059754334d9cd8.jpg,fruit,Bacterial Spot,390965,124663,31.886,640,640,True
+fruit_0094,data/severity_calibration/fruit/images/fruit_0094__images-17-_jpg.rf.1b97854a4b3654bcd820b6482a7b84c6.jpg,fruit,Bacterial Spot,0,0,,640,640,False
+fruit_0095,data/severity_calibration/fruit/images/fruit_0095__images-19-_jpg.rf.1cf62ea3511603295d2f49327b3f4f22.jpg,fruit,Bacterial Spot,363836,137299,37.7365,640,640,True
+fruit_0096,data/severity_calibration/fruit/images/fruit_0096__images-2-_jpg.rf.517b7ca1240d83a655a8413c6f4c0c01.jpg,fruit,Bacterial Spot,392248,250667,63.9052,640,640,True
+fruit_0097,data/severity_calibration/fruit/images/fruit_0097__images-20-_jpg.rf.1463053aa235711b2a556aa25c7b0b44.jpg,fruit,Bacterial Spot,195903,141566,72.2633,640,640,True
+fruit_0098,data/severity_calibration/fruit/images/fruit_0098__images-23-_jpg.rf.290879a1980be01ceecd025d35420122.jpg,fruit,Bacterial Spot,193899,12254,6.3198,640,640,True
+fruit_0099,data/severity_calibration/fruit/images/fruit_0099__images-24-_jpg.rf.3c0d7da42af91e5107bfbda45821eac8.jpg,fruit,Bacterial Spot,408460,375258,91.8714,640,640,True
+fruit_0100,data/severity_calibration/fruit/images/fruit_0100__images-25-_jpg.rf.0edec718f943f32fcdf837c40ecd53f3.jpg,fruit,Bacterial Spot,0,0,,640,640,False
+fruit_0101,data/severity_calibration/fruit/images/fruit_0101__images-26-_jpg.rf.45780e55eb2a20cc96c5b08f4f09708b.jpg,fruit,Bacterial Spot,389723,251943,64.6467,640,640,True
+fruit_0102,data/severity_calibration/fruit/images/fruit_0102__images-29-_jpg.rf.95b1bdcdcb9cf743984a6556ba3f0f14.jpg,fruit,Bacterial Spot,0,0,,640,640,False
+fruit_0103,data/severity_calibration/fruit/images/fruit_0103__images-3-_jpg.rf.6700a891f05d6a0df102a08e6a5a3547.jpg,fruit,Bacterial Spot,311416,31898,10.2429,640,640,True
+fruit_0104,data/severity_calibration/fruit/images/fruit_0104__images-30-_jpg.rf.49b4bdd4438eafda8e46b5f9423c7e8f.jpg,fruit,Bacterial Spot,354965,210299,59.245,640,640,True
+fruit_0105,data/severity_calibration/fruit/images/fruit_0105__images-32-_jpg.rf.40c1c34c591cb29e56d96faa11fd3f0d.jpg,fruit,Bacterial Spot,0,0,,640,640,False
+fruit_0106,data/severity_calibration/fruit/images/fruit_0106__images-36-_jpg.rf.76be58d79ce4fa1bdbf79c57589764d3.jpg,fruit,Bacterial Spot,379892,61533,16.1975,640,640,True
+fruit_0107,data/severity_calibration/fruit/images/fruit_0107__images-4-_jpg.rf.2285393ca7d0aabd151bbc45f14d3668.jpg,fruit,Bacterial Spot,273029,78350,28.6966,640,640,True
+fruit_0108,data/severity_calibration/fruit/images/fruit_0108__images-5-_jpg.rf.1032e1d8bfc3493dd424bf1350bb6d33.jpg,fruit,Bacterial Spot,337756,113033,33.4659,640,640,True
+fruit_0109,data/severity_calibration/fruit/images/fruit_0109__images-7-_jpg.rf.36c01dc0a90574474b3c755116d2c3bb.jpg,fruit,Bacterial Spot,259750,64795,24.9451,640,640,True
+fruit_0110,data/severity_calibration/fruit/images/fruit_0110__images-9-_jpg.rf.62cf9fe549e365fc0a4f138d8039e81d.jpg,fruit,Bacterial Spot,356782,47646,13.3544,640,640,True
+fruit_0111,data/severity_calibration/fruit/images/fruit_0111__images_jpg.rf.3d78738e2d7ad533467824751bba799b.jpg,fruit,Bacterial Spot,315939,219082,69.3431,640,640,True
+fruit_0112,data/severity_calibration/fruit/images/fruit_0112__IMG20240615130737_jpg.rf.942e1f51973fac9f3867e14a377a954a.jpg,fruit,Bacterial Spot,116454,90790,77.9621,640,640,True
+fruit_0113,data/severity_calibration/fruit/images/fruit_0113__blossom_end_rot_train-235-_jpg.rf.b4ce63ed69a42c1fdb16141e10e33f73.jpg,fruit,Blossom End Rot,319413,69260,21.6835,640,640,True
+fruit_0114,data/severity_calibration/fruit/images/fruit_0114__blossom_end_rot_train-257-_jpg.rf.0f7db98c09212811c64101bd2a7b84d6.jpg,fruit,Blossom End Rot,401827,193089,48.0528,640,640,True
+fruit_0115,data/severity_calibration/fruit/images/fruit_0115__blossom_end_rot_train-26-_jpg.rf.f49b922a66d09a6413e39cc7fc9e636b.jpg,fruit,Blossom End Rot,379880,179024,47.1265,640,640,True
+fruit_0116,data/severity_calibration/fruit/images/fruit_0116__blossom_end_rot_test-19-_jpg.rf.271f8d64e22af3bd6c24eb9baf67643b.jpg,fruit,Blossom End Rot,225561,43312,19.2019,640,640,True
+fruit_0117,data/severity_calibration/fruit/images/fruit_0117__blossom_end_rot_test-22-_jpg.rf.1499b7a8cf0eeb06bea40d3c14100046.jpg,fruit,Blossom End Rot,298224,141992,47.6125,640,640,True
+fruit_0118,data/severity_calibration/fruit/images/fruit_0118__blossom_end_rot_test-42-_jpg.rf.84f71a65133fe489543d3e218ed20304.jpg,fruit,Blossom End Rot,294684,41249,13.9977,640,640,True
+fruit_0119,data/severity_calibration/fruit/images/fruit_0119__blossom_end_rot_test-56-_jpg.rf.1f40421a0ad633fc3dddec1cb0199696.jpg,fruit,Blossom End Rot,381678,66995,17.5528,640,640,True
+fruit_0120,data/severity_calibration/fruit/images/fruit_0120__blossom_end_rot_train-101-_jpg.rf.20b7974c2f2d68207ced8eac5e0b059e.jpg,fruit,Blossom End Rot,257899,205199,79.5656,640,640,True
+fruit_0121,data/severity_calibration/fruit/images/fruit_0121__blossom_end_rot_train-107-_jpg.rf.43ef233e4c8b2f3b8648ece4478a1f5a.jpg,fruit,Blossom End Rot,374428,229658,61.3357,640,640,True
+fruit_0122,data/severity_calibration/fruit/images/fruit_0122__blossom_end_rot_train-110-_jpg.rf.26be25041bdd6e1c4d75c396f828cde8.jpg,fruit,Blossom End Rot,329043,232376,70.6218,640,640,True
+fruit_0123,data/severity_calibration/fruit/images/fruit_0123__blossom_end_rot_train-127-_jpg.rf.4b24cb588fae12c636ecc643109bc775.jpg,fruit,Blossom End Rot,391906,107825,27.513,640,640,True
+fruit_0124,data/severity_calibration/fruit/images/fruit_0124__blossom_end_rot_train-129-_jpg.rf.a78872a3def12f30edfe51861103e83c.jpg,fruit,Blossom End Rot,400738,205250,51.218,640,640,True
+fruit_0125,data/severity_calibration/fruit/images/fruit_0125__blossom_end_rot_train-133-_jpg.rf.16193ade4e3a53c764e8d71bfb611c45.jpg,fruit,Blossom End Rot,278301,186003,66.8352,640,640,True
+fruit_0126,data/severity_calibration/fruit/images/fruit_0126__blossom_end_rot_train-135-_jpg.rf.2de56641ec44a4bc0e1a28fd794b096c.jpg,fruit,Blossom End Rot,355000,61790,17.4056,640,640,True
+fruit_0127,data/severity_calibration/fruit/images/fruit_0127__blossom_end_rot_train-137-_jpg.rf.29b023a1e1f8655b72131efad3f85f6c.jpg,fruit,Blossom End Rot,247111,109657,44.3756,640,640,True
+fruit_0128,data/severity_calibration/fruit/images/fruit_0128__blossom_end_rot_train-164-_jpg.rf.83ad26c9039e337731709d1c57bb1e9c.jpg,fruit,Blossom End Rot,383631,136446,35.567,640,640,True
+fruit_0129,data/severity_calibration/fruit/images/fruit_0129__blossom_end_rot_train-167-_jpg.rf.883eef252ae539f031ac41c5534e8ffd.jpg,fruit,Blossom End Rot,406125,203863,50.1971,640,640,True
+fruit_0130,data/severity_calibration/fruit/images/fruit_0130__blossom_end_rot_train-172-_jpg.rf.898f0a6e183f4bf5d289e7fd60178351.jpg,fruit,Blossom End Rot,284981,90368,31.7102,640,640,True
+fruit_0131,data/severity_calibration/fruit/images/fruit_0131__blossom_end_rot_train-175-_jpg.rf.2161bf90adf1d59bf8ea200edccb629d.jpg,fruit,Blossom End Rot,409439,156598,38.247,640,640,True
+fruit_0132,data/severity_calibration/fruit/images/fruit_0132__blossom_end_rot_train-184-_jpg.rf.7236f9116b8ccb9c43c6e375ded2ac22.jpg,fruit,Blossom End Rot,402931,135182,33.5497,640,640,True
+fruit_0133,data/severity_calibration/fruit/images/fruit_0133__blossom_end_rot_train-186-_jpg.rf.495ac593964744f237d68193523ce6a8.jpg,fruit,Blossom End Rot,404225,215199,53.2374,640,640,True
+fruit_0134,data/severity_calibration/fruit/images/fruit_0134__blossom_end_rot_train-191-_jpg.rf.0433dc689c643434091fed8ba46712f8.jpg,fruit,Blossom End Rot,341040,22482,6.5922,640,640,True
+fruit_0135,data/severity_calibration/fruit/images/fruit_0135__blossom_end_rot_train-195-_jpg.rf.83218362dcd4046a065e637169badc0a.jpg,fruit,Blossom End Rot,321215,45168,14.0616,640,640,True
+fruit_0136,data/severity_calibration/fruit/images/fruit_0136__blossom_end_rot_train-196-_jpg.rf.2250b76164be22e20d9278f811a5a14d.jpg,fruit,Blossom End Rot,274154,78038,28.465,640,640,True
+fruit_0137,data/severity_calibration/fruit/images/fruit_0137__blossom_end_rot_train-197-_jpg.rf.6665ca8b7c912c22a5bd5b6d26cd954e.jpg,fruit,Blossom End Rot,381964,84044,22.0031,640,640,True
+fruit_0138,data/severity_calibration/fruit/images/fruit_0138__blossom_end_rot_train-201-_jpg.rf.56d164c28094e687a2ea07c9c05a4d50.jpg,fruit,Blossom End Rot,341710,105312,30.8191,640,640,True
+fruit_0139,data/severity_calibration/fruit/images/fruit_0139__blossom_end_rot_train-209-_jpg.rf.397e418083c11a3dd1f791c302ee5cc0.jpg,fruit,Blossom End Rot,0,0,,640,640,False
+fruit_0140,data/severity_calibration/fruit/images/fruit_0140__blossom_end_rot_train-234-_jpg.rf.a6f4e3312a94807c6a15d9792153921d.jpg,fruit,Blossom End Rot,222863,115053,51.625,640,640,True
+fruit_0141,data/severity_calibration/fruit/images/fruit_0141__blossom_end_rot_train-239-_jpg.rf.5a3f05b86677dcf4a3e2cfd5738a445b.jpg,fruit,Blossom End Rot,304787,235330,77.2113,640,640,True
+fruit_0142,data/severity_calibration/fruit/images/fruit_0142__blossom_end_rot_train-244-_jpg.rf.9e100c318fe5d25bff38f86d5e140665.jpg,fruit,Blossom End Rot,345299,124486,36.0517,640,640,True
+fruit_0143,data/severity_calibration/fruit/images/fruit_0143__blossom_end_rot_train-245-_jpg.rf.a989b8987de4738a9dca5701ce6256e5.jpg,fruit,Blossom End Rot,0,0,,640,640,False
+fruit_0144,data/severity_calibration/fruit/images/fruit_0144__blossom_end_rot_train-249-_jpg.rf.8b0e84b6444c0e8e7101fa6c485f13ea.jpg,fruit,Blossom End Rot,0,0,,640,640,False
+fruit_0145,data/severity_calibration/fruit/images/fruit_0145__blossom_end_rot_train-256-_jpg.rf.b654376ba10e69d7eb87b4aca027c829.jpg,fruit,Blossom End Rot,0,0,,640,640,False
+fruit_0146,data/severity_calibration/fruit/images/fruit_0146__blossom_end_rot_train-282-_jpg.rf.7530ea6e8abf14aea3283b086ed50776.jpg,fruit,Blossom End Rot,397347,131487,33.0912,640,640,True
+fruit_0147,data/severity_calibration/fruit/images/fruit_0147__blossom_end_rot_train-295-_jpg.rf.02951d58d4db749d6b3a9b7973fc2e22.jpg,fruit,Blossom End Rot,316083,164725,52.1145,640,640,True
+fruit_0148,data/severity_calibration/fruit/images/fruit_0148__blossom_end_rot_train-3-_jpg.rf.42c5f18d365a1084c2c34fb3511d982a.jpg,fruit,Blossom End Rot,381269,183226,48.0569,640,640,True
+fruit_0149,data/severity_calibration/fruit/images/fruit_0149__blossom_end_rot_train-310-_jpg.rf.375955f95d30b08c257e12514452b785.jpg,fruit,Blossom End Rot,93031,59547,64.0077,640,640,True
+fruit_0150,data/severity_calibration/fruit/images/fruit_0150__blossom_end_rot_train-34-_jpg.rf.07ee298f63a3d6eaa3ee8ec504653b6d.jpg,fruit,Blossom End Rot,271209,231572,85.3851,640,640,True
+fruit_0151,data/severity_calibration/fruit/images/fruit_0151__blossom_end_rot_train-41-_jpg.rf.0446b528b2a39f65fef8662b3f3aad2d.jpg,fruit,Blossom End Rot,317883,24447,7.6906,640,640,True
+fruit_0152,data/severity_calibration/fruit/images/fruit_0152__blossom_end_rot_train-45-_jpg.rf.28db978da932253d3d6efd467acd5bee.jpg,fruit,Blossom End Rot,283406,127558,45.0089,640,640,True
+fruit_0153,data/severity_calibration/fruit/images/fruit_0153__blossom_end_rot_train-53-_jpg.rf.0a8748c95ad3d0857921d5a60f3bceba.jpg,fruit,Blossom End Rot,118134,2918,2.4701,640,640,True
+fruit_0154,data/severity_calibration/fruit/images/fruit_0154__blossom_end_rot_train-63-_jpg.rf.a859ce37029136057a3b3364742aee83.jpg,fruit,Blossom End Rot,361769,142423,39.3685,640,640,True
+fruit_0155,data/severity_calibration/fruit/images/fruit_0155__blossom_end_rot_train-64-_jpg.rf.1e1a17b3e0f32b6a4db53cd61350c15f.jpg,fruit,Blossom End Rot,248522,110219,44.3498,640,640,True
+fruit_0156,data/severity_calibration/fruit/images/fruit_0156__blossom_end_rot_train-67-_jpg.rf.024f534326e970cdfdcaef919c46a1be.jpg,fruit,Blossom End Rot,376872,48646,12.9078,640,640,True
+fruit_0157,data/severity_calibration/fruit/images/fruit_0157__blossom_end_rot_train-8-_jpg.rf.2901d238b24e101684209fa2c62c644e.jpg,fruit,Blossom End Rot,300339,102724,34.2027,640,640,True
+fruit_0158,data/severity_calibration/fruit/images/fruit_0158__blossom_end_rot_train-86-_jpg.rf.1258849fc235d846a1478a0067deaab1.jpg,fruit,Blossom End Rot,0,0,,640,640,False
+fruit_0159,data/severity_calibration/fruit/images/fruit_0159__blossom_end_rot_train-93-_jpg.rf.3180a44b2ac9b0edfe135bc71c9e7256.jpg,fruit,Blossom End Rot,366437,72423,19.7641,640,640,True
+fruit_0160,data/severity_calibration/fruit/images/fruit_0160__blossom_end_rot_train-94-_jpg.rf.71536855ae961fb79f33d3adc5152bfb.jpg,fruit,Blossom End Rot,355980,91943,25.8281,640,640,True
+fruit_0161,data/severity_calibration/fruit/images/fruit_0161__blossom_end_rot_train-111-_jpg.rf.8d842aa71003b4b27504c4e868d5aa02.jpg,fruit,Blossom End Rot,395376,87232,22.063,640,640,True
+fruit_0162,data/severity_calibration/fruit/images/fruit_0162__blossom_end_rot_train-188-_jpg.rf.0bc42d0a839b6b63b622434784d0dcea.jpg,fruit,Blossom End Rot,258817,169110,65.3396,640,640,True
+fruit_0163,data/severity_calibration/fruit/images/fruit_0163__blossom_end_rot_train-213-_jpg.rf.09b97c1d2f5fadbe4f5f87cf1e6c41c0.jpg,fruit,Blossom End Rot,302993,141947,46.8483,640,640,True
+fruit_0164,data/severity_calibration/fruit/images/fruit_0164__blossom_end_rot_train-27-_jpg.rf.bf63e3e312d3fa3ba9d6e5cfadfb2fd3.jpg,fruit,Blossom End Rot,296579,101381,34.1835,640,640,True
+fruit_0165,data/severity_calibration/fruit/images/fruit_0165__blossom_end_rot_train-270-_jpg.rf.7013c33bcd23ef2aa50250facf35c7e7.jpg,fruit,Blossom End Rot,398798,148821,37.3174,640,640,True
+fruit_0166,data/severity_calibration/fruit/images/fruit_0166__blossom_end_rot_train-48-_jpg.rf.e8ffc940d46e9ae753979d54541fb140.jpg,fruit,Blossom End Rot,399572,172681,43.2165,640,640,True
+fruit_0167,data/severity_calibration/fruit/images/fruit_0167__spotted_wilt_virus_test-20-_jpg.rf.6f06dc6f8363815aa2e61be9c700b773.jpg,fruit,Spotted Wilt Virus,406880,57466,14.1236,640,640,True
+fruit_0168,data/severity_calibration/fruit/images/fruit_0168__spotted_wilt_virus_test-51-_jpg.rf.aee3ab9b1238751ea626f4d0877d32a8.jpg,fruit,Spotted Wilt Virus,372090,89386,24.0227,640,640,True
+fruit_0169,data/severity_calibration/fruit/images/fruit_0169__spotted_wilt_virus_train-105-_jpg.rf.016be735f6bc448cf03e6b41bc40b8f5.jpg,fruit,Spotted Wilt Virus,402583,162037,40.2493,640,640,True
+fruit_0170,data/severity_calibration/fruit/images/fruit_0170__spotted_wilt_virus_train-4-_png.rf.b403d5c833427661a3df4f1edd9e672c.jpg,fruit,Spotted Wilt Virus,246992,54095,21.9015,640,640,True
+fruit_0171,data/severity_calibration/fruit/images/fruit_0171__spotted_wilt_virus_train-5-_jpg.rf.94fcd73c6752848988b66a76588012c2.jpg,fruit,Spotted Wilt Virus,400617,257174,64.1945,640,640,True
+fruit_0172,data/severity_calibration/fruit/images/fruit_0172__spotted_wilt_virus_train-72-_jpg.rf.03478ec5cb367e49adc87eb391a95308.jpg,fruit,Spotted Wilt Virus,367733,126940,34.5196,640,640,True
+fruit_0173,data/severity_calibration/fruit/images/fruit_0173__spotted_wilt_virus_train-74-_jpg.rf.3ddd60ef827b2edfa9257a53bf4fb2f5.jpg,fruit,Spotted Wilt Virus,329302,221643,67.3069,640,640,True
+fruit_0174,data/severity_calibration/fruit/images/fruit_0174__spotted_wilt_virus_test-10-_jpg.rf.10d7d88fb7a289905df1dc1158b422ea.jpg,fruit,Spotted Wilt Virus,365362,145656,39.8662,640,640,True
+fruit_0175,data/severity_calibration/fruit/images/fruit_0175__spotted_wilt_virus_test-12-_jpg.rf.4d515d13f1448a6d1e63d0b73fd1b32e.jpg,fruit,Spotted Wilt Virus,402271,59298,14.7408,640,640,True
+fruit_0176,data/severity_calibration/fruit/images/fruit_0176__spotted_wilt_virus_test-29-_jpg.rf.2c5dde3c28ae6efa9320a44eca148965.jpg,fruit,Spotted Wilt Virus,324075,74344,22.9404,640,640,True
+fruit_0177,data/severity_calibration/fruit/images/fruit_0177__spotted_wilt_virus_test-38-_jpg.rf.8b1ad7acd10ecdf349856cd771a1cc9f.jpg,fruit,Spotted Wilt Virus,405365,276297,68.1601,640,640,True
+fruit_0178,data/severity_calibration/fruit/images/fruit_0178__spotted_wilt_virus_test-4-_jpg.rf.2a13c78e7578c639d590bee6f7a837b1.jpg,fruit,Spotted Wilt Virus,383530,173460,45.2272,640,640,True
+fruit_0179,data/severity_calibration/fruit/images/fruit_0179__spotted_wilt_virus_test-40-_jpg.rf.1c866127d8254558548564cc2b1293e2.jpg,fruit,Spotted Wilt Virus,318972,234865,73.6319,640,640,True
+fruit_0180,data/severity_calibration/fruit/images/fruit_0180__spotted_wilt_virus_test-5-_jpg.rf.6036b27a65cf8f5d4a11e9b48c8cc958.jpg,fruit,Spotted Wilt Virus,383491,199652,52.0617,640,640,True
+fruit_0181,data/severity_calibration/fruit/images/fruit_0181__spotted_wilt_virus_test-54-_jpg.rf.29dc7da94b2c1f81da8e184314dc45ec.jpg,fruit,Spotted Wilt Virus,281721,159416,56.5865,640,640,True
+fruit_0182,data/severity_calibration/fruit/images/fruit_0182__spotted_wilt_virus_test-55-_jpg.rf.109630c87326dac0943d69ab32555b09.jpg,fruit,Spotted Wilt Virus,378369,243475,64.3486,640,640,True
+fruit_0183,data/severity_calibration/fruit/images/fruit_0183__spotted_wilt_virus_test-58-_jpg.rf.923603bd5393a71bdaee6101fe799bbc.jpg,fruit,Spotted Wilt Virus,0,0,,640,640,False
+fruit_0184,data/severity_calibration/fruit/images/fruit_0184__spotted_wilt_virus_train-108-_jpg.rf.782c023b4c59d78d4726a757a0def25a.jpg,fruit,Spotted Wilt Virus,287782,93404,32.4565,640,640,True
+fruit_0185,data/severity_calibration/fruit/images/fruit_0185__spotted_wilt_virus_train-124-_jpg.rf.0eff4887cf86550f7ddc6f1368877a70.jpg,fruit,Spotted Wilt Virus,358013,71123,19.866,640,640,True
+fruit_0186,data/severity_calibration/fruit/images/fruit_0186__spotted_wilt_virus_train-154-_jpg.rf.078d6d65e1947ee79642fe46c247ac3e.jpg,fruit,Spotted Wilt Virus,355654,79544,22.3656,640,640,True
+fruit_0187,data/severity_calibration/fruit/images/fruit_0187__spotted_wilt_virus_train-167-_jpg.rf.016546d7cb070c265495eef0070b1eb1.jpg,fruit,Spotted Wilt Virus,409585,205487,50.1696,640,640,True
+fruit_0188,data/severity_calibration/fruit/images/fruit_0188__spotted_wilt_virus_train-179-_jpg.rf.23d6894012293deceb7c9b503f6a9da2.jpg,fruit,Spotted Wilt Virus,0,0,,640,640,False
+fruit_0189,data/severity_calibration/fruit/images/fruit_0189__spotted_wilt_virus_train-190-_jpg.rf.0662c9090ac1e794fdee7fa322edf05c.jpg,fruit,Spotted Wilt Virus,391469,77081,19.6902,640,640,True
+fruit_0190,data/severity_calibration/fruit/images/fruit_0190__spotted_wilt_virus_train-2-_jpeg.rf.7f397658a94f5123fe7925dfcfde75d4.jpg,fruit,Spotted Wilt Virus,200906,59477,29.6044,640,640,True
+fruit_0191,data/severity_calibration/fruit/images/fruit_0191__spotted_wilt_virus_train-20-_jpg.rf.7f668cefc8b09795fe8a64496bee8941.jpg,fruit,Spotted Wilt Virus,353073,186061,52.6976,640,640,True
+fruit_0192,data/severity_calibration/fruit/images/fruit_0192__spotted_wilt_virus_train-217-_jpg.rf.56488a95063727660d33005f793dd7f5.jpg,fruit,Spotted Wilt Virus,307442,175365,57.04,640,640,True
+fruit_0193,data/severity_calibration/fruit/images/fruit_0193__spotted_wilt_virus_train-220-_jpg.rf.629bf43b60dd56ab8a0d4bd74b6b8f6f.jpg,fruit,Spotted Wilt Virus,280133,159048,56.7759,640,640,True
+fruit_0194,data/severity_calibration/fruit/images/fruit_0194__spotted_wilt_virus_train-222-_jpg.rf.40aab2857a1f2eb3914235890c7e4288.jpg,fruit,Spotted Wilt Virus,248186,108399,43.6765,640,640,True
+fruit_0195,data/severity_calibration/fruit/images/fruit_0195__spotted_wilt_virus_train-239-_jpg.rf.1bcb56f9659e2ce937231847cb93c8e0.jpg,fruit,Spotted Wilt Virus,394111,128754,32.6695,640,640,True
+fruit_0196,data/severity_calibration/fruit/images/fruit_0196__spotted_wilt_virus_train-242-_jpg.rf.08750668288b7d3e8c4de86d9d70103c.jpg,fruit,Spotted Wilt Virus,322639,226405,70.1729,640,640,True
+fruit_0197,data/severity_calibration/fruit/images/fruit_0197__spotted_wilt_virus_train-3-_jpeg.rf.20bf5755fe0853d008ef75e7d3dd7472.jpg,fruit,Spotted Wilt Virus,409415,200857,49.0595,640,640,True
+fruit_0198,data/severity_calibration/fruit/images/fruit_0198__spotted_wilt_virus_train-38-_jpg.rf.2c1a58cb5cebb64ee997f944aaf8c740.jpg,fruit,Spotted Wilt Virus,399907,119463,29.8727,640,640,True
+fruit_0199,data/severity_calibration/fruit/images/fruit_0199__spotted_wilt_virus_train-4-_jpg.rf.5693d35f56d2174f0781dcbfd74a75e5.jpg,fruit,Spotted Wilt Virus,376645,208797,55.436,640,640,True
+fruit_0200,data/severity_calibration/fruit/images/fruit_0200__spotted_wilt_virus_train-42-_jpg.rf.1573f2d8e35c1df3254bc98e3f104173.jpg,fruit,Spotted Wilt Virus,324002,174796,53.949,640,640,True
+fruit_0201,data/severity_calibration/fruit/images/fruit_0201__spotted_wilt_virus_train-44-_png.rf.7302c9fd7aee75627d5a1a57542595a5.jpg,fruit,Spotted Wilt Virus,390122,72873,18.6795,640,640,True
+fruit_0202,data/severity_calibration/fruit/images/fruit_0202__spotted_wilt_virus_train-45-_jpg.rf.1a43e1b8cec92b576c97f8646a8896d5.jpg,fruit,Spotted Wilt Virus,252630,181319,71.7726,640,640,True
+fruit_0203,data/severity_calibration/fruit/images/fruit_0203__spotted_wilt_virus_train-53-_jpg.rf.1e5eb91e454d96d1bd29364f53eba8bf.jpg,fruit,Spotted Wilt Virus,191557,145950,76.1914,640,640,True
+fruit_0204,data/severity_calibration/fruit/images/fruit_0204__spotted_wilt_virus_train-63-_jpg.rf.53d944b207b8c2ade181a95690930275.jpg,fruit,Spotted Wilt Virus,0,0,,640,640,False
+fruit_0205,data/severity_calibration/fruit/images/fruit_0205__spotted_wilt_virus_train-93-_jpg.rf.1c644c0c1c27378ae554893908584021.jpg,fruit,Spotted Wilt Virus,0,0,,640,640,False
+fruit_0206,data/severity_calibration/fruit/images/fruit_0206__spotted_wilt_virus_test-13-_jpg.rf.c0123be4b646ac7a2765a0dd876bbf5e.jpg,fruit,Spotted Wilt Virus,332816,48505,14.5741,640,640,True
+fruit_0207,data/severity_calibration/fruit/images/fruit_0207__spotted_wilt_virus_test-17-_jpg.rf.1cdbb8b11662f7db13e267c91ea00ce0.jpg,fruit,Spotted Wilt Virus,386147,80235,20.7784,640,640,True
+fruit_0208,data/severity_calibration/fruit/images/fruit_0208__spotted_wilt_virus_train-135-_jpg.rf.f18c00bf7bc940ceba99393cfba4ad41.jpg,fruit,Spotted Wilt Virus,338870,126984,37.4728,640,640,True
+fruit_0209,data/severity_calibration/fruit/images/fruit_0209__spotted_wilt_virus_train-150-_jpg.rf.66c9ee1b52c8d5bcdd05e220a0cf09aa.jpg,fruit,Spotted Wilt Virus,282457,227902,80.6856,640,640,True
+fruit_0210,data/severity_calibration/fruit/images/fruit_0210__spotted_wilt_virus_train-67-_jpg.rf.1c8d73fbb1e015fde14aca6daece7dcc.jpg,fruit,Spotted Wilt Virus,330566,180673,54.6557,640,640,True
