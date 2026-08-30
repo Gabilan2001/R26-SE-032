@@ -21,6 +21,7 @@ Run from this folder:
 """
 
 import base64
+import os
 from pathlib import Path
 
 import cv2
@@ -39,6 +40,26 @@ try:
 except Exception as e:
     RAG_AVAILABLE = False
     print(f"  RAG unavailable: {e}")
+
+# ── Scan History (Firestore) ────────────────────────────────────────────────────
+# Independent of the Nutrient/Fruit modules' shared MongoDB + auth backend --
+# this module owns its own history/stats, no login required. On Cloud Run the
+# attached service account authenticates automatically (Application Default
+# Credentials); for local runs, `gcloud auth application-default login` once.
+try:
+    from google.cloud import firestore
+    # Explicit project (rather than relying on ambient auto-detection) --
+    # works reliably both on Cloud Run and for local `python app_mobile.py`
+    # runs authenticated via `gcloud auth application-default login`.
+    FIRESTORE_PROJECT = os.getenv("FIRESTORE_PROJECT", "tomatodoc-hosting")
+    fs_client = firestore.Client(project=FIRESTORE_PROJECT)
+    FIRESTORE_AVAILABLE = True
+except Exception as e:
+    fs_client = None
+    FIRESTORE_AVAILABLE = False
+    print(f"  Firestore unavailable (history/stats disabled): {e}")
+
+SCANS_COLLECTION = "disease_scans"
 
 # ── Leaf Validator ────────────────────────────────────────────────────────────
 from torchvision import models, transforms
@@ -140,6 +161,30 @@ def encode_image(img):
     return base64.b64encode(buffer).decode("utf-8")
 
 
+def save_scan_history(detections, diseases_found, co_occurrence, treatment):
+    """Best-effort save of a completed scan to Firestore. Never blocks or
+    fails the /predict response -- history is a bonus feature, not core."""
+    if not FIRESTORE_AVAILABLE:
+        return
+    try:
+        # Slim detection records for storage/listing -- box coords aren't
+        # needed for history/stats, just what disease + how confident.
+        slim_detections = [
+            {"class_name": d["class_name"], "confidence": d["confidence"]}
+            for d in detections
+        ]
+        fs_client.collection(SCANS_COLLECTION).add({
+            "created_at": firestore.SERVER_TIMESTAMP,
+            "detections": slim_detections,
+            "diseases_found": diseases_found,
+            "co_occurrence": co_occurrence,
+            "treatment_answer": treatment["answer"] if treatment else None,
+            "treatment_sources": treatment["sources"] if treatment else [],
+        })
+    except Exception as e:
+        print(f"  Firestore save failed: {e}")
+
+
 def get_treatment(diseases_found):
     if not RAG_AVAILABLE or not diseases_found:
         return None
@@ -229,6 +274,7 @@ def predict():
     co_occurrence = len([d for d in diseases_found if d != "Healthy"]) >= 2
     annotated = draw_detections(original_img, detections)
     treatment = get_treatment(diseases_found)
+    save_scan_history(detections, diseases_found, co_occurrence, treatment)
 
     return jsonify({
         "valid": True,
@@ -248,12 +294,60 @@ def predict():
     })
 
 
+@app.route("/history", methods=["GET"])
+def get_history():
+    if not FIRESTORE_AVAILABLE:
+        return jsonify({"error": "History unavailable", "history": []}), 503
+
+    limit = min(int(request.args.get("limit", 30)), 100)
+    docs = (
+        fs_client.collection(SCANS_COLLECTION)
+        .order_by("created_at", direction=firestore.Query.DESCENDING)
+        .limit(limit)
+        .stream()
+    )
+
+    history = []
+    for d in docs:
+        item = d.to_dict()
+        item["id"] = d.id
+        ts = item.get("created_at")
+        item["created_at"] = ts.isoformat() if ts else None
+        history.append(item)
+
+    return jsonify({"history": history})
+
+
+@app.route("/stats", methods=["GET"])
+def get_stats():
+    if not FIRESTORE_AVAILABLE:
+        return jsonify({"error": "Stats unavailable"}), 503
+
+    docs = list(fs_client.collection(SCANS_COLLECTION).stream())
+
+    class_counts = {}
+    co_occurrence_count = 0
+    for d in docs:
+        item = d.to_dict()
+        for disease in item.get("diseases_found", []):
+            class_counts[disease] = class_counts.get(disease, 0) + 1
+        if item.get("co_occurrence"):
+            co_occurrence_count += 1
+
+    return jsonify({
+        "total_scans": len(docs),
+        "class_counts": class_counts,
+        "co_occurrence_count": co_occurrence_count,
+    })
+
+
 @app.route("/health")
 def health():
     return jsonify({
         "status": "ok",
         "device": "CUDA" if torch.cuda.is_available() else "CPU",
         "model": "yolov8m_final (native-640, 4-class)",
+        "firestore": FIRESTORE_AVAILABLE,
     })
 
 
