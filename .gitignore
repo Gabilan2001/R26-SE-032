@@ -66,8 +66,11 @@ Disease_Detection/models/
 # ─── YOLO training runs ───
 runs/
 
-# ─── Testing-only frontend (real frontend is the mobile app in /Frontend) ───
+# ─── Testing-only frontend + its backend (real frontend is the mobile app in
+# /Frontend, real backend is app_mobile.py) -- kept locally as a dev/research
+# tool (multi-model comparison), not part of the deployed product ───
 Disease_Detection/frontend/
+Disease_Detection/pipeline/stage4_inference/app.py
 
 # ─── RAG vector DB (generated/regenerable via ingest.py from knowledge_base.json) ───
 Disease_Detection/pipeline/stage4_inference/chroma_db/

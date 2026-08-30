@@ -16,6 +16,7 @@ import FruitDetailScreen from '../screens/FruitDetailScreen';
 import DiseaseMonitoringFlowScreen from '../modules/diseaseMonitoring/DiseaseMonitoringFlowScreen';
 import DiseaseScanScreen from '../screens/DiseaseScanScreen';
 import DiseaseResultScreen from '../screens/DiseaseResultScreen';
+import DiseaseHistoryScreen from '../screens/DiseaseHistoryScreen';
 import { UIThemeContext } from '../context/UIThemeContext';
 
 const Stack = createNativeStackNavigator();
@@ -161,7 +162,7 @@ function DiseaseModuleTabs() {
         tabBarActiveTintColor: palette.primary,
         tabBarInactiveTintColor: palette.muted,
         tabBarIcon: ({ color, size }) => {
-          const map = { Home: 'home', DiseaseScan: 'virus', User: 'account-circle' };
+          const map = { Home: 'home', DiseaseScan: 'virus', DiseaseHistory: 'history', User: 'account-circle' };
           return <MaterialCommunityIcons name={map[route.name]} size={size} color={color} />;
         },
       })}
@@ -175,6 +176,11 @@ function DiseaseModuleTabs() {
         name="DiseaseScan"
         component={DiseaseScanScreen}
         options={{ title: 'Scan' }}
+      />
+      <ModuleTabs.Screen
+        name="DiseaseHistory"
+        component={DiseaseHistoryScreen}
+        options={{ title: 'History' }}
       />
       <ModuleTabs.Screen name="User" component={UserScreen} />
     </ModuleTabs.Navigator>
