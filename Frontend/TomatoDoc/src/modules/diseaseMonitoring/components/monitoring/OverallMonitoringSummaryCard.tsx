@@ -4,7 +4,7 @@ import type { MonitoringSummary } from "../../api/observations";
 import { MONITORING_DAY_LABELS } from "../../config/modality";
 import { severityColors, type MonitoringPalette } from "../../theme/colors";
 import { useMonitoringPalette } from "../../theme/MonitoringThemeContext";
-import { formatSignedPercent, trendHeadline } from "../../utils/observationDisplay";
+import { formatPct, formatSignedPercent, trendHeadline } from "../../utils/observationDisplay";
 import { recoveryHeadline, recoveryTone } from "../../utils/observationLabels";
 
 type Props = {
@@ -32,10 +32,6 @@ function StatBox({
   );
 }
 
-function pctLabel(value: number): string {
-  return `${Math.round(value)}%`;
-}
-
 export function OverallMonitoringSummaryCard({ summary }: Props) {
   const p = useMonitoringPalette();
   const styles = useMemo(() => makeStyles(p), [p]);
@@ -53,8 +49,8 @@ export function OverallMonitoringSummaryCard({ summary }: Props) {
   const peakLine =
     summary.peak_note ??
     (peakDay != null
-      ? `Highest severity was on Observation ${peakObs} (Day ${peakDay}): ${pctLabel(summary.peak_severity_pct)}.`
-      : `Highest severity was on Observation ${peakObs}: ${pctLabel(summary.peak_severity_pct)}.`);
+      ? `Highest severity was on Observation ${peakObs} (Day ${peakDay}): ${formatPct(summary.peak_severity_pct)}.`
+      : `Highest severity was on Observation ${peakObs}: ${formatPct(summary.peak_severity_pct)}.`);
 
   const direction = trendHeadline(trend);
 
@@ -68,20 +64,20 @@ export function OverallMonitoringSummaryCard({ summary }: Props) {
       <View style={styles.statRow}>
         <StatBox
           label="Initial"
-          value={pctLabel(summary.initial_severity_pct)}
+          value={formatPct(summary.initial_severity_pct)}
           styles={styles}
           accent={p.accent}
         />
         <StatBox
           label="Peak"
-          value={pctLabel(summary.peak_severity_pct)}
+          value={formatPct(summary.peak_severity_pct)}
           highlight
           styles={styles}
           accent={p.accent}
         />
         <StatBox
           label="Final"
-          value={pctLabel(summary.final_severity_pct)}
+          value={formatPct(summary.final_severity_pct)}
           styles={styles}
           accent={p.accent}
         />

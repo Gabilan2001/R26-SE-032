@@ -3,13 +3,19 @@ import { MONITORING_DAY_LABELS } from "../config/modality";
 
 export function severityPercent(obs: Observation): number {
   if (obs.estimated_affected_area_percentage != null) {
-    return Number(obs.estimated_affected_area_percentage);
+    return Math.round(Number(obs.estimated_affected_area_percentage) * 10) / 10;
   }
   return Math.round(obs.severity_score * 1000) / 10;
 }
 
+/** One display style everywhere: one decimal place (e.g. 24.6%). */
+export function formatPct(value: number): string {
+  const n = Math.round(Number(value) * 10) / 10;
+  return `${n.toFixed(1)}%`;
+}
+
 export function formatSeverityPercent(obs: Observation): string {
-  return `${severityPercent(obs).toFixed(0)}%`;
+  return formatPct(severityPercent(obs));
 }
 
 export function monitoringDayLabel(observationNumber: number): string {
@@ -23,9 +29,9 @@ export function severityChangePercent(
 ): string | null {
   if (!previous) return null;
   const delta = severityPercent(current) - severityPercent(previous);
-  if (Math.abs(delta) < 0.5) return "0%";
+  if (Math.abs(delta) < 0.05) return "0.0%";
   const sign = delta > 0 ? "+" : "";
-  return `${sign}${Math.round(delta)}%`;
+  return `${sign}${(Math.round(delta * 10) / 10).toFixed(1)}%`;
 }
 
 export function imageStatusLabel(cropPart?: CropPart): string {
@@ -104,8 +110,8 @@ export function computeOverallSummary(
   const peakDay = MONITORING_DAY_LABELS[peakIndex - 1];
   const peakNote =
     peakDay != null
-      ? `Highest severity was on Observation ${peakIndex} (Day ${peakDay}): ${Math.round(peakPct)}%.`
-      : `Highest severity was on Observation ${peakIndex}: ${Math.round(peakPct)}%.`;
+      ? `Highest severity was on Observation ${peakIndex} (Day ${peakDay}): ${formatPct(peakPct)}.`
+      : `Highest severity was on Observation ${peakIndex}: ${formatPct(peakPct)}.`;
 
   return {
     initial_severity_pct: initialPct,
@@ -121,9 +127,10 @@ export function computeOverallSummary(
 }
 
 export function formatSignedPercent(value: number): string {
-  if (Math.abs(value) < 0.5) return "0%";
-  const sign = value > 0 ? "+" : "";
-  return `${sign}${Math.round(value)}%`;
+  const n = Math.round(Number(value) * 10) / 10;
+  if (Math.abs(n) < 0.05) return "0.0%";
+  const sign = n > 0 ? "+" : "";
+  return `${sign}${n.toFixed(1)}%`;
 }
 
 export type SeverityTrendPoint = {

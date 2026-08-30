@@ -79,7 +79,7 @@ def compute_monitoring_summary(severity_scores: List[float]) -> Optional[Dict[st
         overall_trend = compute_trend(final, initial)
 
     timeline_parts = [_score_to_pct(float(s)) for s in severity_scores]
-    timeline = " → ".join(f"{p:g}%" for p in timeline_parts)
+    timeline = " → ".join(f"{p:.1f}%" for p in timeline_parts)
 
     day_labels = {1: 1, 2: 3, 3: 7}
     peak_day = day_labels.get(peak_index)
@@ -88,11 +88,11 @@ def compute_monitoring_summary(severity_scores: List[float]) -> Optional[Dict[st
         if peak_day is not None:
             peak_note = (
                 f"Highest severity was on Observation {peak_index} "
-                f"(Day {peak_day}): {peak_pct:g}%."
+                f"(Day {peak_day}): {peak_pct:.1f}%."
             )
         else:
             peak_note = (
-                f"Highest severity was on Observation {peak_index}: {peak_pct:g}%."
+                f"Highest severity was on Observation {peak_index}: {peak_pct:.1f}%."
             )
 
     return {

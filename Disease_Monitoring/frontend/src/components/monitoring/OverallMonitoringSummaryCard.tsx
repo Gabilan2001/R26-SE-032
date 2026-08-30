@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import type { MonitoringSummary } from "../../api/observations";
 import { MONITORING_DAY_LABELS } from "../../config/modality";
 import { palette, severityColors } from "../../theme/colors";
-import { formatSignedPercent, trendHeadline } from "../../utils/observationDisplay";
+import { formatPct, formatSignedPercent, trendHeadline } from "../../utils/observationDisplay";
 import { recoveryHeadline, recoveryTone } from "../../utils/observationLabels";
 
 type Props = {
@@ -27,10 +27,6 @@ function StatBox({
   );
 }
 
-function pctLabel(value: number): string {
-  return `${Math.round(value)}%`;
-}
-
 export function OverallMonitoringSummaryCard({ summary }: Props) {
   const trend = summary.overall_trend;
   const tone = recoveryTone(trend);
@@ -46,8 +42,8 @@ export function OverallMonitoringSummaryCard({ summary }: Props) {
   const peakLine =
     summary.peak_note ??
     (peakDay != null
-      ? `Highest severity was on Observation ${peakObs} (Day ${peakDay}): ${pctLabel(summary.peak_severity_pct)}.`
-      : `Highest severity was on Observation ${peakObs}: ${pctLabel(summary.peak_severity_pct)}.`);
+      ? `Highest severity was on Observation ${peakObs} (Day ${peakDay}): ${formatPct(summary.peak_severity_pct)}.`
+      : `Highest severity was on Observation ${peakObs}: ${formatPct(summary.peak_severity_pct)}.`);
 
   const direction = trendHeadline(trend);
 
@@ -59,13 +55,13 @@ export function OverallMonitoringSummaryCard({ summary }: Props) {
       </Text>
 
       <View style={styles.statRow}>
-        <StatBox label="Initial" value={pctLabel(summary.initial_severity_pct)} />
+        <StatBox label="Initial" value={formatPct(summary.initial_severity_pct)} />
         <StatBox
           label="Peak"
-          value={pctLabel(summary.peak_severity_pct)}
+          value={formatPct(summary.peak_severity_pct)}
           highlight
         />
-        <StatBox label="Final" value={pctLabel(summary.final_severity_pct)} />
+        <StatBox label="Final" value={formatPct(summary.final_severity_pct)} />
       </View>
 
       <View style={styles.changeRow}>
