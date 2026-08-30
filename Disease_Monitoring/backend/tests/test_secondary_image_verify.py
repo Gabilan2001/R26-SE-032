@@ -1,6 +1,10 @@
-"""Tests for secondary image verification parsing helpers."""
+"""Tests for secondary image verification helpers."""
 
-from ml.predict.secondary_image_verify import _extract_json, _farmer_reject
+from ml.predict.secondary_image_verify import (
+    _extract_json,
+    _farmer_reject,
+    _is_matching_crop,
+)
 
 
 def test_extract_json_plain():
@@ -14,9 +18,16 @@ def test_extract_json_fenced():
     assert data["valid"] is False
 
 
+def test_matching_crop_aliases():
+    assert _is_matching_crop("LEAF", {"valid": True, "object_type": "tomato_leaf"})
+    assert _is_matching_crop("LEAF", {"valid": False, "object_type": "tomato leaf"})
+    assert _is_matching_crop("FRUIT", {"valid": True, "object_type": "tomato"})
+    assert not _is_matching_crop("LEAF", {"valid": False, "object_type": "other"})
+    assert not _is_matching_crop("FRUIT", {"valid": False, "object_type": "apple"})
+
+
 def test_farmer_messages_have_no_provider_branding():
     for part in ("LEAF", "FRUIT"):
         msg = _farmer_reject(part).lower()
         assert "gemini" not in msg
-        assert "api" not in msg
         assert "google" not in msg

@@ -1,6 +1,7 @@
 from typing import Optional
 
 from fastapi import APIRouter, File, Form, UploadFile
+from fastapi.responses import Response
 
 from observation import observation_service as svc
 from utils.image_quality import analyze_image_quality
@@ -8,6 +9,7 @@ from schemas.observation_schema import (
     CaseResponse,
     CaseStatusResponse,
     CreateCaseRequest,
+    FarmerInsightResponse,
     ImageQualityCheckResponse,
     ObservationsListResponse,
     UploadObservationResponse,
@@ -75,3 +77,21 @@ async def list_observations(case_id: str):
 @router.get("/cases/{case_id}/status", response_model=CaseStatusResponse)
 async def case_status(case_id: str):
     return await svc.get_case_status(case_id)
+
+
+@router.get("/cases/{case_id}/insight", response_model=FarmerInsightResponse)
+async def case_insight(case_id: str):
+    """Farmer-facing explanation of stored scores — does not recompute severity."""
+    return await svc.get_farmer_insight(case_id)
+
+
+@router.get("/cases/{case_id}/report.pdf")
+async def case_report_pdf(case_id: str):
+    """Downloadable monitoring PDF built from stored case facts."""
+    pdf_bytes = await svc.build_case_report_pdf(case_id)
+    filename = f"monitoring-report-{case_id}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

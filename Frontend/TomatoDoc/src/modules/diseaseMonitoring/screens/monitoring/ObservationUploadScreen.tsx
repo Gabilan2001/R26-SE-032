@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -34,6 +34,7 @@ import type { MonitoringPalette } from "../../theme/colors";
 import { formatGateRejection } from "../../utils/gateMessages";
 import {
   formatLocationSummary,
+  manualLocationSelection,
   type ObservationLocationSelection,
 } from "../../utils/locationCapture";
 
@@ -83,6 +84,7 @@ export function ObservationUploadScreen({
   const [location, setLocation] = useState<ObservationLocationSelection | null>(
     () => (isFirstObservation ? null : savedLocation)
   );
+  const uploadingRef = useRef(false);
   const cfg = MODALITY[cropPart];
   const p = useMonitoringPalette();
   const styles = useMemo(() => makeStyles(p), [p]);
@@ -128,35 +130,50 @@ export function ObservationUploadScreen({
 
   const activeLocation = isFirstObservation ? location : savedLocation ?? location;
 
+  const effectiveLocation = (() => {
+    if (!attachWeather) return activeLocation;
+    if (
+      activeLocation &&
+      activeLocation.source !== "none" &&
+      (activeLocation.latitude != null || activeLocation.label)
+    ) {
+      return activeLocation;
+    }
+    // Weather needs coords — default Colombo so the timeline is not empty.
+    return manualLocationSelection("Colombo");
+  })();
+
   const buildLocationParams = () => {
-    if (!activeLocation || activeLocation.source === "none") {
+    if (!effectiveLocation || effectiveLocation.source === "none") {
       return {};
     }
     if (
-      activeLocation.source === "manual" &&
-      activeLocation.label &&
-      activeLocation.latitude == null
+      effectiveLocation.source === "manual" &&
+      effectiveLocation.label &&
+      effectiveLocation.latitude == null
     ) {
       return {
-        locationLabel: activeLocation.label,
+        locationLabel: effectiveLocation.label,
         locationSource: "manual" as const,
-        area: activeLocation.area,
-        district: activeLocation.district,
-        province: activeLocation.province,
+        area: effectiveLocation.area,
+        district: effectiveLocation.district,
+        province: effectiveLocation.province,
       };
     }
     return {
-      latitude: activeLocation.latitude,
-      longitude: activeLocation.longitude,
-      area: activeLocation.area,
-      district: activeLocation.district,
-      province: activeLocation.province,
-      locationLabel: activeLocation.label,
-      locationSource: activeLocation.source,
+      latitude: effectiveLocation.latitude,
+      longitude: effectiveLocation.longitude,
+      area: effectiveLocation.area,
+      district: effectiveLocation.district,
+      province: effectiveLocation.province,
+      locationLabel: effectiveLocation.label,
+      locationSource: effectiveLocation.source,
     };
   };
 
   const runUpload = async (uri: string, confirmSameCase: boolean) => {
+    if (uploadingRef.current) return;
+    uploadingRef.current = true;
     setLoading(true);
     setValidationMessage("Validating image…");
     try {
@@ -204,7 +221,10 @@ export function ObservationUploadScreen({
         listObservations(caseData.case_id),
       ]);
       setPending(null);
-      const committedLocation = isFirstObservation ? location : activeLocation;
+      setValidationMessage(null);
+      const committedLocation = isFirstObservation
+        ? effectiveLocation ?? location
+        : effectiveLocation ?? activeLocation;
       if (isFirstObservation) {
         onLocationCommitted?.(committedLocation);
       }
@@ -228,11 +248,12 @@ export function ObservationUploadScreen({
       }
       setValidationMessage(null);
     } finally {
+      uploadingRef.current = false;
       setLoading(false);
     }
   };
 
-  const reusedSummary = formatLocationSummary(activeLocation);
+  const reusedSummary = formatLocationSummary(effectiveLocation ?? activeLocation);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -260,7 +281,7 @@ export function ObservationUploadScreen({
             <Text style={styles.reuseBody}>
               {reusedSummary
                 ? `Using location from Observation 1: ${reusedSummary}`
-                : "No location was set on Observation 1, so weather may be unavailable for this upload."}
+                : "Using Colombo default for weather. Set GPS on Observation 1 next time for local weather."}
             </Text>
           </View>
         ) : null}
@@ -284,7 +305,7 @@ export function ObservationUploadScreen({
           }}
         />
 
-        {previewUri ? (
+        {previewUri && !loading ? (
           <ImageQualityCard
             result={qualityResult}
             loading={qualityLoading}

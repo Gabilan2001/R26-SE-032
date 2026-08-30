@@ -76,7 +76,7 @@ export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
       ) : (
         <Text style={styles.missing}>
           {attachWeather
-            ? "Location not set — enable GPS or pick an area manually."
+            ? "No location yet — GPS, pick an area, or use Colombo default for weather."
             : "No location selected."}
         </Text>
       )}
@@ -98,8 +98,21 @@ export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
         </Pressable>
       </View>
 
-      <Pressable onPress={() => onChange({ source: "none" })} style={styles.skip}>
-        <Text style={styles.skipText}>Continue without location</Text>
+      <Pressable
+        onPress={() =>
+          onChange(
+            attachWeather
+              ? manualLocationSelection("Colombo")
+              : { source: "none" }
+          )
+        }
+        style={styles.skip}
+      >
+        <Text style={styles.skipText}>
+          {attachWeather
+            ? "Use Colombo (default weather)"
+            : "Continue without location"}
+        </Text>
       </Pressable>
 
       <Modal visible={pickerOpen} animationType="slide" transparent>
