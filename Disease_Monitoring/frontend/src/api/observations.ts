@@ -9,7 +9,7 @@ async function appendImageFile(form: FormData, uri: string): Promise<void> {
   const mimeType = "image/jpeg";
 
   if (Platform.OS === "web") {
-    // Browser FormData requires a real Blob/File — RN's {uri,name,type} becomes "[object Object]".
+    // Browser FormData requires a real Blob/File - RN's {uri,name,type} becomes "[object Object]".
     const response = await fetch(uri);
     const blob = await response.blob();
     const type = blob.type || mimeType;
@@ -210,6 +210,13 @@ export async function uploadObservation(params: {
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
+}
+
+export async function deleteCase(caseId: string): Promise<void> {
+  const res = await fetch(apiUrl(`/cases/${caseId}`), { method: "DELETE" });
+  if (!res.ok && res.status !== 404) {
+    throw new Error(await res.text());
+  }
 }
 
 export const LEAF_DISEASES = ["early_blight", "late_blight", "leaf_miner"] as const;

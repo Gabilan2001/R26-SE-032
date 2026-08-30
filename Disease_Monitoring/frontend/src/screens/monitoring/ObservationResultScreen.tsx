@@ -24,6 +24,7 @@ type Props = {
   previousObservation?: Observation | null;
   imageUri?: string | null;
   cropPart?: CropPart;
+  onBack?: () => void;
   onNextObservation: () => void;
   onViewOverall: () => void;
 };
@@ -35,6 +36,7 @@ export function ObservationResultScreen({
   previousObservation,
   imageUri,
   cropPart,
+  onBack,
   onNextObservation,
   onViewOverall,
 }: Props) {
@@ -43,7 +45,7 @@ export function ObservationResultScreen({
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar style="light" />
-      <LeafScanAppHeader />
+      <LeafScanAppHeader onBack={onBack} />
       <ScrollView contentContainerStyle={styles.content}>
         <ObservationProgress current={observationNumber} />
 
@@ -60,7 +62,6 @@ export function ObservationResultScreen({
             <Text style={styles.guideTitle}>
               {String(observation.recommendation.title ?? "Monitoring guidance")}
             </Text>
-            <Text style={styles.guideHint}>Monitoring tips only — not a prescription.</Text>
             {Array.isArray(observation.recommendation.actions)
               ? observation.recommendation.actions.map((a, i) => (
                   <Text key={i} style={styles.guideItem}>

@@ -75,14 +75,8 @@ def test_consistency_possible_match():
     mid = (MATCH_THRESHOLD + POSSIBLE_MATCH_THRESHOLD) / 2
     status, accepted, reason = check_consistency(mid, is_first_observation=False)
     assert status == CONSISTENCY_POSSIBLE_MATCH
-    assert accepted is False
-    assert reason is not None
-
-    status2, accepted2, _ = check_consistency(
-        mid, is_first_observation=False, confirm_same_case=True
-    )
-    assert status2 == CONSISTENCY_POSSIBLE_MATCH
-    assert accepted2 is True
+    assert accepted is True
+    assert reason is None
 
 
 def test_consistency_mismatch_without_confirm():

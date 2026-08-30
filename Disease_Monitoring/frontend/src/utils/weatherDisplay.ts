@@ -57,7 +57,7 @@ export function weatherSummary(
   if (parsed.available === false) {
     const reason = String(parsed.reason ?? "").toLowerCase();
     if (reason.includes("location") || reason.includes("coordinate")) {
-      return "No location — weather not retrieved.";
+      return "No location - weather not retrieved.";
     }
     if (reason.includes("api") || reason.includes("key") || reason.includes("fail")) {
       return "Weather temporarily unavailable.";

@@ -234,6 +234,34 @@ _FARMER_HIDDEN = {
 }
 
 
+def delete_case(case_id: str) -> bool:
+    """Remove a monitoring case, its observations, and saved images. Returns True if case existed."""
+    case = get_case(case_id)
+    if not case:
+        return False
+
+    conn = _connect()
+    conn.execute("DELETE FROM observations WHERE case_id = ?", (case_id,))
+    conn.execute("DELETE FROM monitoring_cases WHERE case_id = ?", (case_id,))
+    conn.commit()
+    conn.close()
+
+    case_dir = os.path.join(OBSERVATIONS_DATA_DIR, case_id)
+    if os.path.isdir(case_dir):
+        for name in os.listdir(case_dir):
+            path = os.path.join(case_dir, name)
+            try:
+                if os.path.isfile(path):
+                    os.remove(path)
+            except OSError:
+                pass
+        try:
+            os.rmdir(case_dir)
+        except OSError:
+            pass
+    return True
+
+
 def public_observation(obs: Dict[str, Any]) -> Dict[str, Any]:
     """Strip embeddings and secondary-verify internals from farmer-facing API."""
     out = {k: v for k, v in obs.items() if k not in _FARMER_HIDDEN}

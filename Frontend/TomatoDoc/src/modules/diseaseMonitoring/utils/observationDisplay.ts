@@ -55,7 +55,7 @@ export function consistencyHeadline(status?: string | null): string {
     case "MATCH":
       return "Matches previous photo";
     case "POSSIBLE_MATCH":
-      return "Possible match — confirm same plant";
+      return "Possible match - confirm same plant";
     case "MISMATCH":
       return "Looks different from previous photo";
     default:

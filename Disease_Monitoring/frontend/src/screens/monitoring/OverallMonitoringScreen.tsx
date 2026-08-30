@@ -149,9 +149,6 @@ export function OverallMonitoringScreen({
             <Text style={styles.guideTitle}>
               {String(status.latest_recommendation.title ?? "Monitoring guidance")}
             </Text>
-            <Text style={styles.guideHint}>
-              Monitoring guidance only — not a treatment prescription.
-            </Text>
             {Array.isArray(status.latest_recommendation.actions)
               ? status.latest_recommendation.actions.map((a, i) => (
                   <Text key={i} style={styles.guideItem}>

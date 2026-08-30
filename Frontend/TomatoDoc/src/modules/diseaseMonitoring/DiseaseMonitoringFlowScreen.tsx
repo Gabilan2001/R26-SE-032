@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import type {
-  CropPart,
-  MonitoringCase,
-  Observation,
+import {
+  deleteCase,
+  type CropPart,
+  type MonitoringCase,
+  type Observation,
 } from "./api/observations";
 import { TARGET_OBSERVATIONS } from "./config/modality";
 import { initialSession, type MonitoringSession } from "./navigation/types";
@@ -50,11 +51,36 @@ export default function DiseaseMonitoringFlowScreen({ navigation, route }: Props
     }
   }, [route?.params?.initialCropPart]);
 
-  const exitToTomatoDoc = () => {
+  /** Incomplete cases (not finished on Overall) are removed so test uploads do not fill the DB. */
+  const discardIncompleteCase = async (
+    caseId: string | null | undefined,
+    observationCount: number,
+    completedOverall: boolean
+  ) => {
+    if (!caseId || completedOverall) return;
+    if (observationCount >= TARGET_OBSERVATIONS && completedOverall) return;
+    try {
+      await deleteCase(caseId);
+    } catch {
+      // Ignore network errors — local UI still resets.
+    }
+  };
+
+  const clearLocalSession = () => {
     appliedInitial.current = false;
     setSession(initialSession);
     setLatestObservation(null);
     setLatestImageUri(null);
+  };
+
+  const exitToTomatoDoc = async () => {
+    const completed = session.step === "overview";
+    await discardIncompleteCase(
+      session.caseData?.case_id,
+      session.observations.length,
+      completed
+    );
+    clearLocalSession();
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
@@ -63,9 +89,25 @@ export default function DiseaseMonitoringFlowScreen({ navigation, route }: Props
   };
 
   const resetFlow = () => {
+    // Completed overall — keep DB rows; only reset UI for a new case.
     setSession(initialSession);
     setLatestObservation(null);
     setLatestImageUri(null);
+  };
+
+  const abandonCurrentCaseAndGoCreate = async () => {
+    await discardIncompleteCase(
+      session.caseData?.case_id,
+      session.observations.length,
+      false
+    );
+    setLatestObservation(null);
+    setLatestImageUri(null);
+    setSession((s) => ({
+      ...initialSession,
+      cropPart: s.cropPart,
+      step: "create",
+    }));
   };
 
   let body: React.ReactNode;
@@ -76,7 +118,7 @@ export default function DiseaseMonitoringFlowScreen({ navigation, route }: Props
         onSelect={(cropPart: CropPart) =>
           setSession((s) => ({ ...s, cropPart, step: "create" }))
         }
-        onExit={exitToTomatoDoc}
+        onExit={() => void exitToTomatoDoc()}
       />
     );
   } else if (session.step === "create" && session.cropPart) {
@@ -87,10 +129,10 @@ export default function DiseaseMonitoringFlowScreen({ navigation, route }: Props
         onToggleWeather={setAttachWeather}
         onBack={() => {
           if (route?.params?.initialCropPart) {
-            exitToTomatoDoc();
+            void exitToTomatoDoc();
             return;
           }
-          setSession((s) => ({ ...s, step: "home", cropPart: null }));
+          setSession((s) => ({ ...s, step: "home", cropPart: null, caseData: null }));
         }}
         onCreated={(created: MonitoringCase) => {
           setSession((s) => ({
@@ -117,12 +159,7 @@ export default function DiseaseMonitoringFlowScreen({ navigation, route }: Props
         onLocationCommitted={(loc) =>
           setSession((s) => ({ ...s, caseLocation: loc }))
         }
-        onBack={() =>
-          setSession((s) => ({
-            ...s,
-            step: s.observations.length > 0 ? "result" : "create",
-          }))
-        }
+        onBack={() => void abandonCurrentCaseAndGoCreate()}
         onSuccess={({ observation, status, observations, imageUri, location }) => {
           setLatestObservation(observation);
           setLatestImageUri(imageUri);
@@ -154,7 +191,7 @@ export default function DiseaseMonitoringFlowScreen({ navigation, route }: Props
         imageUri={
           latestImageUri ?? session.imageUris[latestObservation.observation_id]
         }
-        onBack={() => setSession((s) => ({ ...s, step: "upload" }))}
+        onBack={() => void abandonCurrentCaseAndGoCreate()}
         onNextObservation={() =>
           setSession((s) => ({
             ...s,
@@ -174,7 +211,7 @@ export default function DiseaseMonitoringFlowScreen({ navigation, route }: Props
         observations={session.observations}
         imageUris={session.imageUris}
         onRestart={resetFlow}
-        onExit={exitToTomatoDoc}
+        onExit={() => void exitToTomatoDoc()}
       />
     );
   } else {
@@ -183,7 +220,7 @@ export default function DiseaseMonitoringFlowScreen({ navigation, route }: Props
         onSelect={(cropPart: CropPart) =>
           setSession((s) => ({ ...s, cropPart, step: "create" }))
         }
-        onExit={exitToTomatoDoc}
+        onExit={() => void exitToTomatoDoc()}
       />
     );
   }

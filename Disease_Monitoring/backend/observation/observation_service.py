@@ -17,6 +17,7 @@ from ml.predict.gate_predictor import is_valid_fruit, is_valid_leaf
 from ml.predict.secondary_image_verify import verify_crop_image
 from observation.observation_repository import (
     create_case,
+    delete_case,
     get_all_observations,
     get_case,
     get_last_accepted_observation,
@@ -87,6 +88,13 @@ async def get_monitoring_case(case_id: str) -> Dict[str, Any]:
     if not case:
         raise HTTPException(404, f"Case '{case_id}' not found.")
     return case
+
+
+async def delete_monitoring_case(case_id: str) -> Dict[str, Any]:
+    """Delete an incomplete/abandoned monitoring case and all its observations."""
+    if not delete_case(case_id):
+        raise HTTPException(404, f"Case '{case_id}' not found.")
+    return {"deleted": True, "case_id": case_id}
 
 
 async def process_observation_upload(

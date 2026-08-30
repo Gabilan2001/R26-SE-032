@@ -18,7 +18,7 @@ export type MonitoringSession = {
   imageUris: Record<string, string>;
   /** Which observation number the user is uploading (1–3). */
   uploadTarget: number;
-  /** Location chosen on Observation 1 — reused for Obs 2/3 weather. */
+  /** Location chosen on Observation 1 - reused for Obs 2/3 weather. */
   caseLocation: ObservationLocationSelection | null;
   lastMessage: string | null;
 };

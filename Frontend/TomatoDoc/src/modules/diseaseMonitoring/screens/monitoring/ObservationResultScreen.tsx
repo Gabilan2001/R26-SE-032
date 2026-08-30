@@ -71,7 +71,6 @@ export function ObservationResultScreen({
             <Text style={styles.guideTitle}>
               {String(observation.recommendation.title ?? "Monitoring guidance")}
             </Text>
-            <Text style={styles.guideHint}>Monitoring tips only — not a prescription.</Text>
             {Array.isArray(observation.recommendation.actions)
               ? observation.recommendation.actions.map((a, i) => (
                   <Text key={i} style={styles.guideItem}>

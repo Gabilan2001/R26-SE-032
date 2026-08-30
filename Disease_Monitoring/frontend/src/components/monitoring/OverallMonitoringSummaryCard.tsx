@@ -85,13 +85,13 @@ export function OverallMonitoringSummaryCard({ summary }: Props) {
           </Text>
         ) : (
           <Text style={styles.trendHint}>
-            Only one observation so far — more photos will show the recovery trend.
+            Only one observation so far - more photos will show the recovery trend.
           </Text>
         )}
       </View>
 
       <Text style={styles.disclaimer}>
-        Based on observation-based severity estimates — not expert-validated clinical recovery.
+        Based on observation-based severity estimates - not expert-validated clinical recovery.
       </Text>
     </View>
   );

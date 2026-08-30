@@ -205,10 +205,7 @@ export function ObservationUploadScreen({
         }
 
         const consistency = String(result.consistency_status ?? "");
-        if (
-          !confirmSameCase &&
-          (consistency === "POSSIBLE_MATCH" || consistency === "MISMATCH")
-        ) {
+        if (!confirmSameCase && consistency === "MISMATCH") {
           setPending({
             uri,
             consistency,

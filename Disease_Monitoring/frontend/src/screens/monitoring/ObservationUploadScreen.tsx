@@ -44,6 +44,7 @@ type Props = {
   attachWeather: boolean;
   savedLocation?: ObservationLocationSelection | null;
   onLocationCommitted?: (location: ObservationLocationSelection | null) => void;
+  onBack?: () => void;
   onSuccess: (payload: {
     observation: Observation;
     status: CaseStatus;
@@ -67,6 +68,7 @@ export function ObservationUploadScreen({
   attachWeather,
   savedLocation = null,
   onLocationCommitted,
+  onBack,
   onSuccess,
 }: Props) {
   const isFirstObservation = observationNumber === 1;
@@ -191,7 +193,7 @@ export function ObservationUploadScreen({
         const consistency = String(result.consistency_status ?? "");
         if (
           !confirmSameCase &&
-          (consistency === "POSSIBLE_MATCH" || consistency === "MISMATCH")
+          (consistency === "MISMATCH")
         ) {
           setPending({
             uri,
@@ -251,7 +253,7 @@ export function ObservationUploadScreen({
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar style="light" />
-      <LeafScanAppHeader />
+      <LeafScanAppHeader onBack={onBack} />
       <ScrollView contentContainerStyle={styles.content}>
         <ObservationProgress current={observationNumber} />
         <Text style={styles.title}>Observation {observationNumber}</Text>
