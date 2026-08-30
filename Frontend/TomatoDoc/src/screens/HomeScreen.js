@@ -176,15 +176,6 @@ export default function HomeScreen({ navigation }) {
           onPress={() => navigation.navigate('MonitoringModule')}
         />
         <ModuleCard
-          icon="clipboard-pulse-outline"
-          iconColor="#7ec8ff"
-          iconBg="rgba(126,200,255,0.10)"
-          title="Leaf disease monitoring"
-          subtitle="Leaf severity and recovery tracking over time"
-          badge="Ready"
-          onPress={() => navigation.navigate('MonitoringModule', { initialCropPart: 'LEAF' })}
-        />
-        <ModuleCard
           icon="virus"
           iconColor={C.accent}
           iconBg={C.accentDim}
