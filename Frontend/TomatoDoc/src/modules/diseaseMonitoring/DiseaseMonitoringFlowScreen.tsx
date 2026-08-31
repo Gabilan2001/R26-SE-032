@@ -156,6 +156,7 @@ export default function DiseaseMonitoringFlowScreen({ navigation, route }: Props
         observationNumber={session.uploadTarget}
         attachWeather={attachWeather}
         savedLocation={session.caseLocation}
+        existingObservations={session.observations}
         onLocationCommitted={(loc) =>
           setSession((s) => ({ ...s, caseLocation: loc }))
         }
@@ -188,6 +189,7 @@ export default function DiseaseMonitoringFlowScreen({ navigation, route }: Props
         observation={latestObservation}
         previousObservation={previousObservation}
         cropPart={session.cropPart ?? undefined}
+        caseLocation={session.caseLocation}
         imageUri={
           latestImageUri ?? session.imageUris[latestObservation.observation_id]
         }

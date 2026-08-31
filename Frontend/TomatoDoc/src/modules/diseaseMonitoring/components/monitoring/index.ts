@@ -11,6 +11,7 @@ export { ConsistencyStatusCard } from "./ConsistencyStatusCard";
 export { SeverityResultCard } from "./SeverityResultCard";
 export { WeatherObservationCard } from "./WeatherObservationCard";
 export { MismatchConfirmationModal } from "./MismatchConfirmationModal";
+export { DiseaseContextModal } from "./DiseaseContextModal";
 export { RecoveryStatusCard } from "./RecoveryStatusCard";
 export { OverallMonitoringCard } from "./OverallMonitoringCard";
 export {

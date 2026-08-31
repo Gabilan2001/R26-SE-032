@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Modal,
   Pressable,
   ScrollView,
@@ -12,7 +11,10 @@ import {
 import { fetchKnownLocations } from "../../api/locations";
 import { palette } from "../../theme/colors";
 import {
+  formatLocationNotice,
   formatLocationSummary,
+  gpsFailureMessage,
+  isGeolocationUsable,
   MANUAL_LOCATION_HINTS,
   manualLocationSelection,
   requestGpsLocation,
@@ -28,6 +30,8 @@ type Props = {
 export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
   const [loading, setLoading] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [noticeOk, setNoticeOk] = useState(true);
   const [options, setOptions] = useState<string[]>(Object.keys(MANUAL_LOCATION_HINTS));
 
   useEffect(() => {
@@ -38,17 +42,30 @@ export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
 
   const summary = formatLocationSummary(value);
 
+  const showNotice = (ok: boolean, text: string) => {
+    setNoticeOk(ok);
+    setNotice(text);
+  };
+
   const enableGps = async () => {
     setLoading(true);
+    setNotice("Asking for location...");
+    setNoticeOk(true);
     try {
-      const gps = await requestGpsLocation();
-      if (!gps) {
-        onChange(null);
-        Alert.alert("Location", "Location was not enabled. Pick an area or use Colombo default.");
+      if (!isGeolocationUsable()) {
+        showNotice(false, gpsFailureMessage("insecure_context", attachWeather));
         return;
       }
-      onChange(gps);
-      Alert.alert("Location on", "Weather will use your current location.");
+
+      const result = await requestGpsLocation();
+      if (result.success) {
+        onChange(result.location);
+        const line = formatLocationNotice(result.location);
+        showNotice(true, line ?? "Location on.");
+        return;
+      }
+
+      showNotice(false, gpsFailureMessage(result.reason, attachWeather));
     } finally {
       setLoading(false);
     }
@@ -63,10 +80,21 @@ export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
           : "Optional - set your area so weather can be linked to this observation."}
       </Text>
 
+      {notice ? (
+        <View style={[styles.noticeBox, noticeOk ? styles.noticeOk : styles.noticeWarn]}>
+          <Text style={noticeOk ? styles.noticeOkText : styles.noticeWarnText}>{notice}</Text>
+        </View>
+      ) : null}
+
       {summary ? (
         <View style={styles.summaryBox}>
           <Text style={styles.summaryLabel}>Selected location</Text>
           <Text style={styles.summaryValue}>{summary}</Text>
+          {value?.source === "gps" && !value.area ? (
+            <Text style={styles.summaryHint}>
+              Area name will be resolved when you upload.
+            </Text>
+          ) : null}
         </View>
       ) : (
         <Text style={styles.missing}>
@@ -96,10 +124,12 @@ export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
       <Pressable
         onPress={() => {
           if (attachWeather) {
-            onChange(manualLocationSelection("Colombo"));
-            Alert.alert("Location on", "Weather will use Colombo (default).");
+            const colombo = manualLocationSelection("Colombo");
+            onChange(colombo);
+            showNotice(true, formatLocationNotice(colombo) ?? "Location on - Colombo (default weather).");
           } else {
             onChange({ source: "none" });
+            showNotice(false, "Continuing without location.");
           }
         }}
         style={styles.skip}
@@ -121,9 +151,10 @@ export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
                   key={label}
                   style={styles.optionRow}
                   onPress={() => {
-                    onChange(manualLocationSelection(label));
+                    const picked = manualLocationSelection(label);
+                    onChange(picked);
                     setPickerOpen(false);
-                    Alert.alert("Location on", `Weather will use ${label}.`);
+                    showNotice(true, formatLocationNotice(picked) ?? `Location on - ${label}.`);
                   }}
                 >
                   <Text style={styles.optionText}>{label}</Text>
@@ -151,6 +182,22 @@ const styles = StyleSheet.create({
   },
   title: { color: palette.textPrimary, fontSize: 16, fontWeight: "800" },
   body: { color: palette.textMuted, marginTop: 8, lineHeight: 20 },
+  noticeBox: {
+    marginTop: 12,
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  noticeOk: {
+    backgroundColor: "rgba(74,223,111,0.12)",
+    borderColor: "rgba(74,223,111,0.35)",
+  },
+  noticeWarn: {
+    backgroundColor: "rgba(255,179,71,0.12)",
+    borderColor: "rgba(255,179,71,0.4)",
+  },
+  noticeOkText: { color: "#7CFF9C", fontWeight: "700", fontSize: 13, lineHeight: 18 },
+  noticeWarnText: { color: "#FFB347", fontWeight: "700", fontSize: 13, lineHeight: 18 },
   summaryBox: {
     marginTop: 12,
     padding: 12,
@@ -159,6 +206,7 @@ const styles = StyleSheet.create({
   },
   summaryLabel: { color: palette.textMuted, fontSize: 12, fontWeight: "600" },
   summaryValue: { color: palette.textPrimary, marginTop: 4, fontWeight: "700" },
+  summaryHint: { color: palette.textMuted, fontSize: 12, marginTop: 4 },
   missing: { color: "#FFB347", marginTop: 12, lineHeight: 18 },
   actions: { flexDirection: "row", gap: 10, marginTop: 14 },
   button: {

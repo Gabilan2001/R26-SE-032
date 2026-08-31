@@ -94,6 +94,7 @@ export default function App() {
         observationNumber={session.uploadTarget}
         attachWeather={attachWeather}
         savedLocation={session.caseLocation}
+        existingObservations={session.observations}
         onLocationCommitted={(loc) =>
           setSession((s) => ({ ...s, caseLocation: loc }))
         }
@@ -132,6 +133,7 @@ export default function App() {
         observation={latestObservation}
         previousObservation={previousObservation}
         cropPart={session.cropPart ?? undefined}
+        caseLocation={session.caseLocation}
         imageUri={
           latestImageUri ?? session.imageUris[latestObservation.observation_id]
         }

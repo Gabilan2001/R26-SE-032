@@ -12,7 +12,10 @@ import { fetchKnownLocations } from "../../api/locations";
 import { useMonitoringPalette } from "../../theme/MonitoringThemeContext";
 import type { MonitoringPalette } from "../../theme/colors";
 import {
+  formatLocationNotice,
   formatLocationSummary,
+  gpsFailureMessage,
+  isGeolocationUsable,
   MANUAL_LOCATION_HINTS,
   manualLocationSelection,
   requestGpsLocation,
@@ -52,25 +55,20 @@ export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
     setNotice("Asking for location...");
     setNoticeOk(true);
     try {
-      const gps = await requestGpsLocation();
-      if (gps?.latitude != null && gps?.longitude != null) {
-        onChange(gps);
-        showNotice(
-          true,
-          `Location on - ${gps.latitude.toFixed(4)}, ${gps.longitude.toFixed(4)}`
-        );
+      if (!isGeolocationUsable()) {
+        showNotice(false, gpsFailureMessage("insecure_context", attachWeather));
         return;
       }
-      if (attachWeather) {
-        onChange(manualLocationSelection("Colombo"));
-        showNotice(
-          false,
-          "GPS not available in this browser. Colombo default is on for weather."
-        );
-      } else {
-        onChange(null);
-        showNotice(false, "GPS not available. Select an area manually.");
+
+      const result = await requestGpsLocation();
+      if (result.success) {
+        onChange(result.location);
+        const line = formatLocationNotice(result.location);
+        showNotice(true, line ?? "Location on.");
+        return;
       }
+
+      showNotice(false, gpsFailureMessage(result.reason, attachWeather));
     } finally {
       setLoading(false);
     }
@@ -129,8 +127,9 @@ export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
       <Pressable
         onPress={() => {
           if (attachWeather) {
-            onChange(manualLocationSelection("Colombo"));
-            showNotice(true, "Location on - Colombo (default weather).");
+            const colombo = manualLocationSelection("Colombo");
+            onChange(colombo);
+            showNotice(true, formatLocationNotice(colombo) ?? "Location on - Colombo (default weather).");
           } else {
             onChange({ source: "none" });
             showNotice(false, "Continuing without location.");
@@ -155,9 +154,10 @@ export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
                   key={label}
                   style={styles.optionRow}
                   onPress={() => {
-                    onChange(manualLocationSelection(label));
+                    const picked = manualLocationSelection(label);
+                    onChange(picked);
                     setPickerOpen(false);
-                    showNotice(true, `Location on - ${label}.`);
+                    showNotice(true, formatLocationNotice(picked) ?? `Location on - ${label}.`);
                   }}
                 >
                   <Text style={styles.optionText}>{label}</Text>
