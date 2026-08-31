@@ -30,26 +30,31 @@
 #   python fetch_negative_class_data.py
 
 import json
-import pickle
 import random
-import shutil
-import tarfile
-import time
 import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
 
-import numpy as np
-from PIL import Image
-
 BASE = Path(r"C:\Users\mfart\Desktop\Research\Disease Detection\R26-SE-032\Disease_Detection")
 OUT_DIR = BASE / "data" / "leaf_validator_negatives"
 LEAVES_DIR = OUT_DIR / "other_plant_leaves"
+FIELD_LEAVES_DIR = OUT_DIR / "other_plant_leaves_field"
 OBJECTS_DIR = OUT_DIR / "random_objects"
 
 GITHUB_API = "https://api.github.com/repos/spMohanty/PlantVillage-Dataset/contents/raw/color"
 RAW_BASE = "https://raw.githubusercontent.com/spMohanty/PlantVillage-Dataset/master/raw/color"
+
+# PlantDoc -- real-world/field-condition photos (scraped from the wild:
+# messy backgrounds, natural lighting, varied angles), unlike PlantVillage's
+# uniform lab/studio-style crops. The retrained validator confidently (0.97-
+# 1.00) misclassified real field photos of potato leaves as tomato_leaf --
+# because every other_plant_leaf example it had ever seen was a clean studio
+# photo, it could shortcut on "photography style" instead of actual leaf
+# morphology, since the tomato_leaf class also included real field photos.
+# This adds a same-style negative counterpart so that shortcut stops working.
+PLANTDOC_TREE_API = "https://api.github.com/repos/pratikkayal/PlantDoc-Dataset/git/trees/master?recursive=1"
+PLANTDOC_RAW_BASE = "https://raw.githubusercontent.com/pratikkayal/PlantDoc-Dataset/master"
 
 # Heaviest weight: closest relatives to tomato (Solanaceae) + the exact
 # species that slipped through in testing (potato, late blight).
@@ -77,60 +82,6 @@ def download_file(url, dest_path):
     req = urllib.request.Request(url, headers=REQUEST_HEADERS)
     with urllib.request.urlopen(req, timeout=30) as resp:
         dest_path.write_bytes(resp.read())
-
-
-def download_large_file(url, dest_path, max_attempts=8):
-    """Resumable chunked download for big files (the CIFAR-100 archive).
-    cs.toronto.edu's server has repeatedly dropped the connection partway
-    through (first at ~5MB, then ~41MB) -- a longer timeout alone doesn't
-    help since these aren't timeouts, the connection just stops delivering
-    data. This retries with an HTTP Range request picking up from however
-    many bytes are already on disk, instead of restarting from zero."""
-    chunk_size = 1024 * 1024
-
-    for attempt in range(1, max_attempts + 1):
-        existing = dest_path.stat().st_size if dest_path.exists() else 0
-        req = urllib.request.Request(url, headers=dict(REQUEST_HEADERS))
-        if existing:
-            req.add_header("Range", f"bytes={existing}-")
-
-        try:
-            with urllib.request.urlopen(req, timeout=60) as resp:
-                resuming = resp.status == 206
-                if existing and not resuming:
-                    # Server ignored the Range request -- start over cleanly
-                    # rather than risk a corrupt double-written file.
-                    existing = 0
-                content_range_total = resp.headers.get("Content-Range", "")
-                if "/" in content_range_total:
-                    total = int(content_range_total.rsplit("/", 1)[1])
-                else:
-                    total = existing + int(resp.headers.get("Content-Length", 0))
-
-                mode = "ab" if resuming else "wb"
-                written = existing
-                with open(dest_path, mode) as f:
-                    while True:
-                        chunk = resp.read(chunk_size)
-                        if not chunk:
-                            break
-                        f.write(chunk)
-                        written += len(chunk)
-                        if total:
-                            print(f"    {written / 1e6:.0f}MB / {total / 1e6:.0f}MB "
-                                  f"(attempt {attempt})", flush=True)
-
-            if total and written < total:
-                raise IOError(f"Incomplete: got {written} of {total} bytes")
-            return  # success
-
-        except Exception as e:
-            print(f"    Attempt {attempt}/{max_attempts} failed at "
-                  f"{dest_path.stat().st_size if dest_path.exists() else 0} bytes: {e}", flush=True)
-            if attempt == max_attempts:
-                dest_path.unlink(missing_ok=True)
-                raise
-            time.sleep(min(5 * attempt, 30))
 
 
 def fetch_plantvillage():
@@ -180,66 +131,144 @@ def fetch_plantvillage():
         print(f"  {category:<55} {got}/{len(sample)} downloaded (weight={limit})")
 
 
-def fetch_cifar100():
+def fetch_plantdoc():
     print("\n" + "=" * 55)
-    print("Fetching random_objects/ from CIFAR-100")
+    print("Fetching other_plant_leaves_field/ from PlantDoc (GitHub)")
     print("=" * 55)
 
-    TARGET_COUNT = 1800
-    already = list(OBJECTS_DIR.glob("*.png"))
-    if len(already) >= TARGET_COUNT:
-        print(f"  Already have {len(already)} images, skipping download.")
-        return
+    tree = http_get_json(PLANTDOC_TREE_API)
+    files_by_category = {}
+    for item in tree["tree"]:
+        if item["type"] != "blob":
+            continue
+        parts = item["path"].split("/")
+        if len(parts) != 3 or parts[0] not in ("train", "test"):
+            continue
+        split, category, fname = parts
+        if category.startswith("Tomato"):
+            continue
+        files_by_category.setdefault(category, []).append((split, fname))
 
-    url = "https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz"
-    archive_path = OUT_DIR / "cifar-100-python.tar.gz"
-    if not archive_path.exists():
-        print(f"  Downloading {url} (~169MB)...")
-        download_large_file(url, archive_path)
-        print("  Downloaded.")
+    print(f"  {len(files_by_category)} non-tomato species/disease categories found "
+          f"({sum(len(v) for v in files_by_category.values())} images total)")
 
-    print("  Extracting...")
-    with tarfile.open(archive_path) as tar:
-        tar.extractall(OUT_DIR)
+    for category, files in sorted(files_by_category.items()):
+        safe_name = category.replace(" ", "_").replace(",", "")
+        cat_dir = FIELD_LEAVES_DIR / safe_name
+        cat_dir.mkdir(parents=True, exist_ok=True)
 
-    train_pickle = OUT_DIR / "cifar-100-python" / "train"
-    with open(train_pickle, "rb") as f:
-        batch = pickle.load(f, encoding="bytes")
+        already = len(list(cat_dir.glob("*.*")))
+        if already >= len(files):
+            print(f"  {category:<30} already have {already}, skipping")
+            continue
 
-    data = batch[b"data"]  # (N, 3072) uint8, R/G/B channels flattened
-    n = data.shape[0]
-    random.seed(42)
-    indices = random.sample(range(n), min(TARGET_COUNT, n))
+        got = 0
+        for split, fname in files:
+            # Prefix with split -- train/ and test/ can have same filenames.
+            dest = cat_dir / f"{split}_{fname}"
+            if dest.exists():
+                got += 1
+                continue
+            url = f"{PLANTDOC_RAW_BASE}/{split}/{urllib.parse.quote(category)}/{urllib.parse.quote(fname)}"
+            try:
+                download_file(url, dest)
+                got += 1
+            except Exception:
+                pass
+        print(f"  {category:<30} {got}/{len(files)} downloaded")
 
-    for i, idx in enumerate(indices):
-        img_flat = data[idx]
-        img = img_flat.reshape(3, 32, 32).transpose(1, 2, 0)  # -> HWC
-        Image.fromarray(img).save(OBJECTS_DIR / f"cifar_{idx}.png")
 
-    print(f"  Saved {len(indices)} images to {OBJECTS_DIR}")
+FOOD101_ROWS_API = "https://datasets-server.huggingface.co/rows"
+FOOD101_DATASET = "ethz/food101"
+FOOD101_BLOCK_SIZE = 750  # confirmed via /size: 75750 train rows / 101 classes, contiguous per class
+FOOD101_PER_CLASS = 20    # ~101 classes * 20 = ~2000, matching CIFAR-100's prior scale
 
-    # Cleanup the archive + extracted pickle folder, keep only the images.
-    archive_path.unlink(missing_ok=True)
-    shutil.rmtree(OUT_DIR / "cifar-100-python", ignore_errors=True)
-    print("  Cleaned up archive/pickle files.")
+
+def fetch_food101():
+    """Replaces the old CIFAR-100 source. CIFAR-100 images are natively
+    32x32 -- stretched to the validator's 224x224 input they're extremely
+    blurry/blocky, nothing like a real photo a user would upload. That's the
+    same class of shortcut-learning risk as the lab-vs-field leaf photos:
+    the model could learn "blurry = random_object" instead of "this is a
+    mundane object, not a leaf", which wouldn't generalize to a real sharp
+    photo (e.g. the cake photo that was the original reported failure).
+    Food-101 (ethz/food101 on Hugging Face) gives full-resolution real
+    photos across 101 food categories -- fetched via HF's public
+    datasets-server API, no auth needed, without downloading the full ~5GB
+    archive.
+    """
+    print("\n" + "=" * 55)
+    print("Fetching random_objects/ from Food-101 (replaces CIFAR-100)")
+    print("=" * 55)
+
+    old_cifar = list(OBJECTS_DIR.glob("cifar_*.png"))
+    if old_cifar:
+        print(f"  Removing {len(old_cifar)} old low-res CIFAR-100 images...")
+        for f in old_cifar:
+            f.unlink()
+
+    first = http_get_json(
+        f"{FOOD101_ROWS_API}?dataset={urllib.parse.quote(FOOD101_DATASET, safe='')}"
+        f"&config=default&split=train&offset=0&length=1"
+    )
+    class_names = first["features"][1]["type"]["names"]
+    print(f"  {len(class_names)} food categories, {FOOD101_PER_CLASS} images each")
+
+    got_total = 0
+    for i in range(len(class_names)):
+        offset = i * FOOD101_BLOCK_SIZE
+        try:
+            data = http_get_json(
+                f"{FOOD101_ROWS_API}?dataset={urllib.parse.quote(FOOD101_DATASET, safe='')}"
+                f"&config=default&split=train&offset={offset}&length={FOOD101_PER_CLASS}"
+            )
+        except Exception as e:
+            print(f"  block {i:<3} FAILED to list: {e}")
+            continue
+
+        rows = data.get("rows", [])
+        if not rows:
+            continue
+        label_name = class_names[rows[0]["row"]["label"]]
+
+        got = 0
+        for j, r in enumerate(rows):
+            dest = OBJECTS_DIR / f"food101_{label_name}_{j}.jpg"
+            if dest.exists():
+                got += 1
+                continue
+            try:
+                download_file(r["row"]["image"]["src"], dest)
+                got += 1
+            except Exception:
+                pass
+        got_total += got
+        print(f"  {label_name:<30} {got}/{len(rows)} downloaded")
+
+    print(f"  Total: {got_total} images")
 
 
 def main():
     LEAVES_DIR.mkdir(parents=True, exist_ok=True)
+    FIELD_LEAVES_DIR.mkdir(parents=True, exist_ok=True)
     OBJECTS_DIR.mkdir(parents=True, exist_ok=True)
 
     fetch_plantvillage()
-    fetch_cifar100()
+    fetch_plantdoc()
+    fetch_food101()
 
     n_leaves = sum(1 for _ in LEAVES_DIR.rglob("*.jpg")) + sum(1 for _ in LEAVES_DIR.rglob("*.JPG"))
-    n_objects = sum(1 for _ in OBJECTS_DIR.glob("*.png"))
+    n_field = sum(1 for _ in FIELD_LEAVES_DIR.rglob("*.*"))
+    n_objects = sum(1 for _ in OBJECTS_DIR.glob("*.jpg"))
     print("\n" + "=" * 55)
     print("Done")
     print("=" * 55)
-    print(f"  other_plant_leaves/ : {n_leaves} images")
-    print(f"  random_objects/     : {n_objects} images")
+    print(f"  other_plant_leaves/       : {n_leaves} images (PlantVillage, lab-style)")
+    print(f"  other_plant_leaves_field/ : {n_field} images (PlantDoc, field-condition)")
+    print(f"  random_objects/           : {n_objects} images")
     print("\nNext: review the data, then update train_leaf_validator.py's")
-    print("NOT_TOMATO_DIRS to include these two folders, and retrain when ready.")
+    print("OTHER_LEAF_DIRS to include other_plant_leaves_field/ too, and")
+    print("retrain when ready.")
 
 
 if __name__ == "__main__":

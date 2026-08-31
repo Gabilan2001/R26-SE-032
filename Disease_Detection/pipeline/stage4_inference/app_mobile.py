@@ -67,20 +67,34 @@ import torch.nn as nn
 
 BASE = Path(__file__).resolve().parents[2]  # .../Disease_Detection
 VALIDATOR_PATH = BASE / "models" / "leaf_validator.pth"
-VALIDATOR_THRESHOLD = 0.75
+VALIDATOR_THRESHOLD = 0.5  # was 0.75 -- too strict once training data got realistically
+# harder (no longer near-1.0 confidence on everything); a correct-but-moderate
+# "tomato_leaf" call like 0.66 was getting rejected outright. Argmax still has
+# to BE tomato_leaf either way, so this only affects genuine tomato calls
+# sitting in the 0.5-0.75 range, not other-class predictions.
 
 device = "0" if torch.cuda.is_available() else "cpu"
 torch_device = "cuda" if torch.cuda.is_available() else "cpu"
 
+# 3-class as of the retrain: tomato_leaf / other_plant_leaf / random_object
+# (was a 2-class tomato-vs-not validator before -- that couldn't tell a wrong
+# plant species from a non-leaf object, so both got the same generic error).
+VALIDATOR_CLASS_NAMES = ["tomato_leaf", "other_plant_leaf", "random_object"]
+LEAF_VALIDATOR_MESSAGES = {
+    "other_plant_leaf": "This looks like a different plant's leaf, not a tomato leaf. Please upload a photo of a tomato leaf.",
+    "random_object": "This doesn't look like a leaf at all. Please upload a clear photo of a tomato leaf.",
+}
+
 def load_leaf_validator():
     ckpt = torch.load(str(VALIDATOR_PATH), map_location="cpu", weights_only=False)
     m = models.efficientnet_b0(weights=None)
-    m.classifier[1] = nn.Linear(m.classifier[1].in_features, 2)
+    m.classifier[1] = nn.Linear(m.classifier[1].in_features, len(VALIDATOR_CLASS_NAMES))
     m.load_state_dict(ckpt["model_state_dict"])
     m.eval().to(torch_device)
     return m
 
-def is_tomato_leaf(img_bgr, validator_model):
+def classify_leaf(img_bgr, validator_model):
+    """Returns (is_valid_tomato_leaf, predicted_class_name, tomato_leaf_confidence)."""
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
@@ -91,7 +105,9 @@ def is_tomato_leaf(img_bgr, validator_model):
     with torch.no_grad():
         probs = torch.softmax(validator_model(t), dim=1)[0].cpu().numpy()
     tomato_conf = float(probs[0])
-    return tomato_conf >= VALIDATOR_THRESHOLD, round(tomato_conf, 4)
+    pred_class = VALIDATOR_CLASS_NAMES[int(np.argmax(probs))]
+    is_valid = pred_class == "tomato_leaf" and tomato_conf >= VALIDATOR_THRESHOLD
+    return is_valid, pred_class, round(tomato_conf, 4)
 
 # ── The one final model ────────────────────────────────────────────────────────
 MODEL_PATH = BASE / "models" / "yolov8m_final" / "weights" / "best.pt"
@@ -236,11 +252,14 @@ def predict():
             "annotated_image": encode_image(original_img),
         })
 
-    valid_leaf, leaf_conf = is_tomato_leaf(original_img, leaf_validator)
+    valid_leaf, leaf_class, leaf_conf = classify_leaf(original_img, leaf_validator)
     if not valid_leaf:
+        print(f"  Leaf REJECTED ❌ predicted={leaf_class} tomato_conf={leaf_conf:.2f} (threshold={VALIDATOR_THRESHOLD})")
+        msg = LEAF_VALIDATOR_MESSAGES.get(leaf_class, "Not a tomato leaf image.")
         return jsonify({
-            "error": f"Not a tomato leaf image (confidence: {leaf_conf:.0%}). Please upload a clear tomato leaf photo.",
-            "valid": False, "leaf_conf": leaf_conf, "detections": [], "diseases_found": [],
+            "error": f"{msg} (confidence: {leaf_conf:.0%})",
+            "valid": False, "leaf_class": leaf_class, "leaf_conf": leaf_conf,
+            "detections": [], "diseases_found": [],
             "co_occurrence": False, "total_boxes": 0,
             "annotated_image": encode_image(original_img),
         })

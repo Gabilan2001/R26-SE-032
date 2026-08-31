@@ -43,8 +43,20 @@ NEGATIVES  = BASE / "data" / "leaf_validator_negatives"
 
 CLASS_NAMES = ["tomato_leaf", "other_plant_leaf", "random_object"]
 
-# Class 0: tomato leaf (all tomato leaf types)
-TOMATO_DIRS = [
+# Class 0: tomato leaf. Field-style (real photos, your own YOLO training
+# set) and lab-style (PlantVillage) sources are split out and given an
+# EXPLICIT quota each, rather than one flat random draw across both pools
+# combined. The lab pool (~9300 images) vastly outnumbers the field pool
+# (~1930), so a flat random sample diluted field-style tomato photos down to
+# ~17% of the class while other_plant_leaf (below) ended up ~39% field-style
+# after its own retrain -- the model could still partly shortcut on
+# photography style, just flipped: a real field-condition tomato photo (e.g.
+# a leaf-miner-damaged leaf) started getting rejected as "not tomato" at
+# 0.21 confidence. Matching the field/lab ratio between classes removes that
+# shortcut instead of just relocating it.
+TOMATO_FIELD_DIR = BASE / "data" / "splits" / "train" / "images"  # your own YOLO training images
+TOMATO_FIELD_TARGET = 800  # ~= other_plant_leaf's field-style share (2000 * 1759/4521 ~= 780)
+TOMATO_LAB_DIRS = [
     Path(r"C:\Users\mfart\Desktop\Models\tomato-disease\data\train\Tomato_healthy"),
     Path(r"C:\Users\mfart\Desktop\Models\tomato-disease\data\train\Tomato_Early_blight"),
     Path(r"C:\Users\mfart\Desktop\Models\tomato-disease\data\train\Tomato_Late_blight") if Path(r"C:\Users\mfart\Desktop\Models\tomato-disease\data\train\Tomato_Late_blight").exists() else
@@ -52,18 +64,29 @@ TOMATO_DIRS = [
     Path(r"C:\Users\mfart\Desktop\Models\tomato-disease\data\train\Tomato_Bacterial_spot"),
     Path(r"C:\Users\mfart\Desktop\Models\tomato-disease\data\train\Tomato_Septoria_leaf_spot"),
     Path(r"C:\Users\mfart\Desktop\Models\tomato-disease\data\train\Tomato_YellowLeaf_Curl_Virus"),
-    # Also include your YOLO training images
-    BASE / "data" / "splits" / "train" / "images",
 ]
 
-# Class 1: other plant species' leaves (PlantVillage, non-tomato) -- one
-# subfolder per species/disease category, discovered at runtime.
-OTHER_LEAF_DIRS = sorted(p for p in (NEGATIVES / "other_plant_leaves").glob("*") if p.is_dir()) \
-    if (NEGATIVES / "other_plant_leaves").exists() else []
+# Class 1: other plant species' leaves -- one subfolder per species/disease
+# category, discovered at runtime. Two sources mixed together on purpose:
+# PlantVillage (lab/studio-style crops) AND PlantDoc (real field-condition
+# photos -- messy backgrounds, natural lighting). Lab-only negatives let the
+# model shortcut on "photography style" instead of real leaf morphology,
+# since the tomato_leaf class also includes real field photos -- confirmed
+# in testing: real potato leaf photos got misclassified as tomato_leaf with
+# 0.97-1.00 confidence. Mixing both styles into the negative class forces it
+# to actually learn leaf differences instead of background/lighting cues.
+def _leaf_subdirs(folder_name):
+    d = NEGATIVES / folder_name
+    return sorted(p for p in d.glob("*") if p.is_dir()) if d.exists() else []
 
-# Class 2: not a plant at all -- CIFAR-100 everyday objects, plus the
-# original Intel landscape scenes (both are "not a leaf", just folded
-# together into one class now instead of being the entire negative side).
+OTHER_LEAF_DIRS = _leaf_subdirs("other_plant_leaves") + _leaf_subdirs("other_plant_leaves_field")
+
+# Class 2: not a plant at all -- Food-101 real photos (full-resolution;
+# replaced CIFAR-100's native 32x32 thumbnails, which were blurry enough
+# after upscaling to 224x224 that the model could shortcut on "blurry =
+# random_object" instead of "this is a mundane object" -- wouldn't have
+# generalized to a real sharp photo like the cake photo that originally
+# slipped through), plus the original Intel landscape scenes.
 RANDOM_OBJECT_DIRS = [
     NEGATIVES / "random_objects",
     Path(r"C:\Users\mfart\Downloads\Compressed\archive\seg_train\seg_train\buildings"),
@@ -83,7 +106,9 @@ IMG_SIZE        = 224
 BATCH_SIZE      = 32
 EPOCHS          = 15
 LR              = 1e-4
-THRESHOLD       = 0.75    # confidence to confirm tomato leaf
+THRESHOLD       = 0.5     # confidence to confirm tomato leaf -- keep in sync with
+# VALIDATOR_THRESHOLD in app.py / app_mobile.py (this constant itself isn't
+# used at inference time, it's just documentation of the deployed value)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -159,8 +184,12 @@ def train():
 
     # Collect images
     print("\n  Collecting tomato leaf images...")
-    tomato_imgs = collect_images(TOMATO_DIRS, TOMATO_LIMIT)
-    print(f"  Total tomato leaf     : {len(tomato_imgs)}")
+    tomato_field_imgs = collect_images([TOMATO_FIELD_DIR], TOMATO_FIELD_TARGET)
+    tomato_lab_imgs = collect_images(TOMATO_LAB_DIRS, TOMATO_LIMIT - len(tomato_field_imgs))
+    tomato_imgs = tomato_field_imgs + tomato_lab_imgs
+    random.shuffle(tomato_imgs)
+    print(f"  Total tomato leaf     : {len(tomato_imgs)} "
+          f"({len(tomato_field_imgs)} field-style, {len(tomato_lab_imgs)} lab-style)")
 
     print("\n  Collecting other-plant-leaf images...")
     other_leaf_imgs = collect_images(OTHER_LEAF_DIRS, OTHER_LEAF_LIMIT)
