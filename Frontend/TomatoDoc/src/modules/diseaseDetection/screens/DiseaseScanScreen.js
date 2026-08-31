@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { predictDisease } from '../api/scan';
 import { UIThemeContext } from '../../../context/UIThemeContext';
 import LoadingOverlay from '../../../components/LoadingOverlay';
@@ -131,7 +132,25 @@ export default function DiseaseScanScreen({ navigation }) {
   const pickImage = async (fromCamera = false) => {
     const launcher = fromCamera ? ImagePicker.launchCameraAsync : ImagePicker.launchImageLibraryAsync;
     const res = await launcher({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8 });
-    if (!res.canceled) setImage(res.assets[0]);
+    if (res.canceled) return;
+    const picked = res.assets[0];
+    // Phone camera photos are often 3000-4000px / several MB -- quality:0.8
+    // above only re-encodes, it doesn't shrink dimensions. On a slow/cellular
+    // upload link that's enough to blow past the API's timeout even though
+    // the backend itself responds instantly. The model runs at native 640px
+    // input, so downscaling to 1280px on the long edge loses nothing
+    // detection-wise while cutting the upload size ~5-10x.
+    try {
+      const resized = await ImageManipulator.manipulateAsync(
+        picked.uri,
+        [{ resize: { width: 1280 } }],
+        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      setImage({ uri: resized.uri, fileName: `leaf-${Date.now()}.jpg`, mimeType: 'image/jpeg' });
+    } catch {
+      // If resizing fails for any reason, fall back to the original picked image.
+      setImage(picked);
+    }
   };
 
   const analyze = async () => {
