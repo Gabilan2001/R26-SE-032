@@ -189,39 +189,67 @@ function pctChange(prev, cur) {
 
 /** Farmer-facing simple copy in English with plain Sinhala subtitle. */
 function adviceCopy(data) {
-  const rec = String(data.recommendation || "").toUpperCase();
+  const code = String(data.action_code || "").toUpperCase();
+  const peakDay = data.peak_day || data.optimal_sell_day || 1;
+  const peakPrice = data.peak_price_lkr || data.optimal_sell_price_lkr || data.day1_forecast_lkr;
+  const termPrice = data.day14_forecast_lkr;
+  const trend = String(data.trend || "").toUpperCase();
 
-  if (rec.includes("MONITOR")) {
+  // RULE 1: Anomaly
+  if (code === "MONITOR" || (!code && String(data.recommendation || "").toUpperCase().includes("MONITOR"))) {
     return {
       title: "⚠️ MONITOR — Market Anomaly Detected",
-      textEn: "Current market prices are behaving unpredictably right now. Keep a close eye on daily buyer offers before committing to a large sale.",
+      textEn: "Current market prices are behaving unpredictably right now. Keep a close eye on daily physical market offers before committing to a large sale.",
       textSi: "වෙළඳපොළ මිල ගණන් දැනට අවිනිශ්චිත තත්ත්වයක පවතී. විශාල වශයෙන් අලෙවි කිරීමට පෙර දිනපතා වෙළඳපොළ තොරතුරු පරීක්ෂා කරන්න.",
       bannerClass: "banner-monitor",
     };
   }
-  if (rec.includes("HOLD")) {
-    return {
-      title: "📈 HOLD — Higher Returns Expected",
-      textEn: "Prices are projected to rise steadily over the next two weeks. Holding off on immediate sales is recommended to capture higher profit.",
-      textSi: "ඉදිරි සති දෙක තුළ තක්කාලි මිල ඉහළ යනු ඇතැයි අපේක්ෂා කෙරේ. වැඩි ලාභයක් ලබා ගැනීම සඳහා දැනට අලෙවි කිරීම අත්හිටුවීම සුදුසුය.",
-      bannerClass: "banner-hold",
-    };
-  }
-  if (rec.includes("SELL NOW") && !rec.includes("HOLD")) {
+
+  // RULE 2 & 3: SELL NOW (Early Peak or Continuous Decline)
+  if (code === "SELL_NOW" || (!code && String(data.recommendation || "").toUpperCase().startsWith("SELL NOW") && !String(data.recommendation || "").toUpperCase().includes("HOLD"))) {
+    if (peakDay <= 2 && (trend === "DECLINING" || (data.terminal_change_pct != null && data.terminal_change_pct < 0))) {
+      return {
+        title: `⚡ SELL NOW — Peak Price in Next ${peakDay === 1 ? "1–2 Days" : "Day " + peakDay}`,
+        textEn: `Prices are projected to peak near ${Math.round(peakPrice)} LKR/kg around Day ${peakDay} and soften thereafter (reaching ~${Math.round(termPrice)} LKR/kg by Day 14). Selling immediately or near this early peak is recommended.`,
+        textSi: `ඉදිරි දින 1–2 තුළ තක්කාලි මිල උපරිම මට්ටමට (~රු. ${Math.round(peakPrice)}) ළඟා වී ඉන්පසු පහත වැටෙනු ඇතැයි අපේක්ෂා කෙරේ. වැඩි ලාභයක් ලබා ගැනීමට වහාම අලෙවි කිරීම සුදුසුය.`,
+        bannerClass: "banner-sell",
+      };
+    }
     return {
       title: "🚨 SELL NOW — Prices Softening",
-      textEn: "Prices are projected to fall over the next two weeks. Selling immediately is recommended to protect your earnings before prices drop further.",
-      textSi: "ඉදිරි සති දෙක තුළ තක්කාලි මිල පහළ යාමට ඉඩ ඇත. මිල තවත් අඩුවීමට පෙර වහාම අලෙවි කිරීම සුදුසුය.",
+      textEn: `Prices are projected to decline across the coming days (down to ~${Math.round(termPrice)} LKR/kg). Selling immediately is recommended to protect your earnings before prices drop further.`,
+      textSi: "ඉදිරි දින කිහිපය තුළ තක්කාලි මිල පහළ යාමට ඉඩ ඇත. මිල තවත් අඩුවීමට පෙර වහාම අලෙවි කිරීම සුදුසුය.",
       bannerClass: "banner-sell",
     };
   }
+
+  // RULE 4 & 5: HOLD (Mid-term peak or late rise)
+  if (code === "HOLD" || (!code && String(data.recommendation || "").toUpperCase() === "HOLD")) {
+    if (peakDay <= 5) {
+      return {
+        title: `📈 HOLD — Optimal Selling Window Around Day ${peakDay}`,
+        textEn: `Prices are projected to rise toward a peak of ~${Math.round(peakPrice)} LKR/kg around Day ${peakDay}. Timing sales near this window is recommended if harvested tomatoes can be safely managed without spoilage (3–5 day shelf life).`,
+        textSi: `ඉදිරි දින ${peakDay} තුළ තක්කාලි මිල ඉහළ ගොස් උපරිම මට්ටමට (~රු. ${Math.round(peakPrice)}) ළඟා වනු ඇතැයි අපේක්ෂා කෙරේ. වැඩි ලාභයක් ලබා ගැනීම සඳහා අලෙවිය දින කිහිපයක් ප්‍රමාද කිරීම සුදුසුය.`,
+        bannerClass: "banner-hold",
+      };
+    }
+    return {
+      title: `📈 HOLD — Higher Prices Projected Around Day ${peakDay}`,
+      textEn: `Higher market prices (up to ~${Math.round(peakPrice)} LKR/kg) are projected later around Day ${peakDay}. Plan staggered field harvesting rather than holding already-harvested crop in ambient storage for extended periods.`,
+      textSi: `ඉදිරි දින ${peakDay} පමණ වන විට ඉහළ මිලක් (~රු. ${Math.round(peakPrice)}) අපේක්ෂා කෙරේ. තක්කාලි කල්තබා ගත නොහැකි බැවින් අස්වනු නෙළීම සැලසුම් සහගතව සිදු කරන්න.`,
+      bannerClass: "banner-hold",
+    };
+  }
+
+  // RULE 6: STABLE (Default)
   return {
-    title: "➡️ SELL NOW OR HOLD — Prices Expected to Stay Stable",
-    textEn: "Prices are projected to remain steady within normal daily market fluctuations. You can sell at your convenience.",
-    textSi: "තක්කාලි මිල සාමාන්‍ය මට්ටමේ ස්ථාවරව පවතිනු ඇතැයි අපේක්ෂා කෙරේ. ඔබට පහසු පරිදි අලෙවි කළ හැක.",
+    title: "➡️ STABLE — Sell at Convenience",
+    textEn: "Prices are projected to remain relatively steady within normal daily market fluctuations. You can sell at your convenience according to harvest readiness.",
+    textSi: "තක්කාලි මිල සාමාන්‍ය මට්ටමේ ස්ථාවරව පවතිනු ඇතැයි අපේක්ෂා කෙරේ. අස්වැන්නේ තත්ත්වය අනුව ඔබට පහසු පරිදි අලෙවි කළ හැක.",
     bannerClass: "banner-stable",
   };
 }
+
 
 /** Render Collapsible Technical Details for Researchers / Supervisors. */
 function buildTechnicalDetails(data, displayArea) {
@@ -641,8 +669,54 @@ function renderSeasonalForecast(data, targetDateStr) {
   const confBadgeStyle = conf === "HIGH" ? "background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);" : conf === "MODERATE" ? "background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4);" : "background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4);";
   const confLabel = conf === "HIGH" ? "🟢 HIGH CONFIDENCE" : conf === "MODERATE" ? "🟡 MODERATE CONFIDENCE" : "🔴 LOW CONFIDENCE (HIGH VOLATILITY)";
 
-  const weatherLabel = data.weather_outlook_label || "Near-Normal Rainfall Expected";
-  const weatherBadge = weatherLabel.includes("Above") ? "🌧️ " + weatherLabel : weatherLabel.includes("Below") ? "☀️ " + weatherLabel : "🌤️ " + weatherLabel;
+  const wObj = data.weather || {};
+  const isSeas5 = wObj.source === "ECMWF SEAS5";
+  const weatherLabel = data.weather_outlook_label || (isSeas5 ? `${wObj.regional_outlook} (ECMWF SEAS5)` : "Near-Normal Rainfall (Historical Baseline)");
+  const weatherBadgeIcon = weatherLabel.includes("Above") ? "🌧️ " : weatherLabel.includes("Below") ? "☀️ " : "🌤️ ";
+
+  let weatherSectionHtml = "";
+  if (isSeas5 && wObj.ensemble_probability) {
+    const ep = wObj.ensemble_probability;
+    weatherSectionHtml = `
+      <div class="seasonal-weather-card" style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 1.25rem; margin: 1.25rem 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap;">
+          <h4 style="margin: 0; font-size: 1.05em; color: #60a5fa;">📊 ${escapeHtml(data.target_month_name)} ${escapeHtml(data.target_year)} Seasonal Climate Outlook</h4>
+          <span style="font-size: 0.8em; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 0.2rem 0.6rem; border-radius: 12px;">Source: ECMWF SEAS5 (50-member ensemble)</span>
+        </div>
+        <p style="font-size: 0.9em; margin-bottom: 0.75rem;">Regional Outlook: <strong>${escapeHtml(wObj.regional_outlook)}</strong> across tomato growing hub</p>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; text-align: center; margin-bottom: 0.75rem;">
+          <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25); padding: 0.5rem; border-radius: 6px;">
+            <span style="font-size: 0.75em; color: #6ee7b7; display: block;">Above Normal</span>
+            <strong style="font-size: 1.2em; color: #34d399;">${ep.above_normal}%</strong>
+          </div>
+          <div style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.25); padding: 0.5rem; border-radius: 6px;">
+            <span style="font-size: 0.75em; color: #93c5fd; display: block;">Near Normal</span>
+            <strong style="font-size: 1.2em; color: #60a5fa;">${ep.near_normal}%</strong>
+          </div>
+          <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.25); padding: 0.5rem; border-radius: 6px;">
+            <span style="font-size: 0.75em; color: #fca5a5; display: block;">Below Normal</span>
+            <strong style="font-size: 1.2em; color: #f87171;">${ep.below_normal}%</strong>
+          </div>
+        </div>
+        <p style="font-size: 0.78em; color: #94a3b8; margin: 0; font-style: italic;">
+          ℹ️ This is a monthly seasonal ensemble outlook indicating regional probabilities, not a specific daily weather forecast. Weather data: Open-Meteo / ECMWF SEAS5
+        </p>
+      </div>
+    `;
+  } else {
+    weatherSectionHtml = `
+      <div class="seasonal-weather-card" style="background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1rem; margin: 1.25rem 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+          <h4 style="margin: 0; font-size: 0.95em; color: #cbd5e1;">📅 Historical ${escapeHtml(data.target_month_name)} Climate Baseline</h4>
+          <span style="font-size: 0.75em; color: #94a3b8;">Source: Sri Lankan Agromet CSV (2016–2026)</span>
+        </div>
+        <p style="font-size: 0.85em; color: #94a3b8; margin: 0;">
+          Based on 10-year historical weather patterns for ${escapeHtml(data.target_month_name)}. SEAS5 forecast data is not available for this target horizon.
+        </p>
+      </div>
+    `;
+  }
 
   wrap.innerHTML = `
     <div class="forecast-result-card seasonal-mode-card" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); padding: 1.5rem; border-radius: 16px;">
@@ -656,7 +730,7 @@ function renderSeasonalForecast(data, targetDateStr) {
           ${escapeHtml(confLabel)} (${data.historical_interval_coverage_pct}% Historical Interval Coverage)
         </span>
         <span style="padding: 0.4rem 0.8rem; border-radius: 20px; font-weight: 600; font-size: 0.85em; background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4);">
-          ${escapeHtml(weatherBadge)}
+          ${weatherBadgeIcon}${escapeHtml(weatherLabel)}
         </span>
         <span style="padding: 0.4rem 0.8rem; border-radius: 20px; font-weight: 600; font-size: 0.85em; background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4);">
           🏷️ CPI Inflation Normalized
@@ -665,7 +739,7 @@ function renderSeasonalForecast(data, targetDateStr) {
 
       <!-- Horizontal Price Range Bar (25th Core Low -> Median -> 75th Core High) -->
       <div class="price-range-bar-container" style="background: rgba(255,255,255,0.03); padding: 1.25rem; border-radius: 12px; margin: 1.25rem 0; border: 1px solid rgba(255,255,255,0.05);">
-        <p style="margin-bottom: 0.75rem; font-weight: 600; font-size: 0.95em;">Expected Core Planning Range (Nominal LKR/kg):</p>
+        <p style="margin-bottom: 0.75rem; font-weight: 600; font-size: 0.95em;" title="Projected assuming ~4% annual inflation from August 2026 baseline">Expected Core Planning Range (nominal LKR, ~4% inflation assumed):</p>
         <div class="range-values-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; gap: 0.75rem;">
           <div class="range-box range-low" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.25); padding: 0.75rem; border-radius: 8px;">
             <span style="font-size: 0.75em; color: #fca5a5; display: block; margin-bottom: 0.2rem;">Core Low (25th Pctl)</span>
@@ -680,10 +754,15 @@ function renderSeasonalForecast(data, targetDateStr) {
             <strong style="font-size: 1.3em; color: #34d399;">${nom.core_p75 || "—"} LKR</strong>
           </div>
         </div>
-        <p style="font-size: 0.85em; color: var(--text-muted); text-align: center; margin-top: 0.85rem; margin-bottom: 0;">
+        <p style="font-size: 0.85em; color: var(--text-muted); text-align: center; margin-top: 0.85rem; margin-bottom: 0.35rem;">
           Wider Risk Range (10th–90th percentile): <strong>${nom.low_p10} – ${nom.high_p90} LKR/kg</strong> | Constant Real Benchmark: <strong>${real.median_p50} LKR/kg</strong>
         </p>
+        <p class="seasonal-inflation-note" style="font-size: 0.78em; color: #94a3b8; text-align: center; margin: 0.35rem 0 0 0; font-style: italic;">
+          Nominal prices projected assuming ~4% annual inflation from August 2026 baseline. Actual inflation may differ.
+        </p>
       </div>
+
+      ${weatherSectionHtml}
 
       <div class="seasonal-recommendation-box" style="background: rgba(16, 185, 129, 0.08); border-left: 4px solid var(--accent-green); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
         <p style="margin: 0; line-height: 1.5; font-size: 0.95em;">💡 <strong>Planning Guidance:</strong> ${escapeHtml(data.planning_recommendation)}</p>
@@ -694,6 +773,7 @@ function renderSeasonalForecast(data, targetDateStr) {
       </p>
     </div>
   `;
+
 }
 
 

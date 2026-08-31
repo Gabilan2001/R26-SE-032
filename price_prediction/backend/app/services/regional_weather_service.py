@@ -328,3 +328,135 @@ class RegionalWeatherService:
             "primary_region": impact["primary_region"],
             "regional_impact_summary": impact,
         }
+
+    def get_regional_seas5_outlook(
+        self, target_year: int, target_month: int, market: str = "Dambulla", series_type: str = "Wholesale"
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Calculates multi-station SEAS5 seasonal ensemble tercile probabilities
+        (Above Normal, Near Normal, Below Normal) using existing heuristic station weights.
+        Returns None if SEAS5 is unavailable or target month is out of horizon.
+        """
+        from app.services.weather_service import fetch_seas5_seasonal_outlook
+
+        station_coords = {
+            "Anuradhapura": (8.3114, 80.4037),
+            "Badulla": (6.9934, 81.0550),
+            "Dambulla": (7.8567, 80.6517),
+            "Nuwara Eliya": (6.9497, 80.7891),
+        }
+
+        series_label = f"{market}-{series_type}"
+        if series_label in MARKET_REGION_PREFERENCES:
+            weights = MARKET_REGION_PREFERENCES[series_label]
+        else:
+            season = get_season_for_date(pd.Timestamp(year=target_year, month=target_month, day=15))
+            weights = REGIONAL_WEIGHTS.get(season, REGIONAL_WEIGHTS["Intermonsoon"])
+
+        # Compute historical monthly rainfall total stats (mean, std) for each location and target month
+        df_w = self.df.copy()
+        monthly_totals = (
+            df_w.groupby(["Location", df_w["Date"].dt.year, "Month"])["Rainfall"]
+            .sum()
+            .reset_index()
+        )
+        sub_m = monthly_totals[monthly_totals["Month"] == target_month]
+
+        station_results = {}
+        weighted_above = 0.0
+        weighted_near = 0.0
+        weighted_below = 0.0
+        total_weight_used = 0.0
+
+        for station in STATIONS:
+            w = weights.get(station, 0.25)
+            coords = station_coords.get(station)
+            if not coords:
+                continue
+
+            seas5_raw = fetch_seas5_seasonal_outlook(coords[0], coords[1], target_year, target_month)
+            if not seas5_raw or not seas5_raw.get("member_rainfall_sums"):
+                # If any station fails or is out of horizon, return None to trigger safe historical fallback
+                return None
+
+            st_sub = sub_m[sub_m["Location"] == station]
+            if not st_sub.empty:
+                hist_mean = float(st_sub["Rainfall"].mean())
+                hist_std = float(st_sub["Rainfall"].std())
+                if np.isnan(hist_std) or hist_std <= 0:
+                    hist_std = max(10.0, hist_mean * 0.3)
+            else:
+                hist_mean = 100.0
+                hist_std = 30.0
+
+            member_sums = seas5_raw["member_rainfall_sums"]
+            total_members = len(member_sums)
+
+            cnt_above = 0
+            cnt_near = 0
+            cnt_below = 0
+
+            lower_bound = hist_mean - 0.5 * hist_std
+            upper_bound = hist_mean + 0.5 * hist_std
+
+            for r_val in member_sums:
+                if r_val > upper_bound:
+                    cnt_above += 1
+                elif r_val < lower_bound:
+                    cnt_below += 1
+                else:
+                    cnt_near += 1
+
+            st_above_pct = round((cnt_above / total_members) * 100.0)
+            st_near_pct = round((cnt_near / total_members) * 100.0)
+            st_below_pct = 100 - st_above_pct - st_near_pct
+
+            station_results[station] = {
+                "weight": w,
+                "historical_monthly_mean_mm": round(hist_mean, 1),
+                "historical_monthly_std_mm": round(hist_std, 1),
+                "ensemble_members_count": total_members,
+                "above_normal_pct": st_above_pct,
+                "near_normal_pct": st_near_pct,
+                "below_normal_pct": st_below_pct,
+                "avg_temperature_celsius": seas5_raw.get("avg_temperature_celsius", 25.0),
+            }
+
+            weighted_above += w * st_above_pct
+            weighted_near += w * st_near_pct
+            weighted_below += w * st_below_pct
+            total_weight_used += w
+
+        if total_weight_used <= 0:
+            return None
+
+        reg_above = round(weighted_above / total_weight_used)
+        reg_near = round(weighted_near / total_weight_used)
+        reg_below = 100 - reg_above - reg_near
+
+        if reg_above >= 45:
+            overall_outlook = "Above-Normal Rainfall"
+        elif reg_below >= 45:
+            overall_outlook = "Below-Normal Rainfall"
+        else:
+            overall_outlook = "Near-Normal Rainfall"
+
+        return {
+            "source": "ECMWF SEAS5",
+            "model": "ecmwf_seas5",
+            "forecast_type": "seasonal_ensemble",
+            "target_month": f"{target_year:04d}-{target_month:02d}",
+            "target_year": target_year,
+            "target_month_num": target_month,
+            "availability": "available",
+            "regional_outlook": overall_outlook,
+            "ensemble_probability": {
+                "above_normal": reg_above,
+                "near_normal": reg_near,
+                "below_normal": reg_below,
+            },
+            "station_weights": weights,
+            "stations": station_results,
+            "disclaimer": "This is a monthly seasonal ensemble outlook from ECMWF SEAS5 (50 members), not a specific daily weather forecast.",
+        }
+

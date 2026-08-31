@@ -314,11 +314,10 @@ def get_full_recommendation(
         target_date_str=target_date_str,
     )
 
-    # Driver Deconstruction Math
+    # Driver Deconstruction Math (Day 1)
     total_change_lkr = day1_adj_pred - recent_actual_price
     base_lstm_change_lkr = day1_base_pred - recent_actual_price
-    pct_change_day1 = (total_change_lkr / recent_actual_price) * 100.0
-
+    pct_change_day1 = (total_change_lkr / recent_actual_price) * 100.0 if recent_actual_price > 0 else 0.0
 
     denom = abs(base_lstm_change_lkr) + abs(day1_weather_adj)
     if denom > 0:
@@ -328,44 +327,133 @@ def get_full_recommendation(
         lstm_share_pct = 100.0
         weather_share_pct = 0.0
 
-    # Step 2: Recommendation & Reasoning Generation
+    # Step 2: Full 14-Day Trajectory Metrics & Trend Calculation
+    forecast_trajectory = engine_res["weather_adjusted_forecast"]
+    h_len = len(forecast_trajectory)
+
+    peak_price = float(np.max(forecast_trajectory))
+    peak_idx = int(np.argmax(forecast_trajectory))
+    peak_day = peak_idx + 1  # 1-indexed day of maximum price
+    minimum_price = float(np.min(forecast_trajectory))
+    terminal_price = float(forecast_trajectory[-1])
+
+    peak_change_pct = ((peak_price - recent_actual_price) / recent_actual_price) * 100.0 if recent_actual_price > 0 else 0.0
+    terminal_change_pct = ((terminal_price - recent_actual_price) / recent_actual_price) * 100.0 if recent_actual_price > 0 else 0.0
+    post_peak_drop_pct = ((peak_price - terminal_price) / peak_price) * 100.0 if peak_price > 0 else 0.0
+
+    # Linear regression slope across the entire forecast trajectory
+    if h_len > 1:
+        x_vals = np.arange(1, h_len + 1)
+        y_vals = np.array(forecast_trajectory)
+        x_mean = np.mean(x_vals)
+        y_mean = np.mean(y_vals)
+        slope = float(np.sum((x_vals - x_mean) * (y_vals - y_mean)) / np.sum((x_vals - x_mean) ** 2))
+        slope_pct_per_day = (slope / recent_actual_price) * 100.0 if recent_actual_price > 0 else 0.0
+    else:
+        slope = 0.0
+        slope_pct_per_day = 0.0
+
+    if slope_pct_per_day <= -0.30 or terminal_change_pct <= -3.5:
+        trend = "DECLINING"
+    elif slope_pct_per_day >= 0.30 or terminal_change_pct >= 3.5:
+        trend = "RISING"
+    else:
+        trend = "STABLE"
+
+    # Step 3: Perishability-Aware Recommendation Hierarchy
+    # Priority: MONITOR (Anomaly) -> SELL_NOW (Early Peak + Decline) -> SELL_NOW (Consistent Decline) -> HOLD (Mid Peak 3-5d) -> HOLD (Late Rise) -> STABLE
+
     if is_anomaly:
-        recommendation = "MONITOR"
+        # RULE 1: Anomaly (Highest Priority)
+        action_code = "MONITOR"
+        recommendation = "MONITOR — Market Anomaly Detected"
+        optimal_sell_day = 1
+        optimal_sell_price_lkr = round(forecast_trajectory[0], 2)
         reasoning = (
             f"RECOMMENDATION: MONITOR. "
             f"The current tomato price for {series_label} ({recent_actual_price:.2f} LKR/kg) is experiencing an unexpected market anomaly "
-            f"(it is {residual_lkr:+.2f} LKR/kg away from expected, severity: {anomaly_severity}, score: {anomaly_score:.4f}). "
+            f"(residual: {residual_lkr:+.2f} LKR/kg, severity: {anomaly_severity}, score: {anomaly_score:.4f}). "
             f"Because current market conditions are highly volatile, the 14-day weather-adjusted forecast ({day14_adj_pred:.2f} LKR/kg) "
-            f"should be treated with reduced confidence. Farmers should monitor daily market updates closely before making large sales."
+            f"should be treated with reduced confidence. Farmers should monitor daily physical buyer offers closely before making large sales."
         )
-    else:
-        if pct_change_day1 > volatility_thresh_pct:
-            recommendation = "HOLD"
-            action_advice = "Holding off on immediate sales is recommended to capture higher returns."
-        elif pct_change_day1 < -volatility_thresh_pct:
-            recommendation = "SELL NOW"
-            action_advice = "Selling now is recommended to avoid lower returns before prices fall further."
-        else:
-            recommendation = "SELL NOW OR HOLD — prices expected to stay stable"
-            action_advice = f"Sell at your convenience as expected movement is within normal daily market volatility (±{volatility_thresh_pct:.1f}%)."
 
-        # Driver Text Construction
-        if abs(day1_weather_adj) < 0.01:
-            driver_text = (
-                f"driven 100% by base market price momentum ({base_lstm_change_lkr:+.2f} LKR/kg, no weather adjustment applied)"
-            )
-        else:
-            driver_text = (
-                f"driven {lstm_share_pct:.0f}% by base market price momentum ({base_lstm_change_lkr:+.2f} LKR/kg) "
-                f"and {weather_share_pct:.0f}% by weather impact ({day1_weather_adj:+.2f} LKR/kg, flag: {flag_level})"
-            )
-
+    elif peak_day <= 2 and (terminal_change_pct < 0 or post_peak_drop_pct >= 3.5):
+        # RULE 2: Early Peak (Days 1-2) Followed by Decline
+        action_code = "SELL_NOW"
+        recommendation = "SELL NOW — Peak Price in Next 1–2 Days"
+        optimal_sell_day = peak_day
+        optimal_sell_price_lkr = round(peak_price, 2)
         reasoning = (
-            f"RECOMMENDATION: {recommendation}. "
+            f"RECOMMENDATION: SELL NOW — Peak Price in Next 1–2 Days. "
             f"The current price for {series_label} is {recent_actual_price:.2f} LKR/kg. "
-            f"With normal market conditions detected, tomorrow's forecast is {day1_adj_pred:.2f} LKR/kg ({pct_change_day1:+.1f}%), {driver_text}. "
-            f"Reaching {day14_adj_pred:.2f} LKR/kg by Day 14. {action_advice}"
+            f"Prices are projected to reach an early peak of {peak_price:.2f} LKR/kg on Day {peak_day} (+{peak_change_pct:.1f}%) "
+            f"and then decline toward {terminal_price:.2f} LKR/kg by Day {h_len} ({terminal_change_pct:+.1f}%). "
+            f"Selling immediately or near the Day {peak_day} peak is recommended to avoid lower returns as prices soften later in the horizon."
         )
+
+    elif forecast_trajectory[0] < recent_actual_price and terminal_change_pct <= -3.5 and peak_change_pct < 1.5:
+        # RULE 3: Consistent Downward Trend
+        action_code = "SELL_NOW"
+        recommendation = "SELL NOW — Prices Expected to Decline"
+        optimal_sell_day = 1
+        optimal_sell_price_lkr = round(forecast_trajectory[0], 2)
+        reasoning = (
+            f"RECOMMENDATION: SELL NOW. "
+            f"The current price for {series_label} is {recent_actual_price:.2f} LKR/kg. "
+            f"Prices are projected to soften continuously across the forecast horizon down to {terminal_price:.2f} LKR/kg by Day {h_len} ({terminal_change_pct:+.1f}%). "
+            f"Selling sooner is recommended to reduce the risk of receiving lower market prices later."
+        )
+
+    elif 3 <= peak_day <= 5 and peak_change_pct >= 3.5:
+        # RULE 4: Short/Mid-Term Peak (Days 3 to 5)
+        action_code = "HOLD"
+        recommendation = f"HOLD — Optimal Selling Window Around Day {peak_day}"
+        optimal_sell_day = peak_day
+        optimal_sell_price_lkr = round(peak_price, 2)
+        reasoning = (
+            f"RECOMMENDATION: HOLD. "
+            f"The current price for {series_label} is {recent_actual_price:.2f} LKR/kg. "
+            f"Prices are projected to rise toward a peak of {peak_price:.2f} LKR/kg around Day {peak_day} (+{peak_change_pct:.1f}%). "
+            f"Holding off on immediate sales for 2–4 days is recommended to capture higher returns. "
+            f"Note: ensure harvest timing aligns with crop maturity and ambient shelf life (3–5 days)."
+        )
+
+    elif peak_day > 5 and peak_change_pct >= 5.0:
+        # RULE 5: Late Rise (Day > 5) — Perishability Planning Signal
+        action_code = "HOLD"
+        recommendation = f"HOLD — Higher Prices Projected Around Day {peak_day}"
+        optimal_sell_day = peak_day
+        optimal_sell_price_lkr = round(peak_price, 2)
+        reasoning = (
+            f"RECOMMENDATION: HOLD. "
+            f"The current price for {series_label} is {recent_actual_price:.2f} LKR/kg. "
+            f"Higher market prices (up to {peak_price:.2f} LKR/kg, +{peak_change_pct:.1f}%) are projected later around Day {peak_day}. "
+            f"Because tomatoes are perishable, plan staggered field harvesting rather than storing harvested tomatoes in ambient holding for extended periods."
+        )
+
+    else:
+        # RULE 6: Stable Forecast (Default within +/- 3.5%)
+        action_code = "STABLE"
+        recommendation = "SELL NOW OR HOLD — Prices Expected to Stay Stable"
+        optimal_sell_day = peak_day
+        optimal_sell_price_lkr = round(peak_price, 2)
+        reasoning = (
+            f"RECOMMENDATION: SELL NOW OR HOLD — prices expected to stay stable. "
+            f"The current price for {series_label} is {recent_actual_price:.2f} LKR/kg. "
+            f"Expected prices remain relatively steady across the forecast horizon ({minimum_price:.2f} – {peak_price:.2f} LKR/kg). "
+            f"Selling based on convenience and normal market conditions is recommended."
+        )
+
+    # Driver Text Construction for transparency
+    if abs(day1_weather_adj) < 0.01:
+        driver_text = f"Day 1 is driven 100% by base market momentum ({base_lstm_change_lkr:+.2f} LKR/kg, no weather adjustment applied)"
+    else:
+        driver_text = (
+            f"Day 1 is driven {lstm_share_pct:.0f}% by base market momentum ({base_lstm_change_lkr:+.2f} LKR/kg) "
+            f"and {weather_share_pct:.0f}% by weather impact ({day1_weather_adj:+.2f} LKR/kg, flag: {flag_level})"
+        )
+
+    reasoning += f" ({driver_text})."
 
     # Append plain-language news alert if news_flag_level is "alert"
     if news_flag_level == "alert" and news_events:
@@ -380,7 +468,18 @@ def get_full_recommendation(
         "type": series_type,
         "target_date": target_date_str,
         "current_price_lkr": round(recent_actual_price, 2),
+        "action_code": action_code,
         "recommendation": recommendation,
+        "peak_price_lkr": round(peak_price, 2),
+        "peak_day": peak_day,
+        "minimum_price_lkr": round(minimum_price, 2),
+        "terminal_price_lkr": round(terminal_price, 2),
+        "peak_change_pct": round(peak_change_pct, 2),
+        "terminal_change_pct": round(terminal_change_pct, 2),
+        "post_peak_drop_pct": round(post_peak_drop_pct, 2),
+        "trend": trend,
+        "optimal_sell_day": optimal_sell_day,
+        "optimal_sell_price_lkr": round(optimal_sell_price_lkr, 2),
         "pct_change_day1": round(pct_change_day1, 2),
         "volatility_threshold_pct": volatility_thresh_pct,
         "is_anomaly": is_anomaly,
@@ -394,7 +493,6 @@ def get_full_recommendation(
         "shap_explanation": shap_explanation,
         "regional_weather_impact": engine_res.get("regional_weather_impact"),
         "driver_share_lstm_pct": round(lstm_share_pct, 1),
-
         "driver_share_weather_pct": round(weather_share_pct, 1),
         "day1_base_forecast_lkr": day1_base_pred,
         "day1_weather_adjustment_lkr": day1_weather_adj,
@@ -410,6 +508,7 @@ def get_full_recommendation(
         "weather_adjusted_forecast": engine_res["weather_adjusted_forecast"],
         "reasoning": reasoning,
     }
+
 
 
 

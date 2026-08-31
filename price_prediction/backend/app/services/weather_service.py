@@ -14,12 +14,21 @@ import requests
 from app.config.locations import resolve_location
 from app.schemas.weather_schema import WeatherResponse
 
+import os
+import time
+
 logger = logging.getLogger(__name__)
 
-OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
+OPEN_METEO_URL = os.getenv("OPEN_METEO_URL", "https://api.open-meteo.com/v1/forecast")
+OPEN_METEO_SEASONAL_URL = os.getenv("OPEN_METEO_SEASONAL_URL", "https://seasonal-api.open-meteo.com/v1/seasonal")
 
 # Treat tiny floating noise as zero rain when checking for drought.
 DRY_MM_THRESHOLD = 0.05
+
+# In-memory cache for SEAS5 ensemble responses: key -> (timestamp, data)
+_SEAS5_CACHE: Dict[str, Tuple[float, Dict[str, Any]]] = {}
+CACHE_TTL_SECONDS = 6 * 3600  # 6 Hours TTL
+
 
 
 def _safe_float(value: Any) -> float:
@@ -251,3 +260,89 @@ def fetch_weather_signal(location: str, forecast_days: int = 7) -> WeatherRespon
     except Exception as exc:  # noqa: BLE001
         logger.warning("Open-Meteo weather fetch failed: %s", exc)
         return _fallback_response(location, area_label)
+
+
+def fetch_seas5_seasonal_outlook(
+    lat: float,
+    lon: float,
+    target_year: int,
+    target_month: int,
+) -> Optional[Dict[str, Any]]:
+    """
+    Fetch ECMWF SEAS5 50-member seasonal ensemble data from Open-Meteo for a given station.
+    Aggregates daily precipitation per member across the target month (YYYY-MM).
+    Returns None if target month is beyond available horizon or on request failure.
+    """
+    target_month_str = f"{target_year:04d}-{target_month:02d}"
+    cache_key = f"{lat:.4f}_{lon:.4f}_{target_month_str}"
+
+    # Check cache
+    now = time.time()
+    if cache_key in _SEAS5_CACHE:
+        ts, cached_val = _SEAS5_CACHE[cache_key]
+        if now - ts < CACHE_TTL_SECONDS:
+            return cached_val
+
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "daily": "precipitation_sum,temperature_2m_mean",
+        "models": "ecmwf_seas5",
+    }
+
+    try:
+        resp = requests.get(OPEN_METEO_SEASONAL_URL, params=params, timeout=10)
+        if resp.status_code != 200:
+            logger.warning("SEAS5 API returned status %s", resp.status_code)
+            return None
+
+        data = resp.json()
+        daily = data.get("daily", {})
+        times = daily.get("time", [])
+        if not times:
+            return None
+
+        # Check if target month is covered in returned times
+        month_indices = [i for i, t in enumerate(times) if t.startswith(target_month_str)]
+        if not month_indices:
+            logger.info("Target month %s not covered by SEAS5 window (%s to %s)", target_month_str, times[0], times[-1])
+            return None
+
+        # Gather member precipitation sums for month_indices
+        # Members are named precipitation_sum_member01 to member50
+        member_sums: List[float] = []
+        for m_num in range(1, 51):
+            key = f"precipitation_sum_member{m_num:02d}"
+            raw_series = daily.get(key)
+            if raw_series and len(raw_series) >= len(times):
+                m_sum = sum(_safe_float(raw_series[idx]) for idx in month_indices)
+                member_sums.append(round(m_sum, 2))
+
+        if not member_sums:
+            raw_series = daily.get("precipitation_sum", [])
+            if raw_series and len(raw_series) >= len(times):
+                m_sum = sum(_safe_float(raw_series[idx]) for idx in month_indices)
+                member_sums = [round(m_sum, 2)]
+
+        # Mean temperature across the month
+        temp_series = daily.get("temperature_2m_mean", [])
+        avg_temp = 25.0
+        if temp_series and len(temp_series) >= len(times):
+            month_temps = [_safe_float(temp_series[idx]) for idx in month_indices]
+            if month_temps:
+                avg_temp = round(sum(month_temps) / len(month_temps), 2)
+
+        result = {
+            "target_month": target_month_str,
+            "available_days": len(month_indices),
+            "member_rainfall_sums": member_sums,
+            "avg_temperature_celsius": avg_temp,
+            "ensemble_members_count": len(member_sums),
+        }
+
+        _SEAS5_CACHE[cache_key] = (now, result)
+        return result
+    except Exception as exc:
+        logger.warning("Failed to fetch SEAS5 seasonal outlook: %s", exc)
+        return None
+

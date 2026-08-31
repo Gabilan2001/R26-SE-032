@@ -82,6 +82,15 @@ class PricePredictionResponse(BaseModel):
     forecast_period_label: str = Field(..., description="Human-readable forecast date range label (e.g., March 11 – March 24, 2026)")
     recommendation: str = Field(..., description="MONITOR | HOLD | SELL NOW | SELL NOW OR HOLD — prices expected to stay stable")
     reasoning: str = Field(..., description="Plain-language farmer explanation")
+    action_code: str = Field("STABLE", description="Explicit categorical recommendation: SELL_NOW | HOLD | STABLE | MONITOR")
+    peak_price_lkr: Optional[float] = Field(None, description="Maximum forecast price in horizon (LKR/kg)")
+    peak_day: Optional[int] = Field(None, description="1-indexed forecast day of maximum price")
+    peak_change_pct: Optional[float] = Field(None, description="Percentage change of peak price vs current price")
+    terminal_change_pct: Optional[float] = Field(None, description="Percentage change of Day-14 price vs current price")
+    post_peak_drop_pct: Optional[float] = Field(None, description="Percentage drop from peak to Day-14 price")
+    trend: Optional[str] = Field(None, description="Overall forecast trajectory trend: RISING | DECLINING | STABLE")
+    optimal_sell_day: Optional[int] = Field(None, description="Recommended optimal sell day (1-indexed)")
+    optimal_sell_price_lkr: Optional[float] = Field(None, description="Expected price on optimal sell day (LKR/kg)")
 
 
     # Forecast arrays

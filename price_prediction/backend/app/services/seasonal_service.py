@@ -152,27 +152,53 @@ def get_seasonal_planning_forecast(
     else:
         confidence_rating = "LOW"
 
-    # 8. Weather Outlook
+    # 8. Weather Outlook (SEAS5 Integration with Historical Fallback)
     season_name = get_season_for_date(target_dt)
-    weights = REGIONAL_WEIGHTS.get(season_name, REGIONAL_WEIGHTS["Intermonsoon"])
-
     weather_service = RegionalWeatherService()
-    df_w = weather_service.df
-    sub_w_month = df_w[df_w["Month"] == target_month]
+    seas5_outlook = weather_service.get_regional_seas5_outlook(
+        target_year=target_year,
+        target_month=target_month,
+        market=market,
+        series_type=series_type,
+    )
 
-    comp_z = 0.0
-    for st, w in weights.items():
-        sub_st = sub_w_month[sub_w_month["Location"] == st]
-        if not sub_st.empty:
-            mean_z = float(sub_st["rain_21d_z"].mean())
-            comp_z += w * mean_z
-
-    if comp_z > 0.5:
-        weather_outlook_label = "Above-Normal Rainfall Expected"
-    elif comp_z < -0.5:
-        weather_outlook_label = "Below-Normal Rainfall Expected"
+    if seas5_outlook:
+        weather_obj = seas5_outlook
+        weather_outlook_label = f"{seas5_outlook['regional_outlook']} (ECMWF SEAS5)"
     else:
-        weather_outlook_label = "Near-Normal Rainfall Expected"
+        # Fallback to historical climatology
+        weights = REGIONAL_WEIGHTS.get(season_name, REGIONAL_WEIGHTS["Intermonsoon"])
+        df_w = weather_service.df
+        sub_w_month = df_w[df_w["Month"] == target_month]
+
+        comp_z = 0.0
+        for st, w in weights.items():
+            sub_st = sub_w_month[sub_w_month["Location"] == st]
+            if not sub_st.empty:
+                mean_z = float(sub_st["rain_21d_z"].mean())
+                comp_z += w * mean_z
+
+        if comp_z > 0.5:
+            hist_label = "Above-Normal Rainfall"
+        elif comp_z < -0.5:
+            hist_label = "Below-Normal Rainfall"
+        else:
+            hist_label = "Near-Normal Rainfall"
+
+        weather_outlook_label = f"{hist_label} (Historical Climate Baseline)"
+        weather_obj = {
+            "source": "Historical Climate Baseline",
+            "model": "10-Year Local Agromet CSV",
+            "forecast_type": "historical_climatology",
+            "target_month": f"{target_year:04d}-{target_month:02d}",
+            "target_year": target_year,
+            "target_month_num": target_month,
+            "availability": "fallback_climatology",
+            "regional_outlook": hist_label,
+            "ensemble_probability": None,
+            "reason": "SEAS5 data unavailable for this target horizon; showing 10-year historical climate baseline.",
+            "disclaimer": "This is a 10-year historical baseline, not a future weather forecast.",
+        }
 
     # 9. Plain Language Guidance
     if confidence_rating == "HIGH":
@@ -208,7 +234,9 @@ def get_seasonal_planning_forecast(
         "confidence_rating": confidence_rating,
         "historical_interval_coverage_pct": within_range_pct,
         "weather_outlook_label": weather_outlook_label,
+        "weather": weather_obj,
         "season_name": season_name,
         "historical_seasons_count": seasons_count,
         "planning_recommendation": advice,
     }
+

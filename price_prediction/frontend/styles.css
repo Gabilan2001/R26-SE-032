@@ -639,3 +639,14 @@ body.app-body {
 .footer-coverage-note {
   margin-top: 0.3rem;
 }
+
+/* Seasonal Planning Inflation Note */
+.seasonal-inflation-note {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
+  margin-top: 0.35rem;
+  margin-bottom: 0;
+  line-height: 1.4;
+}
