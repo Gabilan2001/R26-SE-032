@@ -14,9 +14,10 @@ import FruitScanScreen from '../screens/FruitScanScreen';
 import FruitResultScreen from '../screens/FruitResultScreen';
 import FruitDetailScreen from '../screens/FruitDetailScreen';
 import DiseaseMonitoringFlowScreen from '../modules/diseaseMonitoring/DiseaseMonitoringFlowScreen';
-import DiseaseScanScreen from '../screens/DiseaseScanScreen';
-import DiseaseResultScreen from '../screens/DiseaseResultScreen';
-import DiseaseHistoryScreen from '../screens/DiseaseHistoryScreen';
+import DiseaseScanScreen from '../modules/diseaseDetection/screens/DiseaseScanScreen';
+import DiseaseResultScreen from '../modules/diseaseDetection/screens/DiseaseResultScreen';
+import DiseaseHistoryScreen from '../modules/diseaseDetection/screens/DiseaseHistoryScreen';
+import DiseaseSettingsScreen from '../modules/diseaseDetection/screens/DiseaseSettingsScreen';
 import { UIThemeContext } from '../context/UIThemeContext';
 
 const Stack = createNativeStackNavigator();
@@ -202,6 +203,11 @@ export default function AppNavigator() {
         name="DiseaseResult"
         component={DiseaseResultScreen}
         options={{ title: 'Disease Result' }}
+      />
+      <Stack.Screen
+        name="DiseaseSettings"
+        component={DiseaseSettingsScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="MonitoringModule"

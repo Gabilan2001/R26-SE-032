@@ -1,4 +1,4 @@
-import diseaseClient from './diseaseClient';
+import diseaseClient from './client';
 
 // Disease module's own history/stats -- backed by Firestore on app_mobile.py,
 // independent of the Nutrient/Fruit modules' shared MongoDB + login. No auth

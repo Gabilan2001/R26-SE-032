@@ -212,6 +212,13 @@ def get_treatment(diseases_found):
 # ── Routes ────────────────────────────────────────────────────────────────────
 @app.route("/predict", methods=["POST"])
 def predict():
+    # Testing toggle from the mobile app's (hidden, dev-only) Scan Settings
+    # screen -- lets us A/B compare detection with vs. without the
+    # background-removal step. Defaults to on (normal behavior) whenever
+    # it's absent, matching the toggle's own default-off/reset-on-launch
+    # design on the client side.
+    skip_bg_removal = request.form.get("skip_bg_removal", "false").lower() == "true"
+
     if "image" not in request.files:
         return jsonify({"error": "No image uploaded"}), 400
 
@@ -239,9 +246,13 @@ def predict():
         })
 
     print(f"  Leaf validated ✅ (confidence: {leaf_conf:.2f})")
-    print("  Removing background...")
-    clean_img = remove_background(original_img)
-    print("  Background removed ✅")
+    if skip_bg_removal:
+        print("  Skipping background removal (testing toggle) ⏭")
+        clean_img = original_img
+    else:
+        print("  Removing background...")
+        clean_img = remove_background(original_img)
+        print("  Background removed ✅")
 
     results = model.predict(clean_img, conf=CONF_THRESHOLD, iou=IOU_THRESHOLD,
                              device=device, verbose=False)
@@ -273,9 +284,12 @@ def predict():
     diseases_found = sorted(set(d["class_name"] for d in detections))
     co_occurrence = len([d for d in diseases_found if d != "Healthy"]) >= 2
     annotated = draw_detections(original_img, detections)
-    treatment = get_treatment(diseases_found)
-    save_scan_history(detections, diseases_found, co_occurrence, treatment)
 
+    # Treatment is fetched separately via /treatment, called by the client
+    # right after this response -- keeps /predict fast (a few seconds) so
+    # the result screen can show the detection immediately instead of
+    # making the user wait up to ~90s for the RAG/Gemini call before
+    # seeing anything at all.
     return jsonify({
         "valid": True,
         "detections": detections,
@@ -283,7 +297,8 @@ def predict():
         "co_occurrence": co_occurrence,
         "total_boxes": len(detections),
         "annotated_image": encode_image(annotated),
-        "treatment": treatment,
+        "treatment": None,
+        "bg_removal_applied": not skip_bg_removal,
         "model_info": {
             "label": "YOLOv8m (4-class, native-640)",
             "classes": CLASS_NAMES,
@@ -292,6 +307,26 @@ def predict():
             "device": "CUDA" if torch.cuda.is_available() else "CPU",
         },
     })
+
+
+@app.route("/treatment", methods=["POST"])
+def treatment():
+    """Second phase of a scan -- called by the client right after /predict
+    returns, once the detection result is already showing. Also owns the
+    Firestore history save (needs the full picture: detections + whatever
+    treatment came back, so this is the one place that saves it -- covers
+    Healthy-only scans too, since the client always calls this regardless
+    of whether there's anything treatable, just without showing a loading
+    spinner for that case)."""
+    data = request.get_json(force=True) or {}
+    detections = data.get("detections", [])
+    diseases_found = data.get("diseases_found", [])
+    co_occurrence = bool(data.get("co_occurrence", False))
+
+    result = get_treatment(diseases_found)
+    save_scan_history(detections, diseases_found, co_occurrence, result)
+
+    return jsonify({"treatment": result})
 
 
 @app.route("/history", methods=["GET"])
