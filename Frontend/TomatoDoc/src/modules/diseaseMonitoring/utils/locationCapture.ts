@@ -10,66 +10,190 @@ export type ObservationLocationSelection = {
   label?: string;
 };
 
-/** Request device GPS coordinates (web geolocation first, then Expo Location). */
-export async function requestGpsLocation(): Promise<ObservationLocationSelection | null> {
-  if (
-    Platform.OS === "web" &&
-    typeof navigator !== "undefined" &&
-    navigator.geolocation
-  ) {
-    return new Promise((resolve) => {
-      navigator.geolocation.getCurrentPosition(
-        (pos) =>
-          resolve({
+export type GpsFailureReason =
+  | "unavailable"
+  | "permission_denied"
+  | "insecure_context"
+  | "timeout"
+  | "position_unavailable";
+
+export type GpsRequestResult =
+  | { success: true; location: ObservationLocationSelection }
+  | { success: false; reason: GpsFailureReason };
+
+const GPS_OPTIONS: PositionOptions = {
+  enableHighAccuracy: false,
+  timeout: 12000,
+  maximumAge: 60000,
+};
+
+/** True when browser geolocation can run (https or localhost). */
+export function isGeolocationUsable(): boolean {
+  if (Platform.OS !== "web") {
+    return true;
+  }
+  if (typeof window === "undefined") {
+    return false;
+  }
+  if (!window.isSecureContext) {
+    return false;
+  }
+  return typeof navigator !== "undefined" && !!navigator.geolocation;
+}
+
+function mapGeolocationError(error: GeolocationPositionError): GpsFailureReason {
+  switch (error.code) {
+    case error.PERMISSION_DENIED:
+      return "permission_denied";
+    case error.TIMEOUT:
+      return "timeout";
+    case error.POSITION_UNAVAILABLE:
+      return "position_unavailable";
+    default:
+      return "unavailable";
+  }
+}
+
+function requestWebGps(): Promise<GpsRequestResult> {
+  if (!isGeolocationUsable()) {
+    return Promise.resolve({ success: false, reason: "insecure_context" });
+  }
+  return new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) =>
+        resolve({
+          success: true,
+          location: {
             latitude: pos.coords.latitude,
             longitude: pos.coords.longitude,
             source: "gps",
-          }),
-        () => resolve(null),
-        { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
-      );
-    });
+          },
+        }),
+      (err) => resolve({ success: false, reason: mapGeolocationError(err) }),
+      GPS_OPTIONS
+    );
+  });
+}
+
+/** Request device GPS coordinates (web geolocation first, then Expo Location). */
+export async function requestGpsLocation(): Promise<GpsRequestResult> {
+  if (Platform.OS === "web") {
+    return requestWebGps();
   }
 
   try {
     const Location = await import("expo-location");
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
-      return null;
+      return { success: false, reason: "permission_denied" };
     }
     const position = await Location.getCurrentPositionAsync({
       accuracy: Location.Accuracy.Balanced,
     });
     return {
-      latitude: position.coords.latitude,
-      longitude: position.coords.longitude,
-      source: "gps",
+      success: true,
+      location: {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        source: "gps",
+      },
     };
   } catch {
-    return null;
+    return { success: false, reason: "unavailable" };
   }
+}
+
+export function gpsFailureMessage(
+  reason: GpsFailureReason,
+  attachWeather: boolean
+): string {
+  switch (reason) {
+    case "insecure_context":
+      return "GPS needs https or localhost. Pick an area manually or use Colombo default.";
+    case "permission_denied":
+      return "Location permission blocked. Allow it in browser settings, or pick an area manually.";
+    case "timeout":
+      return "GPS timed out. Try again, pick an area manually, or use Colombo default.";
+    case "position_unavailable":
+      return "GPS signal not found. Pick an area manually or use Colombo default.";
+    default:
+      return attachWeather
+        ? "GPS not available. Pick an area manually or use Colombo default for weather."
+        : "GPS not available. Pick an area manually.";
+  }
+}
+
+/** User explicitly chose GPS, manual area, or Colombo default - not a silent backend fallback. */
+export function hasUserSelectedLocation(
+  location: ObservationLocationSelection | null | undefined
+): boolean {
+  return !!(
+    location &&
+    location.source !== "none" &&
+    (location.latitude != null || location.label || location.area)
+  );
+}
+
+function dedupeParts(parts: string[]): string[] {
+  return parts.filter((part, index) => index === 0 || part !== parts[index - 1]);
 }
 
 export function formatLocationSummary(
   location: ObservationLocationSelection | null | undefined
 ): string | null {
-  if (!location || location.source === "none") {
+  if (!hasUserSelectedLocation(location)) {
     return null;
   }
-  const parts = [location.area, location.district, location.province].filter(Boolean);
+  const parts = dedupeParts(
+    [location!.area, location!.district, location!.province].filter(Boolean) as string[]
+  );
   if (parts.length > 0) {
     return parts.join(" - ");
   }
-  if (location.label) {
-    return location.label;
+  if (location!.label) {
+    return location!.label;
   }
-  if (location.latitude != null && location.longitude != null) {
-    return `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}`;
+  if (location!.latitude != null && location!.longitude != null) {
+    return `${location!.latitude.toFixed(4)}, ${location!.longitude.toFixed(4)}`;
   }
   return null;
 }
 
-/** Client-side labels for manual pick — mirrors backend /meta/locations. */
+/** Short success line - only when a real location exists. */
+export function formatLocationNotice(
+  location: ObservationLocationSelection | null | undefined
+): string | null {
+  const summary = formatLocationSummary(location);
+  if (!summary) {
+    return null;
+  }
+  return `Location on - ${summary}`;
+}
+
+/** Farmer-facing location line for disease context modal. */
+export function formatLocationContextLine(
+  location: ObservationLocationSelection | null | undefined
+): { available: boolean; text: string } {
+  const summary = formatLocationSummary(location);
+  if (!summary) {
+    return {
+      available: false,
+      text: "Location is not available. Enable location or select an area manually.",
+    };
+  }
+  const sourceLabel =
+    location!.source === "gps"
+      ? "From device GPS"
+      : location!.source === "manual"
+        ? "Selected manually"
+        : "Selected";
+  return {
+    available: true,
+    text: `${summary} (${sourceLabel})`,
+  };
+}
+
+/** Client-side labels for manual pick - mirrors backend /meta/locations. */
 export const MANUAL_LOCATION_HINTS: Record<
   string,
   { latitude: number; longitude: number; district: string; province: string }
