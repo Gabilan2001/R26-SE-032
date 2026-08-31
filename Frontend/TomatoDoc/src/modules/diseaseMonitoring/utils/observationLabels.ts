@@ -14,13 +14,13 @@ export function trendFarmerLabel(trend: string | null | undefined): string {
     case "BASELINE":
       return "Baseline (first observation)";
     case "STABLE":
-      return "Stable — similar to last observation";
+      return "Stable - similar to last observation";
     case "IMPROVING":
-      return "Improving — severity lower than last time";
+      return "Improving - severity lower than last time";
     case "WORSENING":
-      return "Worsening — severity higher than last time";
+      return "Worsening - severity higher than last time";
     case "RECOVERED":
-      return "Recovered — low severity after improvement";
+      return "Recovered - low severity after improvement";
     default:
       return trend ? String(trend) : "n/a";
   }
@@ -52,7 +52,7 @@ export function consistencyFarmerHint(status: string | null | undefined): string
     case "MISMATCH":
       return "Looks visually different from previous photos. Prefer a new monitoring case, or confirm only if you are sure it belongs here.";
     default:
-      return "Visual consistency with previous observation — not plant identity confirmation.";
+      return "Visual consistency with previous observation - not plant identity confirmation.";
   }
 }
 

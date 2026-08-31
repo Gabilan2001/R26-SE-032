@@ -76,6 +76,7 @@ def _migrate_observation_columns(cursor: sqlite3.Cursor) -> None:
         ("district", "TEXT"),
         ("province", "TEXT"),
         ("location_source", "TEXT"),
+        ("severity_evidence_json", "TEXT"),
     ]
     for name, col_type in additions:
         if name not in existing:
@@ -122,8 +123,9 @@ def insert_observation(record: Dict[str, Any]) -> Dict[str, Any]:
             severity_score, severity_class, embedding_json, similarity_score,
             consistency_status, weather_context, trend, status, recommendation,
             accepted, image_path,
-            latitude, longitude, area, district, province, location_source
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            latitude, longitude, area, district, province, location_source,
+            severity_evidence_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             record["observation_id"],
@@ -148,6 +150,9 @@ def insert_observation(record: Dict[str, Any]) -> Dict[str, Any]:
             record.get("district"),
             record.get("province"),
             record.get("location_source"),
+            json.dumps(record["severity_evidence"])
+            if record.get("severity_evidence") is not None
+            else None,
         ),
     )
     conn.commit()
@@ -208,12 +213,58 @@ def _row_to_observation(row: sqlite3.Row) -> Dict[str, Any]:
         "district": row["district"] if "district" in row.keys() else None,
         "province": row["province"] if "province" in row.keys() else None,
         "location_source": row["location_source"] if "location_source" in row.keys() else None,
+        "severity_evidence": (
+            json.loads(row["severity_evidence_json"])
+            if "severity_evidence_json" in row.keys() and row["severity_evidence_json"]
+            else None
+        ),
     }
 
 
+_FARMER_HIDDEN = {
+    "embedding",
+    "severity_evidence",
+    "cnn_high_prob",
+    "verification_status",
+    "final_severity",
+    "secondary_severity",
+    "secondary_confidence",
+    "secondary_estimated_area_percentage",
+    "secondary_reasoning",
+}
+
+
+def delete_case(case_id: str) -> bool:
+    """Remove a monitoring case, its observations, and saved images. Returns True if case existed."""
+    case = get_case(case_id)
+    if not case:
+        return False
+
+    conn = _connect()
+    conn.execute("DELETE FROM observations WHERE case_id = ?", (case_id,))
+    conn.execute("DELETE FROM monitoring_cases WHERE case_id = ?", (case_id,))
+    conn.commit()
+    conn.close()
+
+    case_dir = os.path.join(OBSERVATIONS_DATA_DIR, case_id)
+    if os.path.isdir(case_dir):
+        for name in os.listdir(case_dir):
+            path = os.path.join(case_dir, name)
+            try:
+                if os.path.isfile(path):
+                    os.remove(path)
+            except OSError:
+                pass
+        try:
+            os.rmdir(case_dir)
+        except OSError:
+            pass
+    return True
+
+
 def public_observation(obs: Dict[str, Any]) -> Dict[str, Any]:
-    """Strip embedding from API responses; expose estimated affected-area %."""
-    out = {k: v for k, v in obs.items() if k != "embedding"}
+    """Strip embeddings and secondary-verify internals from farmer-facing API."""
+    out = {k: v for k, v in obs.items() if k not in _FARMER_HIDDEN}
     score = out.get("severity_score")
     if isinstance(score, (int, float)):
         out["estimated_affected_area_percentage"] = round(float(score) * 100.0, 1)

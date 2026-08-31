@@ -30,7 +30,7 @@ export function RecoveryStatusCard({ trend }: Props) {
         {recoveryHeadline(trend)}
       </Text>
       <Text style={styles.hint}>
-        Observation-based trend from the backend. Not a treatment prescription.
+        Observation-based trend from the backend.
       </Text>
     </View>
   );

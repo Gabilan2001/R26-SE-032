@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Pressable,
   SafeAreaView,
@@ -11,12 +11,14 @@ import { StatusBar } from "expo-status-bar";
 import type { CropPart, Observation } from "../../api/observations";
 import { LeafScanAppHeader } from "../../components/LeafScanAppHeader";
 import {
+  DiseaseContextModal,
   ObservationProgress,
   ObservationResultCard,
 } from "../../components/monitoring";
 import { NEXT_OBSERVATION_GUIDANCE, TARGET_OBSERVATIONS, MODALITY } from "../../config/modality";
 import { useMonitoringPalette } from "../../theme/MonitoringThemeContext";
 import type { MonitoringPalette } from "../../theme/colors";
+import type { ObservationLocationSelection } from "../../utils/locationCapture";
 
 type Props = {
   caseId: string;
@@ -25,6 +27,7 @@ type Props = {
   previousObservation?: Observation | null;
   imageUri?: string | null;
   cropPart?: CropPart;
+  caseLocation?: ObservationLocationSelection | null;
   onBack?: () => void;
   onNextObservation: () => void;
   onViewOverall: () => void;
@@ -37,15 +40,17 @@ export function ObservationResultScreen({
   previousObservation,
   imageUri,
   cropPart,
+  caseLocation = null,
   onBack,
   onNextObservation,
   onViewOverall,
 }: Props) {
+  const [contextOpen, setContextOpen] = useState(false);
   const complete = observationNumber >= TARGET_OBSERVATIONS;
   const p = useMonitoringPalette();
   const styles = useMemo(() => makeStyles(p), [p]);
-  const title =
-    cropPart && MODALITY[cropPart] ? MODALITY[cropPart].title : "Disease Monitoring";
+  const cfg = cropPart ? MODALITY[cropPart] : null;
+  const title = cfg ? cfg.title : "Disease Monitoring";
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -71,7 +76,6 @@ export function ObservationResultScreen({
             <Text style={styles.guideTitle}>
               {String(observation.recommendation.title ?? "Monitoring guidance")}
             </Text>
-            <Text style={styles.guideHint}>Monitoring tips only — not a prescription.</Text>
             {Array.isArray(observation.recommendation.actions)
               ? observation.recommendation.actions.map((a, i) => (
                   <Text key={i} style={styles.guideItem}>
@@ -100,8 +104,22 @@ export function ObservationResultScreen({
             </Pressable>
           )}
         </View>
+
+        <Pressable style={styles.link} onPress={() => setContextOpen(true)}>
+          <Text style={styles.linkText}>About disease context</Text>
+        </Pressable>
+
         <Text style={styles.caseFootnote}>Case reference: {caseId}</Text>
       </ScrollView>
+
+      <DiseaseContextModal
+        visible={contextOpen}
+        caseId={caseId}
+        disease={observation.disease}
+        cropPartLabel={cfg?.shortLabel}
+        location={caseLocation}
+        onClose={() => setContextOpen(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -139,6 +157,8 @@ function makeStyles(p: MonitoringPalette) {
       alignItems: "center",
     },
     primaryText: { color: p.onAccent, fontWeight: "800" },
+    link: { marginTop: 16, alignItems: "center" },
+    linkText: { color: p.infoText, fontWeight: "600" },
     caseFootnote: {
       color: p.textMuted,
       fontSize: 11,

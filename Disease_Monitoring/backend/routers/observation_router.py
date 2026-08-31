@@ -38,6 +38,12 @@ async def get_case(case_id: str):
     return await svc.get_monitoring_case(case_id)
 
 
+@router.delete("/cases/{case_id}")
+async def delete_case(case_id: str):
+    """Remove a monitoring case and its observations (used when farmer abandons a partial test)."""
+    return await svc.delete_monitoring_case(case_id)
+
+
 @router.post("/cases/{case_id}/observations", response_model=UploadObservationResponse)
 async def upload_observation(
     case_id: str,

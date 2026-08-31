@@ -1,6 +1,7 @@
 """Orchestrates the observation-based monitoring pipeline."""
 
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
@@ -16,6 +17,7 @@ from ml.predict.gate_predictor import is_valid_fruit, is_valid_leaf
 from ml.predict.secondary_image_verify import verify_crop_image
 from observation.observation_repository import (
     create_case,
+    delete_case,
     get_all_observations,
     get_case,
     get_last_accepted_observation,
@@ -31,6 +33,7 @@ from observation.trend_analysis import (
 )
 from observation.weather_context import fetch_weather_context
 from utils.location_service import resolve_manual_location, resolve_observation_location
+from utils.secondary_severity_verify import verify_secondary_severity
 from severity.fruit.fruit_severity import (
     FruitModelNotConfiguredError,
     predict_fruit_severity,
@@ -85,6 +88,13 @@ async def get_monitoring_case(case_id: str) -> Dict[str, Any]:
     if not case:
         raise HTTPException(404, f"Case '{case_id}' not found.")
     return case
+
+
+async def delete_monitoring_case(case_id: str) -> Dict[str, Any]:
+    """Delete an incomplete/abandoned monitoring case and all its observations."""
+    if not delete_case(case_id):
+        raise HTTPException(404, f"Case '{case_id}' not found.")
+    return {"deleted": True, "case_id": case_id}
 
 
 async def process_observation_upload(
@@ -179,6 +189,9 @@ async def process_observation_upload(
     previous_score = previous["severity_score"] if previous else None
     trend = compute_trend(severity_result["severity_score"], previous_score)
 
+    primary_severity = str(severity_result["severity_class"]).upper()
+    cnn_high_prob = severity_result.get("cnn_high_prob")
+
     location = resolve_observation_location(
         latitude=latitude,
         longitude=longitude,
@@ -208,7 +221,18 @@ async def process_observation_upload(
                 "source": location.get("source") or "default",
             }
 
-    weather_context = fetch_weather_context(weather_lat, weather_lon)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        wx_fut = pool.submit(fetch_weather_context, weather_lat, weather_lon)
+        sv_fut = pool.submit(
+            verify_secondary_severity, image_bytes, crop_part, primary_severity
+        )
+        weather_context = wx_fut.result()
+        secondary_verify = sv_fut.result()
+
+    severity_evidence = {
+        "cnn_high_prob": cnn_high_prob,
+        **secondary_verify,
+    }
     if used_default_weather_location and weather_context.get("available"):
         weather_context = {
             **weather_context,
@@ -232,7 +256,7 @@ async def process_observation_upload(
         "created_at": created_at,
         "disease": disease,
         "severity_score": severity_result["severity_score"],
-        "severity_class": severity_result["severity_class"],
+        "severity_class": primary_severity,
         "embedding": embedding,
         "similarity_score": similarity_score,
         "consistency_status": consistency_status,
@@ -248,6 +272,7 @@ async def process_observation_upload(
         "district": location.get("district"),
         "province": location.get("province"),
         "location_source": location.get("source"),
+        "severity_evidence": severity_evidence,
     }
     insert_observation(record)
 

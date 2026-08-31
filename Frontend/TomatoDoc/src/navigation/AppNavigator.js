@@ -18,6 +18,7 @@ import DiseaseScanScreen from '../modules/diseaseDetection/screens/DiseaseScanSc
 import DiseaseResultScreen from '../modules/diseaseDetection/screens/DiseaseResultScreen';
 import DiseaseHistoryScreen from '../modules/diseaseDetection/screens/DiseaseHistoryScreen';
 import DiseaseSettingsScreen from '../modules/diseaseDetection/screens/DiseaseSettingsScreen';
+import PricePredictionScreen from '../modules/pricePrediction/screens/PricePredictionScreen';
 import { UIThemeContext } from '../context/UIThemeContext';
 
 const Stack = createNativeStackNavigator();
@@ -238,6 +239,11 @@ export default function AppNavigator() {
         name="FruitDetail"
         component={FruitDetailScreen}
         options={{ title: 'Fruit Treatment Guide' }}
+      />
+      <Stack.Screen
+        name="PricePrediction"
+        component={PricePredictionScreen}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

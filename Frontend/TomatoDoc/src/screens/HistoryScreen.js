@@ -129,10 +129,10 @@ function HistoryItem({ item, mode, onPress, index }) {
 
   return (
     <Animated.View style={[
-      { opacity: op, transform: [{ translateX: slideX }] }
+      { opacity: op, transform: [{ translateX: slideX }, { scale }] }
     ]}>
       <Pressable
-        style={[styles.histCard, { transform: [{ scale }] }]}
+        style={styles.histCard}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
         onPress={onPress}

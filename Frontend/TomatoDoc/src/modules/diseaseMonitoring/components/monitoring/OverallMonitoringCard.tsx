@@ -43,7 +43,7 @@ export function OverallMonitoringCard({
           { color: high ? severityColors.high.main : severityColors.low.main },
         ]}
       >
-        {formatSeverityPercent(observation)} · {observation.severity_class}
+        {formatSeverityPercent(observation)} - {observation.severity_class}
       </Text>
       {!isBaseline && trend ? (
         <Text style={styles.trend}>Trend: {trend}</Text>

@@ -37,7 +37,7 @@ import {
   trendFarmerLabel,
 } from "../utils/observationLabels";
 
-/** Demo weather coordinates (Colombo) — contextual only, not treatment advice. */
+/** Demo weather coordinates (Colombo) - contextual only, not treatment advice. */
 const DEMO_WEATHER_COORDS = { latitude: 6.9271, longitude: 79.8612 };
 
 export default function DiseaseDashboardScreen() {
@@ -270,7 +270,7 @@ export default function DiseaseDashboardScreen() {
           <View style={{ flex: 1 }}>
             <Text style={styles.sectionLabel}>Attach weather context</Text>
             <Text style={styles.meta}>
-              Uses demo coordinates (Colombo). Weather is context only — not treatment advice.
+              Uses demo coordinates (Colombo). Weather is context only
             </Text>
           </View>
           <Switch
@@ -479,7 +479,7 @@ export default function DiseaseDashboardScreen() {
                   {String(status.latest_recommendation.title ?? "Monitoring guidance")}
                 </Text>
                 <Text style={styles.meta}>
-                  Monitoring tips only — not a treatment prescription.
+                  Monitoring tips only - 
                 </Text>
                 {Array.isArray(status.latest_recommendation.actions)
                   ? status.latest_recommendation.actions.map((a, i) => (
@@ -500,7 +500,7 @@ export default function DiseaseDashboardScreen() {
             <Text style={styles.cardTitle}>Monitoring case ready</Text>
             <Text style={styles.meta}>Monitoring Case ID: {status.case_id}</Text>
             <Text style={styles.meta}>
-              No observations yet — upload Observation 1 to set the baseline.
+              No observations yet - upload Observation 1 to set the baseline.
             </Text>
           </View>
         ) : null}

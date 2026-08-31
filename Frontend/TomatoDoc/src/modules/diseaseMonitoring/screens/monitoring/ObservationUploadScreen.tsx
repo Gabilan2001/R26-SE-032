@@ -24,6 +24,7 @@ import {
   ImageQualityCard,
   LocationAccessCard,
   MismatchConfirmationModal,
+  DiseaseContextModal,
   ObservationProgress,
   ObservationUploadCard,
 } from "../../components/monitoring";
@@ -34,6 +35,7 @@ import type { MonitoringPalette } from "../../theme/colors";
 import { formatGateRejection } from "../../utils/gateMessages";
 import {
   formatLocationSummary,
+  hasUserSelectedLocation,
   manualLocationSelection,
   type ObservationLocationSelection,
 } from "../../utils/locationCapture";
@@ -45,6 +47,8 @@ type Props = {
   attachWeather: boolean;
   /** Location chosen on Observation 1 — reused for later uploads. */
   savedLocation?: ObservationLocationSelection | null;
+  /** Prior uploaded observations — disease context is shown only when length > 0. */
+  existingObservations?: Observation[];
   onLocationCommitted?: (location: ObservationLocationSelection | null) => void;
   onBack?: () => void;
   onSuccess: (payload: {
@@ -69,6 +73,7 @@ export function ObservationUploadScreen({
   observationNumber,
   attachWeather,
   savedLocation = null,
+  existingObservations = [],
   onLocationCommitted,
   onBack,
   onSuccess,
@@ -81,6 +86,7 @@ export function ObservationUploadScreen({
   const [qualitySkipped, setQualitySkipped] = useState(false);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
+  const [contextOpen, setContextOpen] = useState(false);
   const [location, setLocation] = useState<ObservationLocationSelection | null>(
     () => (isFirstObservation ? null : savedLocation)
   );
@@ -196,10 +202,7 @@ export function ObservationUploadScreen({
         }
 
         const consistency = String(result.consistency_status ?? "");
-        if (
-          !confirmSameCase &&
-          (consistency === "POSSIBLE_MATCH" || consistency === "MISMATCH")
-        ) {
+        if (!confirmSameCase && consistency === "MISMATCH") {
           setPending({
             uri,
             consistency,
@@ -222,11 +225,15 @@ export function ObservationUploadScreen({
       ]);
       setPending(null);
       setValidationMessage(null);
-      const committedLocation = isFirstObservation
-        ? effectiveLocation ?? location
-        : effectiveLocation ?? activeLocation;
-      if (isFirstObservation) {
-        onLocationCommitted?.(committedLocation);
+      const committedLocation = hasUserSelectedLocation(
+        isFirstObservation ? location : savedLocation
+      )
+        ? isFirstObservation
+          ? location
+          : savedLocation
+        : null;
+      if (isFirstObservation && hasUserSelectedLocation(location)) {
+        onLocationCommitted?.(location);
       }
       onSuccess({
         observation: obs,
@@ -253,7 +260,10 @@ export function ObservationUploadScreen({
     }
   };
 
-  const reusedSummary = formatLocationSummary(effectiveLocation ?? activeLocation);
+  const reusedSummary = formatLocationSummary(savedLocation);
+  const canShowDiseaseContext = existingObservations.length > 0;
+  const contextDisease =
+    existingObservations[0]?.disease ?? cfg.defaultDisease;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -267,7 +277,7 @@ export function ObservationUploadScreen({
         <ObservationProgress current={observationNumber} />
         <Text style={styles.title}>Observation {observationNumber}</Text>
         <Text style={styles.meta}>Case ID: {caseData.case_id}</Text>
-        <Text style={styles.meta}>{cfg.shortLabel} · disease context: external default</Text>
+        <Text style={styles.meta}>{cfg.shortLabel} monitoring</Text>
 
         {isFirstObservation ? (
           <LocationAccessCard
@@ -281,7 +291,7 @@ export function ObservationUploadScreen({
             <Text style={styles.reuseBody}>
               {reusedSummary
                 ? `Using location from Observation 1: ${reusedSummary}`
-                : "Using Colombo default for weather. Set GPS on Observation 1 next time for local weather."}
+                : "Colombo default will be used for weather. Set location on Observation 1 for local weather."}
             </Text>
           </View>
         ) : null}
@@ -313,18 +323,21 @@ export function ObservationUploadScreen({
           />
         ) : null}
 
-        <Pressable
-          style={styles.link}
-          onPress={() =>
-            Alert.alert(
-              "Disease context",
-              "Disease identification belongs to another component. This app sends a modality default required by the observation API."
-            )
-          }
-        >
-          <Text style={styles.linkText}>About disease context</Text>
-        </Pressable>
+        {canShowDiseaseContext ? (
+          <Pressable style={styles.link} onPress={() => setContextOpen(true)}>
+            <Text style={styles.linkText}>About disease context</Text>
+          </Pressable>
+        ) : null}
       </ScrollView>
+
+      <DiseaseContextModal
+        visible={contextOpen}
+        caseId={caseData.case_id}
+        disease={contextDisease}
+        cropPartLabel={cfg.shortLabel}
+        location={savedLocation}
+        onClose={() => setContextOpen(false)}
+      />
 
       <MismatchConfirmationModal
         visible={!!pending}

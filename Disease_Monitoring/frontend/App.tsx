@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import type {
-  CropPart,
-  MonitoringCase,
-  Observation,
+import {
+  deleteCase,
+  type CropPart,
+  type MonitoringCase,
+  type Observation,
 } from "./src/api/observations";
 import { TARGET_OBSERVATIONS } from "./src/config/modality";
 import { initialSession, type MonitoringSession } from "./src/navigation/types";
@@ -22,10 +23,30 @@ export default function App() {
   const [latestObservation, setLatestObservation] = useState<Observation | null>(null);
   const [latestImageUri, setLatestImageUri] = useState<string | null>(null);
 
+  const discardIncompleteCase = async (caseId: string | null | undefined) => {
+    if (!caseId) return;
+    try {
+      await deleteCase(caseId);
+    } catch {
+      // ignore
+    }
+  };
+
   const reset = () => {
     setSession(initialSession);
     setLatestObservation(null);
     setLatestImageUri(null);
+  };
+
+  const abandonCurrentCaseAndGoCreate = async () => {
+    await discardIncompleteCase(session.caseData?.case_id);
+    setLatestObservation(null);
+    setLatestImageUri(null);
+    setSession((s) => ({
+      ...initialSession,
+      cropPart: s.cropPart,
+      step: "create",
+    }));
   };
 
   if (session.step === "home") {
@@ -73,9 +94,11 @@ export default function App() {
         observationNumber={session.uploadTarget}
         attachWeather={attachWeather}
         savedLocation={session.caseLocation}
+        existingObservations={session.observations}
         onLocationCommitted={(loc) =>
           setSession((s) => ({ ...s, caseLocation: loc }))
         }
+        onBack={() => void abandonCurrentCaseAndGoCreate()}
         onSuccess={({ observation, status, observations, imageUri, location }) => {
           setLatestObservation(observation);
           setLatestImageUri(imageUri);
@@ -110,9 +133,11 @@ export default function App() {
         observation={latestObservation}
         previousObservation={previousObservation}
         cropPart={session.cropPart ?? undefined}
+        caseLocation={session.caseLocation}
         imageUri={
           latestImageUri ?? session.imageUris[latestObservation.observation_id]
         }
+        onBack={() => void abandonCurrentCaseAndGoCreate()}
         onNextObservation={() =>
           setSession((s) => ({
             ...s,

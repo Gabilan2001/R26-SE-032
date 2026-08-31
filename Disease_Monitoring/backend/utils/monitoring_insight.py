@@ -103,13 +103,10 @@ def _template_insight(payload: Dict[str, Any]) -> str:
                 change_bit = ""
         line2 = (
             f"Estimated severity: {float(initial):g}% → {float(final):g}%{change_bit}. "
-            "Keep uploading on planned days. For monitoring only — not a treatment advice."
+            "Keep uploading on planned days."
         )
     else:
-        line2 = (
-            "Keep uploading on planned days. "
-            "For monitoring only — not a treatment advice."
-        )
+        line2 = "Keep uploading on planned days."
 
     return f"{line1} {line2}"
 
@@ -126,8 +123,8 @@ def _call_language_api(payload: Dict[str, Any]) -> Optional[str]:
         "- Exactly 2 short sentences. Simple words. No jargon.\n"
         "- Sentence 1: overall condition (better / worse / about the same).\n"
         "- Sentence 2: start % → latest %, then say keep checking on planned days.\n"
-        "- Do not mention AI, models, APIs, or brand names.\n"
-        "- Do not list peak observation, timeline arrows, or long disclaimers.\n\n"
+        "- Do not mention AI, models, APIs, brand names, treatment, or diagnosis.\n"
+        "- Do not list peak observation, timeline arrows, or disclaimers.\n\n"
         f"JSON:\n{json.dumps(payload, ensure_ascii=True)}"
     )
 
@@ -182,7 +179,7 @@ def generate_farmer_insight(payload: Dict[str, Any]) -> Dict[str, Any]:
             "available": True,
             "title": "Monitoring insight",
             "text": text,
-            "disclaimer": "Monitoring estimates only — not a treatment diagnosis.",
+            "disclaimer": None,
             "source": "language_api",
         }
 
@@ -190,6 +187,6 @@ def generate_farmer_insight(payload: Dict[str, Any]) -> Dict[str, Any]:
         "available": True,
         "title": "Monitoring insight",
         "text": _template_insight(payload),
-        "disclaimer": "Monitoring estimates only — not a treatment diagnosis.",
+        "disclaimer": None,
         "source": "template",
     }

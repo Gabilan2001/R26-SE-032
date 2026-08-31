@@ -1,6 +1,6 @@
 import type { CropPart } from "../api/observations";
 
-/** Demo weather coords (Colombo) — contextual only. */
+/** Demo weather coords (Colombo) - contextual only. */
 export const DEMO_WEATHER_COORDS = {
   latitude: 6.9271,
   longitude: 79.8612,
@@ -11,7 +11,7 @@ export type ModalityConfig = {
   cropPart: CropPart;
   title: string;
   shortLabel: string;
-  /** Required by API; disease ID is external — default only, not detection. */
+  /** Required by API; disease ID is external - default only, not detection. */
   defaultDisease: string;
   severityReady: boolean;
   pendingMessage?: string;

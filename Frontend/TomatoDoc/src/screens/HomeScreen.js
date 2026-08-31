@@ -151,11 +151,12 @@ export default function HomeScreen({ navigation }) {
 
         <ModuleCard
           icon="chart-line"
-          iconColor={C.muted}
-          iconBg={C.surface2}
+          iconColor="#f59e0b"
+          iconBg="rgba(245, 158, 11, 0.12)"
           title="Price forecasting"
           subtitle="Market trend analytics and selling recommendations"
-          locked
+          badge="Ready"
+          onPress={() => navigation.navigate('PricePrediction')}
         />
         <ModuleCard
           icon="leaf"

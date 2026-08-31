@@ -30,3 +30,11 @@ class NewsMarketAnalysis(BaseModel):
     )
     news_score: float = Field(0.55, ge=0.0, le=1.0)
     data_source: str = Field("NewsAPI.org", description="API label or no-results / fallback.")
+    agricultural_impact_records: List[dict] = Field(
+        default_factory=list,
+        description="Structured agricultural impact records (location, evidence type, water/heat stress, time horizon).",
+    )
+    detected_locations: List[str] = Field(
+        default_factory=list,
+        description="Agricultural locations recognized in the news (e.g. Anuradhapura, Badulla, Dambulla).",
+    )

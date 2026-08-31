@@ -102,13 +102,11 @@ def _classify_weather(
     daily_rain: List[float],
     daily_temp_mid: List[float],
     daily_humidity: List[float],
-) -> Tuple[str, str, float, str, str, str, float, float, float]:
+) -> Tuple[str, str, float, str, str, str, float, float, float, str, str, str, Dict[str, Any]]:
     """
-    Apply rainfall rules for the named area.
+    Apply agricultural weather & water-stress evaluation rules for the named area.
 
-    Returns:
-        weather_signal, storm_risk_level, market_impact_score, price_effect,
-        reason, impact, summary_rain_metric, expected_temperature_celsius, avg_humidity
+    Evaluates both excess water and water-stress / drought conditions with time-lag awareness.
     """
     if not daily_rain or not dates:
         raise ValueError("Open-Meteo returned no usable daily rows.")
@@ -116,85 +114,145 @@ def _classify_weather(
     total_rainfall = sum(daily_rain)
     avg_daily_rain = total_rainfall / len(daily_rain)
     max_daily_rain = max(daily_rain)
-    logger.debug(
-        "Open-Meteo [%s] rain: total=%.2fmm avg=%.2fmm max=%.2fmm",
-        area_label,
-        total_rainfall,
-        avg_daily_rain,
-        max_daily_rain,
-    )
-
-    drought = all(r <= DRY_MM_THRESHOLD for r in daily_rain)
     expected_temperature_celsius = sum(daily_temp_mid) / len(daily_temp_mid)
+    max_temp = max(daily_temp_mid)
     hum_vals = [h for h in daily_humidity if h > 0]
     avg_humidity = sum(hum_vals) / len(hum_vals) if hum_vals else 0.0
 
-    if drought:
-        return (
-            "drought_risk",
-            "high",
-            0.35,
-            "UP",
-            (
-                f"Prolonged dry spell around {area_label} may stress crops and "
-                "tighten tomato supply later on."
-            ),
-            "HIGH",
-            avg_daily_rain,
-            expected_temperature_celsius,
-            avg_humidity,
+    dry_days_count = sum(1 for r in daily_rain if r <= DRY_MM_THRESHOLD)
+    all_dry = dry_days_count == len(daily_rain)
+
+    # 1. Excess-Water Conditions (Flooding, heavy rain, waterlogging)
+    if max_daily_rain > 50 or total_rainfall > 150:
+        signal = "heavy_rain_flood_risk"
+        storm_risk = "high"
+        score = 0.30
+        price_effect = "UP"
+        impact = "HIGH"
+        water_stress = "EXCESS_WATER"
+        heat_stress = "NORMAL"
+        favourability = "EXCESS_WATER"
+        time_horizon = "Immediate / Short-term (1-3 days)"
+        reason = (
+            f"Heavy rainfall (up to {max_daily_rain:.1f} mm) in {area_label} threatens field waterlogging, "
+            f"fruit fungal disease, and physical harvesting disruptions (immediate short-term supply bottleneck)."
         )
 
-    if max_daily_rain > 50:
-        return (
-            "heavy_rain",
-            "high",
-            0.30,
-            "UP",
-            (
-                f"Heavy rainfall is expected near {area_label}, which can delay harvests "
-                "and push tomato prices up."
-            ),
-            "HIGH",
-            max_daily_rain,
-            expected_temperature_celsius,
-            avg_humidity,
+    elif max_daily_rain > 20 or total_rainfall > 60:
+        signal = "moderate_rain_wet_stress"
+        storm_risk = "moderate"
+        score = 0.55
+        price_effect = "SLIGHTLY_UP"
+        impact = "MEDIUM"
+        water_stress = "EXCESS_WATER"
+        heat_stress = "NORMAL"
+        favourability = "MODERATE"
+        time_horizon = "Short-term (2-5 days)"
+        reason = (
+            f"Moderate rain (up to {max_daily_rain:.1f} mm) near {area_label} may slow fieldwork, "
+            f"complicate transport, and slightly shorten tomato post-harvest shelf life."
         )
-    if max_daily_rain > 20:
-        return (
-            "moderate_rain",
-            "moderate",
-            0.55,
-            "SLIGHTLY_UP",
-            f"Moderate rain near {area_label} may slow transport and affect supply.",
-            "MEDIUM",
-            max_daily_rain,
-            expected_temperature_celsius,
-            avg_humidity,
+
+    # 2. Severe Water-Stress & Heat Conditions (Drought in Dry Zone / Low country)
+    elif (all_dry or dry_days_count >= len(daily_rain) - 1) and (max_temp >= 35.0 or expected_temperature_celsius >= 33.0):
+        signal = "severe_drought_heat_stress"
+        storm_risk = "high"
+        score = 0.35
+        price_effect = "UP"
+        impact = "HIGH"
+        water_stress = "SEVERE_DROUGHT"
+        heat_stress = "EXTREME_HEAT"
+        favourability = "UNFAVOURABLE"
+        time_horizon = "Medium to Long-term (14-60 days)"
+        reason = (
+            f"Prolonged dry spell combined with extreme heat (up to {max_temp:.1f}°C) around {area_label}. "
+            f"Depleted soil moisture and high evapotranspiration stress irrigation tanks, posing risk to "
+            f"nursery establishment and future planted area (medium/long-term supply pressure)."
         )
-    if max_daily_rain > 5:
-        return (
-            "light_rain",
-            "low",
-            0.70,
-            "STABLE",
-            f"Light rain near {area_label}; only a small effect on tomato supply is expected.",
-            "LOW",
-            max_daily_rain,
-            expected_temperature_celsius,
-            avg_humidity,
+
+    elif all_dry and expected_temperature_celsius >= 31.0:
+        signal = "drought_water_stress"
+        storm_risk = "moderate"
+        score = 0.48
+        price_effect = "SLIGHTLY_UP"
+        impact = "MEDIUM"
+        water_stress = "MODERATE_STRESS"
+        heat_stress = "MODERATE_HEAT"
+        favourability = "WATER_STRESS"
+        time_horizon = "Medium-term (7-21 days)"
+        reason = (
+            f"Dry spell near {area_label} with elevated temperatures ({expected_temperature_celsius:.1f}°C). "
+            f"While current harvesting continues normally, persistent dry conditions may strain field irrigation "
+            f"reserves over the coming weeks."
         )
+
+    # 3. Favourable Mild Dry / Balanced Conditions
+    elif max_daily_rain <= 5.0 and expected_temperature_celsius < 31.0:
+        signal = "favourable_dry"
+        storm_risk = "low"
+        score = 0.85
+        price_effect = "STABLE"
+        impact = "NONE"
+        water_stress = "NORMAL"
+        heat_stress = "NORMAL"
+        favourability = "FAVOURABLE"
+        time_horizon = "Immediate to Medium-term"
+        reason = (
+            f"Mild dry conditions with moderate temperatures ({expected_temperature_celsius:.1f}°C) near {area_label}. "
+            f"Favourable for active picking, grading, and wholesale distribution; routine irrigation remains sufficient."
+        )
+
+    else:
+        # Balanced light/moderate showers
+        signal = "favourable_balanced_moisture"
+        storm_risk = "low"
+        score = 0.80
+        price_effect = "STABLE"
+        impact = "LOW"
+        water_stress = "NORMAL"
+        heat_stress = "NORMAL"
+        favourability = "FAVOURABLE"
+        time_horizon = "Short to Medium-term"
+        reason = (
+            f"Balanced moisture conditions ({max_daily_rain:.1f} mm max rain) in {area_label} supporting crop "
+            f"foliage and fruit set without causing harvesting delays."
+        )
+
+    agricultural_impact = {
+        "location": area_label,
+        "weather_condition": signal.replace("_", " ").title(),
+        "rainfall_status": f"Max: {max_daily_rain:.1f} mm, Total: {total_rainfall:.1f} mm in {len(dates)} days",
+        "heat_status": f"Avg: {expected_temperature_celsius:.1f}°C, Max: {max_temp:.1f}°C",
+        "water_stress": water_stress,
+        "heat_stress": heat_stress,
+        "agricultural_stress": "High" if impact == "HIGH" else ("Moderate" if impact == "MEDIUM" else "Low"),
+        "cultivation_favourability": favourability,
+        "tomato_supply_risk": "Potential future risk" if water_stress == "SEVERE_DROUGHT" else ("Immediate harvest disruption" if water_stress == "EXCESS_WATER" else "Low / Normal"),
+        "price_direction": "Potential upward pressure" if price_effect in ("UP", "SLIGHTLY_UP") else "Stable baseline",
+        "time_horizon": time_horizon,
+        "confidence": "High" if len(dates) >= 7 else "Medium",
+        "evidence_type": "Direct meteorological forecast",
+        "future_data_sources_needed": [
+            "soil_moisture_active_depth_sensor",
+            "minor_irrigation_tank_capacity_pct",
+            "crop_evapotranspiration_et0_index",
+        ],
+    }
 
     return (
-        "dry",
-        "low",
-        0.85,
-        "STABLE",
-        f"Dry conditions near {area_label}; harvest and transport should stay closer to normal.",
-        "NONE",
+        signal,
+        storm_risk,
+        score,
+        price_effect,
+        reason,
+        impact,
         max_daily_rain,
         expected_temperature_celsius,
         avg_humidity,
+        water_stress,
+        heat_stress,
+        favourability,
+        agricultural_impact,
     )
 
 
@@ -214,6 +272,14 @@ def _fallback_response(location: str, area_label: str) -> WeatherResponse:
         impact="UNKNOWN",
         humidity_avg_pct=None,
         area_used_for_forecast=area_label,
+        water_stress_level="NORMAL",
+        heat_stress_level="NORMAL",
+        agricultural_favourability="FAVOURABLE",
+        agricultural_impact={
+            "location": area_label,
+            "status": "Weather data temporarily offline",
+            "future_data_sources_needed": ["soil_moisture", "tank_levels", "evapotranspiration"],
+        },
     )
 
 
@@ -240,6 +306,10 @@ def fetch_weather_signal(location: str, forecast_days: int = 7) -> WeatherRespon
             _metric,
             expected_temp,
             avg_humidity,
+            water_stress,
+            heat_stress,
+            favourability,
+            agri_impact,
         ) = _classify_weather(area_label, dates, rains, temps_mid, hums)
 
         return WeatherResponse(
@@ -256,6 +326,10 @@ def fetch_weather_signal(location: str, forecast_days: int = 7) -> WeatherRespon
             impact=impact,
             humidity_avg_pct=round(avg_humidity, 1) if avg_humidity > 0 else None,
             area_used_for_forecast=area_label,
+            water_stress_level=water_stress,
+            heat_stress_level=heat_stress,
+            agricultural_favourability=favourability,
+            agricultural_impact=agri_impact,
         )
     except Exception as exc:  # noqa: BLE001
         logger.warning("Open-Meteo weather fetch failed: %s", exc)
