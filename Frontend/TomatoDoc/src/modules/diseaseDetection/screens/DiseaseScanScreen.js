@@ -14,9 +14,9 @@ import {
   View,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { predictDisease } from '../api/diseaseScanApi';
-import { UIThemeContext } from '../context/UIThemeContext';
-import LoadingOverlay from '../components/LoadingOverlay';
+import { predictDisease } from '../api/scan';
+import { UIThemeContext } from '../../../context/UIThemeContext';
+import LoadingOverlay from '../../../components/LoadingOverlay';
 
 // ── Tokens (same base as other modules; amber accent distinguishes this
 // module from Nutrient's lime and Fruit's red) ─────────────────────────────────
@@ -35,9 +35,9 @@ const C = {
 
 // ── Sample thumbnails (reuse existing assets) ─────────────────────────────────
 const SAMPLES = [
-  { key: 'a', src: require('../../assets/images/tomato7.jpeg') },
-  { key: 'b', src: require('../../assets/images/tomato9.jpeg') },
-  { key: 'c', src: require('../../assets/images/tomato10.jpeg') },
+  { key: 'a', src: require('../../../../assets/images/tomato7.jpeg') },
+  { key: 'b', src: require('../../../../assets/images/tomato9.jpeg') },
+  { key: 'c', src: require('../../../../assets/images/tomato10.jpeg') },
 ];
 
 // ── Animated corner brackets ───────────────────────────────────────────────────
@@ -173,6 +173,14 @@ export default function DiseaseScanScreen({ navigation }) {
             <Text style={styles.backArrow}>←</Text>
           </TouchableOpacity>
           <Text style={styles.screenTitle}>Disease Scanner</Text>
+          <View style={{ flex: 1 }} />
+          <TouchableOpacity
+            style={styles.settingsBtn}
+            onPress={() => navigation.navigate('DiseaseSettings')}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={styles.settingsIcon}>⚙</Text>
+          </TouchableOpacity>
         </View>
 
         {/* ── Hero card ── */}
@@ -211,7 +219,7 @@ export default function DiseaseScanScreen({ navigation }) {
           )}
           {loading && (
             <View style={styles.vfLoadingOverlay}>
-              <LoadingOverlay text={'Analyzing leaf & preparing treatment advice…\n(can take up to a minute)'} />
+              <LoadingOverlay text={'Analyzing leaf…'} />
             </View>
           )}
         </View>
@@ -268,6 +276,10 @@ const styles = StyleSheet.create({
   backBtn:  { width: 32, height: 32, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   backArrow:{ fontSize: 16, color: C.text },
   screenTitle: { fontSize: 18, fontWeight: '800', color: C.text },
+  // Deliberately small and low-contrast -- a dev/testing entry point, not
+  // meant to draw attention during a normal demo.
+  settingsBtn:  { width: 26, height: 26, alignItems: 'center', justifyContent: 'center' },
+  settingsIcon: { fontSize: 15, color: C.muted },
 
   heroCard: {
     backgroundColor: '#1a1200',
@@ -304,7 +316,11 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   scanLine:        { position: 'absolute', left: 14, right: 14, height: 1.5, backgroundColor: C.amber, opacity: 0.75 },
-  vfImage:         { position: 'absolute', width: '100%', height: '100%', resizeMode: 'cover' },
+  // 'contain' (not 'cover') -- cover was cropping the top/bottom off
+  // portrait leaf photos to fill this fixed-height box; contain always
+  // shows the full uploaded image, just letterboxed if the aspect ratio
+  // doesn't match.
+  vfImage:         { position: 'absolute', width: '100%', height: '100%', resizeMode: 'contain' },
   vfPlaceholder:   { alignItems: 'center', gap: 8 },
   vfPlaceholderTxt:{ fontSize: 11, color: C.muted, textAlign: 'center', lineHeight: 16 },
   vfLoadingOverlay:{ position: 'absolute', inset: 0, backgroundColor: 'rgba(20,15,0,0.85)', alignItems: 'center', justifyContent: 'center' },

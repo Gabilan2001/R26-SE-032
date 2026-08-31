@@ -1,5 +1,6 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Animated,
   Image,
   Pressable,
@@ -10,7 +11,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { UIThemeContext } from '../context/UIThemeContext';
+import { UIThemeContext } from '../../../context/UIThemeContext';
+import DiseaseChip from '../components/DiseaseChip';
+import { getTreatment } from '../api/scan';
 
 // ── Tokens ────────────────────────────────────────────────────────────────────
 const C = {
@@ -30,14 +33,6 @@ const C = {
   warnBg:       'rgba(255,92,92,0.10)',
   warnBorder:   'rgba(255,92,92,0.25)',
   warn:         '#ff5c5c',
-};
-
-// Matches CLASS_COLORS_BGR in app_mobile.py (converted BGR -> RGB hex)
-const CLASS_COLORS = {
-  Early_Blight: '#ff6432',
-  Late_Blight:  '#32b4ff',
-  Healthy:      '#3cc83c',
-  Leaf_Miner:   '#ffa500',
 };
 
 // ── Lightweight renderer for the Gemini treatment text ────────────────────────
@@ -99,19 +94,6 @@ function TreatmentText({ text }) {
   );
 }
 
-function DiseaseChip({ name }) {
-  const color = CLASS_COLORS[name] || C.muted;
-  const healthy = name === 'Healthy';
-  return (
-    <View style={[styles.diseaseChip, { borderColor: color + '55', backgroundColor: color + '18' }]}>
-      <View style={[styles.diseaseChipDot, { backgroundColor: color }]} />
-      <Text style={[styles.diseaseChipTxt, { color }]}>
-        {healthy ? 'Healthy' : name.replace('_', ' ')}
-      </Text>
-    </View>
-  );
-}
-
 // ── Main Screen ───────────────────────────────────────────────────────────────
 export default function DiseaseResultScreen({ route, navigation }) {
   const { presentationMode } = useContext(UIThemeContext);
@@ -120,6 +102,40 @@ export default function DiseaseResultScreen({ route, navigation }) {
   const diseasesFound = result.diseases_found || [];
   const onlyHealthy = diseasesFound.length === 1 && diseasesFound[0] === 'Healthy';
   const hasProblem = diseasesFound.some((d) => d !== 'Healthy');
+  // Covers blank-image / not-a-leaf / no-detection -- backend sets
+  // valid: false and a human-readable `error` string for all of these.
+  const isInvalid = result.valid === false;
+
+  // Treatment arrives separately (see api/scan.js's getTreatment) so this
+  // screen can show the detection the instant /predict returns instead of
+  // waiting up to ~90s for the RAG/Gemini call too. Still fires for
+  // Healthy-only results (so the scan gets recorded in history), just
+  // without showing a loading spinner for it -- there's nothing to wait
+  // for from the user's point of view in that case.
+  const [treatment, setTreatment] = useState(result.treatment || null);
+  const [treatmentLoading, setTreatmentLoading] = useState(!!result.valid);
+  useEffect(() => {
+    // Only for an actual successful detection -- result.valid is false for
+    // the blank-image/not-a-leaf/no-detection error cases, which never had
+    // a history record saved before either (the backend's old single-call
+    // /predict returned before reaching save_scan_history for those).
+    // Calling /treatment unconditionally here would start saving junk
+    // history entries for them now that saving lives in that endpoint.
+    if (!result.valid) return;
+    let cancelled = false;
+    getTreatment(result.detections, diseasesFound, result.co_occurrence)
+      .then((res) => {
+        if (!cancelled) setTreatment(res.data.treatment);
+      })
+      .catch(() => {
+        if (!cancelled) setTreatment(null);
+      })
+      .finally(() => {
+        if (!cancelled) setTreatmentLoading(false);
+      });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const bannerOp = useRef(new Animated.Value(0)).current;
   const bannerY  = useRef(new Animated.Value(28)).current;
@@ -154,19 +170,23 @@ export default function DiseaseResultScreen({ route, navigation }) {
         </View>
 
         {/* ── Banner ── */}
-        <Animated.View style={[styles.banner, { opacity: bannerOp, transform: [{ translateY: bannerY }] }]}>
-          <View style={styles.bannerBlob} pointerEvents="none" />
+        <Animated.View style={[styles.banner, isInvalid && styles.bannerInvalid, { opacity: bannerOp, transform: [{ translateY: bannerY }] }]}>
+          <View style={[styles.bannerBlob, isInvalid && styles.bannerBlobInvalid]} pointerEvents="none" />
           <Text style={[styles.bannerTitle, presentationMode && { fontSize: 17 }]}>
-            {onlyHealthy ? '✅ Leaf looks healthy' : hasProblem ? '🦠 Issue(s) Detected' : 'Scan Complete'}
+            {isInvalid ? '⚠️ Could Not Analyze' : onlyHealthy ? '✅ Leaf looks healthy' : hasProblem ? '🦠 Issue(s) Detected' : 'Scan Complete'}
           </Text>
           <Text style={styles.bannerText}>
-            {onlyHealthy
+            {isInvalid
+              ? (result.error || 'Please upload a clear photo of a tomato leaf.')
+              : onlyHealthy
               ? 'No disease or pest symptoms found on this leaf.'
               : `${diseasesFound.length} class${diseasesFound.length !== 1 ? 'es' : ''} detected across ${result.total_boxes || 0} region(s).`}
           </Text>
-          <View style={styles.chipRow}>
-            {diseasesFound.map((d) => <DiseaseChip key={d} name={d} />)}
-          </View>
+          {!isInvalid && (
+            <View style={styles.chipRow}>
+              {diseasesFound.map((d) => <DiseaseChip key={d} name={d} />)}
+            </View>
+          )}
         </Animated.View>
 
         {/* ── Annotated image ── */}
@@ -197,18 +217,28 @@ export default function DiseaseResultScreen({ route, navigation }) {
         )}
 
         {/* ── Treatment ── */}
-        {result.treatment?.answer && (
+        {hasProblem && (
           <View style={styles.treatCard}>
             <Text style={styles.treatCardTitle}>💊 Treatment Guidance</Text>
-            <TreatmentText text={result.treatment.answer} />
-
-            {Array.isArray(result.treatment.sources) && result.treatment.sources.length > 0 && (
-              <View style={styles.sourcesBox}>
-                <Text style={styles.sourcesTitle}>Sources</Text>
-                {result.treatment.sources.map((s, i) => (
-                  <Text key={i} style={styles.sourceLine}>• {s}</Text>
-                ))}
+            {treatmentLoading ? (
+              <View style={styles.treatLoadingRow}>
+                <ActivityIndicator color={C.amber} />
+                <Text style={styles.treatLoadingTxt}>Fetching treatment advice… (can take up to a minute)</Text>
               </View>
+            ) : treatment?.answer ? (
+              <>
+                <TreatmentText text={treatment.answer} />
+                {Array.isArray(treatment.sources) && treatment.sources.length > 0 && (
+                  <View style={styles.sourcesBox}>
+                    <Text style={styles.sourcesTitle}>Sources</Text>
+                    {treatment.sources.map((s, i) => (
+                      <Text key={i} style={styles.sourceLine}>• {s}</Text>
+                    ))}
+                  </View>
+                )}
+              </>
+            ) : (
+              <Text style={styles.treatErrorTxt}>Couldn't load treatment advice right now.</Text>
             )}
           </View>
         )}
@@ -246,14 +276,13 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: C.amberBorder,
     borderRadius: 20, padding: 16, marginBottom: 14, overflow: 'hidden',
   },
+  bannerInvalid: { backgroundColor: '#1a0d0d', borderColor: C.warnBorder },
   bannerBlob:  { position: 'absolute', top: -30, right: -30, width: 100, height: 100, borderRadius: 50, backgroundColor: C.amber, opacity: 0.07 },
+  bannerBlobInvalid: { backgroundColor: C.warn },
   bannerTitle: { fontSize: 16, fontWeight: '800', color: C.text, marginBottom: 6 },
   bannerText:  { fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 18, marginBottom: 12 },
 
   chipRow: { flexDirection: 'row', gap: 7, flexWrap: 'wrap' },
-  diseaseChip:    { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderRadius: 100, paddingHorizontal: 11, paddingVertical: 5 },
-  diseaseChipDot: { width: 6, height: 6, borderRadius: 3 },
-  diseaseChipTxt: { fontSize: 11, fontWeight: '700' },
 
   resultCard: { backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 20, overflow: 'hidden', marginBottom: 6 },
   resultImageWrap: { width: '100%', height: 260, backgroundColor: '#0a1400', justifyContent: 'center', alignItems: 'center' },
@@ -269,6 +298,9 @@ const styles = StyleSheet.create({
 
   treatCard: { backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 20, padding: 16, marginTop: 14, marginBottom: 16 },
   treatCardTitle: { fontSize: 15, fontWeight: '800', color: C.text, marginBottom: 12 },
+  treatLoadingRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 4 },
+  treatLoadingTxt: { flex: 1, fontSize: 12, color: 'rgba(255,255,255,0.6)', lineHeight: 17 },
+  treatErrorTxt: { fontSize: 12, color: C.muted, lineHeight: 18 },
   treatH3:   { fontSize: 13, fontWeight: '800', color: C.amber, marginTop: 10, marginBottom: 6 },
   treatBody: { fontSize: 12.5, color: 'rgba(255,255,255,0.75)', lineHeight: 19 },
   treatBold: { fontWeight: '800', color: C.text },

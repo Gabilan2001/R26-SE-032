@@ -1,23 +1,34 @@
 """
 train_leaf_validator.py
 =======================
-Trains a binary EfficientNet-B0 classifier:
-  Class 0 → tomato_leaf  (all tomato leaf types)
-  Class 1 → not_tomato   (Intel Image Classification scenes)
+Trains a 3-class EfficientNet-B0 classifier:
+  Class 0 -> tomato_leaf       (all tomato leaf types)
+  Class 1 -> other_plant_leaf  (other crop species -- PlantVillage, non-tomato)
+  Class 2 -> random_object     (not a plant at all -- CIFAR-100 + the
+                                 original Intel landscape scenes)
+
+Was a binary tomato-vs-not classifier. Went 3-class because the old
+negative class (Intel landscape scenes only) had never seen "a leaf, but
+the wrong species" or "a close-up food/object photo" -- confirmed in real
+testing: a potato late-blight photo and a cake photo both slipped straight
+through as "tomato leaf". Splitting the negative side into these two real
+failure modes also lets the app give a much better error message --
+"that's a different plant's leaf" vs. "that's not a leaf at all" -- instead
+of one generic "not a tomato leaf".
+
+See fetch_negative_class_data.py for how other_plant_leaf/ and
+random_object/'s CIFAR-100 portion were sourced.
 
 Output:
-  leaf_validator.pth  → saved to models folder
+  leaf_validator.pth  -> saved to models folder
 
 Run from stage4_inference folder:
   python train_leaf_validator.py
 """
 
 import random
-import shutil
 from pathlib import Path
 
-import cv2
-import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
@@ -28,8 +39,11 @@ from sklearn.metrics import classification_report, confusion_matrix
 # ── Paths ─────────────────────────────────────────────────────────────────────
 BASE       = Path(r"C:\Users\mfart\Desktop\Research\Disease Detection\R26-SE-032\Disease_Detection")
 OUT_MODEL  = BASE / "models" / "leaf_validator.pth"
+NEGATIVES  = BASE / "data" / "leaf_validator_negatives"
 
-# Tomato leaf sources (positive class)
+CLASS_NAMES = ["tomato_leaf", "other_plant_leaf", "random_object"]
+
+# Class 0: tomato leaf (all tomato leaf types)
 TOMATO_DIRS = [
     Path(r"C:\Users\mfart\Desktop\Models\tomato-disease\data\train\Tomato_healthy"),
     Path(r"C:\Users\mfart\Desktop\Models\tomato-disease\data\train\Tomato_Early_blight"),
@@ -42,8 +56,16 @@ TOMATO_DIRS = [
     BASE / "data" / "splits" / "train" / "images",
 ]
 
-# Not-tomato sources (negative class)
-NOT_TOMATO_DIRS = [
+# Class 1: other plant species' leaves (PlantVillage, non-tomato) -- one
+# subfolder per species/disease category, discovered at runtime.
+OTHER_LEAF_DIRS = sorted(p for p in (NEGATIVES / "other_plant_leaves").glob("*") if p.is_dir()) \
+    if (NEGATIVES / "other_plant_leaves").exists() else []
+
+# Class 2: not a plant at all -- CIFAR-100 everyday objects, plus the
+# original Intel landscape scenes (both are "not a leaf", just folded
+# together into one class now instead of being the entire negative side).
+RANDOM_OBJECT_DIRS = [
+    NEGATIVES / "random_objects",
     Path(r"C:\Users\mfart\Downloads\Compressed\archive\seg_train\seg_train\buildings"),
     Path(r"C:\Users\mfart\Downloads\Compressed\archive\seg_train\seg_train\forest"),
     Path(r"C:\Users\mfart\Downloads\Compressed\archive\seg_train\seg_train\glacier"),
@@ -53,8 +75,9 @@ NOT_TOMATO_DIRS = [
 ]
 
 # ── Config ────────────────────────────────────────────────────────────────────
-TOMATO_LIMIT    = 2000    # max tomato leaf images to use
-NOT_TOMATO_LIMIT = 2000   # max not-tomato images to use
+TOMATO_LIMIT       = 2000  # max images per class -- kept roughly balanced
+OTHER_LEAF_LIMIT    = 2000
+RANDOM_OBJECT_LIMIT = 2000
 VAL_SPLIT       = 0.2
 IMG_SIZE        = 224
 BATCH_SIZE      = 32
@@ -111,7 +134,7 @@ def collect_images(dirs, limit):
             continue
         imgs = [p for p in d.iterdir() if p.suffix in exts]
         all_imgs.extend(imgs)
-        print(f"  {d.name:<40} {len(imgs)} images")
+        print(f"  {d.name:<45} {len(imgs)} images")
 
     random.shuffle(all_imgs)
     return all_imgs[:limit]
@@ -120,7 +143,7 @@ def collect_images(dirs, limit):
 # ── Build model ───────────────────────────────────────────────────────────────
 def build_model():
     m = models.efficientnet_b0(weights="IMAGENET1K_V1")
-    m.classifier[1] = nn.Linear(m.classifier[1].in_features, 2)
+    m.classifier[1] = nn.Linear(m.classifier[1].in_features, len(CLASS_NAMES))
     return m.to(device)
 
 
@@ -130,29 +153,34 @@ def train():
     torch.manual_seed(42)
 
     print("=" * 55)
-    print("Leaf Validator — Binary Classifier Training")
+    print("Leaf Validator — 3-Class Classifier Training")
     print("=" * 55)
     print(f"  Device : {device}")
 
     # Collect images
     print("\n  Collecting tomato leaf images...")
     tomato_imgs = collect_images(TOMATO_DIRS, TOMATO_LIMIT)
-    print(f"  Total tomato leaf : {len(tomato_imgs)}")
+    print(f"  Total tomato leaf     : {len(tomato_imgs)}")
 
-    print("\n  Collecting not-tomato images...")
-    not_tomato_imgs = collect_images(NOT_TOMATO_DIRS, NOT_TOMATO_LIMIT)
-    print(f"  Total not-tomato  : {len(not_tomato_imgs)}")
+    print("\n  Collecting other-plant-leaf images...")
+    other_leaf_imgs = collect_images(OTHER_LEAF_DIRS, OTHER_LEAF_LIMIT)
+    print(f"  Total other plant leaf: {len(other_leaf_imgs)}")
+
+    print("\n  Collecting random-object images...")
+    random_obj_imgs = collect_images(RANDOM_OBJECT_DIRS, RANDOM_OBJECT_LIMIT)
+    print(f"  Total random object   : {len(random_obj_imgs)}")
 
     # Build samples
     samples = (
         [(p, 0) for p in tomato_imgs] +
-        [(p, 1) for p in not_tomato_imgs]
+        [(p, 1) for p in other_leaf_imgs] +
+        [(p, 2) for p in random_obj_imgs]
     )
     random.shuffle(samples)
 
-    print(f"\n  Total samples : {len(samples)}")
-    print(f"  Tomato leaf   : {len(tomato_imgs)} (class 0)")
-    print(f"  Not tomato    : {len(not_tomato_imgs)} (class 1)")
+    print(f"\n  Total samples      : {len(samples)}")
+    for idx, name in enumerate(CLASS_NAMES):
+        print(f"  {name:<20}  (class {idx}) : {sum(1 for _, l in samples if l == idx)}")
 
     # Train/val split
     split = int(len(samples) * (1 - VAL_SPLIT))
@@ -224,7 +252,7 @@ def train():
             best_val_acc = val_acc
             torch.save({
                 "model_state_dict": model.state_dict(),
-                "classes"         : ["tomato_leaf", "not_tomato"],
+                "classes"         : CLASS_NAMES,
                 "threshold"       : THRESHOLD,
                 "best_val_acc"    : best_val_acc,
                 "img_size"        : IMG_SIZE,
@@ -247,14 +275,15 @@ def train():
             all_labels.extend(labels.numpy())
 
     print("\n  Classification Report:")
-    print(classification_report(all_labels, all_preds,
-                                 target_names=["tomato_leaf", "not_tomato"]))
+    print(classification_report(all_labels, all_preds, target_names=CLASS_NAMES))
 
     cm = confusion_matrix(all_labels, all_preds)
     print("  Confusion Matrix:")
-    print(f"                Pred tomato  Pred not_tomato")
-    print(f"  GT tomato      {cm[0][0]:>10}  {cm[0][1]:>15}")
-    print(f"  GT not_tomato  {cm[1][0]:>10}  {cm[1][1]:>15}")
+    header = "".join(f"{'Pred ' + n:>20}" for n in CLASS_NAMES)
+    print(f"  {'':<20}{header}")
+    for i, name in enumerate(CLASS_NAMES):
+        row = "".join(f"{cm[i][j]:>20}" for j in range(len(CLASS_NAMES)))
+        print(f"  GT {name:<17}{row}")
 
     print("\n  Training complete ✅")
     print("=" * 55)

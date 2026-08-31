@@ -8,8 +8,9 @@ import {
   Text,
   View,
 } from 'react-native';
-import { getDiseaseHistory, getDiseaseStats } from '../api/diseaseHistoryApi';
-import { formatDateTime } from '../utils/formatters';
+import { getDiseaseHistory, getDiseaseStats } from '../api/history';
+import { formatDateTime } from '../../../utils/formatters';
+import DiseaseChip from '../components/DiseaseChip';
 
 // ── Tokens (matches DiseaseScanScreen/DiseaseResultScreen's amber theme) ──────
 const C = {
@@ -24,24 +25,6 @@ const C = {
   amberDim:     'rgba(245,166,35,0.10)',
   amberBorder:  'rgba(245,166,35,0.22)',
 };
-
-// Matches CLASS_COLORS_BGR in app_mobile.py (converted BGR -> RGB hex)
-const CLASS_COLORS = {
-  Early_Blight: '#ff6432',
-  Late_Blight:  '#32b4ff',
-  Healthy:      '#3cc83c',
-  Leaf_Miner:   '#ffa500',
-};
-
-function DiseaseChip({ name }) {
-  const color = CLASS_COLORS[name] || C.muted;
-  return (
-    <View style={[styles.chip, { borderColor: color + '55', backgroundColor: color + '18' }]}>
-      <View style={[styles.chipDot, { backgroundColor: color }]} />
-      <Text style={[styles.chipTxt, { color }]}>{name.replace('_', ' ')}</Text>
-    </View>
-  );
-}
 
 function StatBox({ num, label }) {
   return (
@@ -69,7 +52,7 @@ function HistoryItem({ item }) {
         {item.co_occurrence && <Text style={styles.itemCoOcc}>⚠ Multiple issues</Text>}
       </View>
       <View style={styles.chipRow}>
-        {diseases.map((d) => <DiseaseChip key={d} name={d} />)}
+        {diseases.map((d) => <DiseaseChip key={d} name={d} compact />)}
       </View>
       {preview && (
         <Text style={styles.itemPreview} numberOfLines={expanded ? undefined : 2}>
@@ -198,9 +181,6 @@ const styles = StyleSheet.create({
   itemCoOcc: { fontSize: 10, color: '#ff5c5c', fontWeight: '700' },
 
   chipRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginBottom: 8 },
-  chip:    { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 100, paddingHorizontal: 9, paddingVertical: 4 },
-  chipDot: { width: 5, height: 5, borderRadius: 3 },
-  chipTxt: { fontSize: 10, fontWeight: '700' },
 
   itemPreview: { fontSize: 11.5, color: 'rgba(255,255,255,0.65)', lineHeight: 17 },
   itemToggle:  { fontSize: 10, color: C.amber, fontWeight: '700', marginTop: 6 },
