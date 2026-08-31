@@ -307,7 +307,35 @@ def get_full_recommendation(
     news_flag_level = news_data.get("news_flag_level", "none")
     news_events = news_data.get("events", [])
 
-    # Step 1c: Fetch SHAP Explainability for Base LSTM Forecast
+    # Step 1c: Multi-Source Corroboration (Weather + News)
+    reg_impact = engine_res.get("regional_weather_impact", {})
+    growing_weather = reg_impact.get("growing_region_weather", {})
+    regions_map = growing_weather.get("regions", {})
+    anu_feat = regions_map.get("Anuradhapura", {})
+    is_anu_drought_weather = anu_feat.get("water_status") in ("SEVERE_DROUGHT_STRESS", "MODERATE_WATER_DEFICIT")
+
+    has_drought_news = any(
+        e.get("event_type") == "drought_water_stress" or "drought" in str(e.get("reason", "")).lower()
+        for e in news_events
+    )
+
+    corroborated_signals = {
+        "multi_source_agreement": bool(is_anu_drought_weather and has_drought_news),
+        "primary_region": "Anuradhapura" if is_anu_drought_weather else reg_impact.get("primary_region", "Dambulla"),
+        "water_condition": "Severe Dry / Tank Deficit" if (is_anu_drought_weather or has_drought_news) else "Normal / Balanced",
+        "evidence_type": "Multi-source Corroborated (Meteorological Series + News)" if (is_anu_drought_weather and has_drought_news) else ("Direct Meteorological Series" if is_anu_drought_weather else "Market Monitoring"),
+        "confidence": "High" if (is_anu_drought_weather and has_drought_news) else "Medium",
+        "impact_time_horizon": "Medium to Long-term (14-60 days)" if (is_anu_drought_weather or has_drought_news) else "Immediate / Short-term (1-3 days)",
+        "tomato_supply_risk": "Potential future production risk (depleted irrigation tanks)" if (is_anu_drought_weather or has_drought_news) else "Normal active supply",
+        "interpretation": (
+            "Independent meteorological series and agricultural news corroborate elevated water stress in Dry Zone hubs like Anuradhapura. "
+            "This represents an indirect medium/long-term planting risk. Immediate wholesale market arrivals continue following current active harvest cycles."
+            if (is_anu_drought_weather and has_drought_news)
+            else "Single-source or normal baseline conditions observed across major supply regions."
+        ),
+    }
+
+    # Step 1d: Fetch SHAP Explainability for Base LSTM Forecast
     shap_explanation = get_shap_explanation(
         market=market,
         series_type=series_type,
@@ -492,6 +520,7 @@ def get_full_recommendation(
         "news_events": news_events,
         "shap_explanation": shap_explanation,
         "regional_weather_impact": engine_res.get("regional_weather_impact"),
+        "corroborated_signals": corroborated_signals,
         "driver_share_lstm_pct": round(lstm_share_pct, 1),
         "driver_share_weather_pct": round(weather_share_pct, 1),
         "day1_base_forecast_lkr": day1_base_pred,

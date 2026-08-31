@@ -70,6 +70,7 @@ def predict_price(request: PricePredictionRequest):
             weather_flag_level=rec_dict["weather_flag_level"],
             d14_cum_rain_mm=rec_dict["d14_cum_rain_mm"],
             regional_weather_impact=rec_dict.get("regional_weather_impact"),
+            corroborated_signals=rec_dict.get("corroborated_signals"),
             news_flag_level=rec_dict.get("news_flag_level", "none"),
             news_events=rec_dict.get("news_events", []),
             shap_explanation=rec_dict.get("shap_explanation"),

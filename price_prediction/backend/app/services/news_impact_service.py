@@ -18,7 +18,10 @@ _RELEVANCE_PATTERN = re.compile(
     r"\b(tomato|tomatoes|vegetable|vegetables|crop|crops|harvest|harvests|farm|farmers|farming|"
     r"food\s+price|food\s+prices|food\s+inflation|vegetable\s+price|vegetable\s+market|"
     r"wholesale\s+market|agri|agriculture|agricultural\s+sector|agricultural\s+production|"
-    r"fertilizer|pesticide|drought|flood|flooding|landslide|transport\s+strike|fuel\s+price)\b",
+    r"fertilizer|pesticide|drought|severe\s+drought|dry\s+spell|prolonged\s+dry|water\s+shortage|"
+    r"water\s+scarcity|irrigation\s+shortage|dried\s+tanks?|tanks?\s+dr(y|ied)|low\s+reservoir|"
+    r"groundwater|extreme\s+heat|heatwave|heat\s+wave|failed\s+cultivation|agricultural\s+water\s+shortage|"
+    r"flood|flooding|landslide|transport\s+strike|fuel\s+price)\b",
     re.IGNORECASE,
 )
 
@@ -41,6 +44,18 @@ _UP_PRICE_KEYWORDS: Tuple[str, ...] = (
     "disease",
     "pest",
     "drought",
+    "severe drought",
+    "dry spell",
+    "water shortage",
+    "water scarcity",
+    "irrigation shortage",
+    "dried tanks",
+    "tanks completely dry",
+    "low reservoir",
+    "extreme heat",
+    "heatwave",
+    "failed cultivation",
+    "agricultural water shortage",
     "inflation",
     "fuel price",
     "diesel",
@@ -58,6 +73,11 @@ _DOWN_PRICE_KEYWORDS: Tuple[str, ...] = (
     "prices fall",
     "subsidy",
     "relief package",
+)
+
+_LOCATIONS_REGEX = re.compile(
+    r"\b(Anuradhapura|Polonnaruwa|Badulla|Nuwara Eliya|Dambulla|Matale|Kandy|Colombo|Pettah|Kurunegala|Jaffna|Monaragala|Hambantota|Ampara|Batticaloa|Puttalam|Galewela|Sigiriya|Kekirawa|Welimada)\b",
+    re.IGNORECASE,
 )
 
 
@@ -102,23 +122,96 @@ def _map_to_sentiment(price_direction: str, uncertainty: str) -> str:
     return "neutral"
 
 
+def _extract_agricultural_records(filtered_articles: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[str]]:
+    """Generate Section 8 structured agricultural impact records for detected locations."""
+    records: List[Dict[str, Any]] = []
+    detected_locations: Set[str] = set()
+
+    for art in filtered_articles:
+        title = art.get("title", "")
+        desc = art.get("description", "")
+        text = f"{title} {desc}".lower()
+
+        # Find locations mentioned
+        loc_matches = _LOCATIONS_REGEX.findall(f"{title} {desc}")
+        loc_name = loc_matches[0].title() if loc_matches else "Sri Lanka Agricultural Region"
+        if loc_matches:
+            detected_locations.add(loc_name)
+
+        has_drought = bool(re.search(r"\b(drought|dry spell|water shortage|water scarcity|irrigation|dried tanks?|heatwave|extreme heat)\b", text))
+        has_flood = bool(re.search(r"\b(flood|flooding|landslide|heavy rain)\b", text))
+        has_direct_tomato = bool(re.search(r"\b(tomato|tomatoes|vegetable|thakkali)\b", text))
+        has_extreme_heat = bool(re.search(r"\b(extreme heat|heatwave|39|40|41|42|45)\b", text))
+
+        if has_drought:
+            if has_direct_tomato and re.search(r"\b(damage|loss|shortage)\b", text):
+                ev_type = "Direct crop evidence"
+                supply_risk = "Direct reported crop loss"
+                conf = "High"
+                t_horiz = "Medium term (7-14 days)"
+            else:
+                ev_type = "Indirect agricultural evidence"
+                supply_risk = "Potential future risk"
+                conf = "Medium"
+                t_horiz = "Medium/long term (>14 days)"
+            cond = "Severe dry conditions"
+            rain_stat = "Very low / prolonged dry spell"
+            w_stress = "High"
+        elif has_flood:
+            ev_type = "Direct crop / transit disruption evidence"
+            supply_risk = "Immediate harvest disruption"
+            conf = "High"
+            t_horiz = "Immediate / Short-term (1-3 days)"
+            cond = "Excessive rain / flood"
+            rain_stat = "Excessive rainfall"
+            w_stress = "Excess"
+        else:
+            ev_type = "Market / logistics evidence"
+            supply_risk = "Transport / Input cost pressure"
+            conf = "Medium"
+            t_horiz = "Short to medium term"
+            cond = "Market / logistics event"
+            rain_stat = "Normal"
+            w_stress = "Normal"
+
+        rec = {
+            "location": loc_name,
+            "weather_condition": cond,
+            "rainfall_status": rain_stat,
+            "heat_status": "Extreme heat" if has_extreme_heat else "Normal",
+            "water_stress": w_stress,
+            "agricultural_stress": "High" if (has_drought or has_flood) else "Moderate",
+            "tomato_supply_risk": supply_risk,
+            "price_direction": "Potential upward pressure",
+            "time_horizon": t_horiz,
+            "confidence": conf,
+            "evidence_type": ev_type,
+            "corroboration_source": str(art.get("source", "News monitoring")),
+        }
+        records.append(rec)
+
+    return records, sorted(list(detected_locations))
+
+
 def analyze_agriculture_news_for_location(location: str) -> NewsMarketAnalysis:
     """
     Fetch and analyse news automatically for the user's market / region label.
 
     Steps:
-      1) Build broad Sri Lanka + agriculture queries including the location name.
-      2) Pull raw articles via NewsAPI (shared low-level client).
-      3) Keep only genuine tomato / agri / market-relevant rows (excluding non-market noise).
-      4) If fewer than 2 relevant articles pass, return an honest empty result.
-      5) Classify likely price pressure and summarise for farmers.
+      1) Build broad Sri Lanka + agriculture + drought/water queries including the location name.
+      2) Pull raw articles via NewsAPI.
+      3) Filter non-market noise and classify direct vs indirect evidence.
+      4) Extract structured agricultural impact records matching Section 8 format.
+      5) Summarise actionable signals for farmers.
     """
     loc = (location or "Sri Lanka").strip()
     queries = [
+        f"Sri Lanka drought {loc}",
         f"Sri Lanka vegetable price {loc}",
         f"Sri Lanka food inflation {loc}",
         f"Sri Lanka crop harvest {loc}",
-        f"Sri Lanka farmer market {loc}",
+        f"Sri Lanka water shortage agriculture",
+        "Sri Lanka drought agriculture",
         "Sri Lanka vegetable price",
         "Sri Lanka food inflation",
         "Sri Lanka agriculture",
@@ -137,6 +230,8 @@ def analyze_agriculture_news_for_location(location: str) -> NewsMarketAnalysis:
             news_sentiment="neutral",
             news_score=0.55,
             data_source="NewsAPI.org (no results)",
+            agricultural_impact_records=[],
+            detected_locations=[],
         )
 
     filtered: List[Dict[str, Any]] = []
@@ -171,17 +266,21 @@ def analyze_agriculture_news_for_location(location: str) -> NewsMarketAnalysis:
             news_sentiment="neutral",
             news_score=0.55,
             data_source="NewsAPI.org",
+            agricultural_impact_records=[],
+            detected_locations=[],
         )
 
     mega_blob = " ".join(blobs)
-
     direction, topics = _score_direction(mega_blob)
     _, chunks = _parse_titles_and_chunks(filtered)
     joined = " ".join(chunks)
 
+    # Extract structured agricultural records and detected locations
+    agri_records, detected_locs = _extract_agricultural_records(filtered)
+
     # Uncertainty scales with how alarming the language is.
-    v_hit = sum(1 for w in ("catastrophic", "collapse", "disaster") if w in joined)
-    n_hit = sum(1 for w in ("crisis", "shortage", "strike", "flood", "disease") if w in joined)
+    v_hit = sum(1 for w in ("catastrophic", "collapse", "disaster", "severe drought") if w in joined)
+    n_hit = sum(1 for w in ("crisis", "shortage", "strike", "flood", "disease", "water shortage", "heatwave") if w in joined)
     if v_hit:
         uncertainty = "very_high"
     elif n_hit >= 3:
@@ -194,10 +293,20 @@ def analyze_agriculture_news_for_location(location: str) -> NewsMarketAnalysis:
     sentiment = _map_to_sentiment(direction, uncertainty)
     score = 0.45 if sentiment == "very_negative" else 0.52 if sentiment == "negative" else 0.68 if sentiment == "positive" else 0.60
 
-    summary = (
-        f"Headlines around {loc} suggest {direction} pressure on tomato markets, "
-        f"based on {len(filtered)} relevant articles (query: {winning})."
-    )
+    # Differentiate direct vs indirect in summary
+    has_drought_records = any(r["water_stress"] == "High" for r in agri_records)
+    has_indirect_drought = any(r["evidence_type"] == "Indirect agricultural evidence" for r in agri_records)
+
+    if has_drought_records and has_indirect_drought:
+        summary = (
+            f"News reports indicate agricultural water stress/dry conditions in regions including {', '.join(detected_locs[:3]) or loc}. "
+            f"This represents indirect medium-to-long term planting risk rather than an immediate tomato harvest shortage."
+        )
+    else:
+        summary = (
+            f"Headlines around {loc} suggest {direction} pressure on tomato markets, "
+            f"based on {len(filtered)} relevant articles (query: {winning})."
+        )
 
     return NewsMarketAnalysis(
         price_impact_direction=direction,
@@ -209,4 +318,6 @@ def analyze_agriculture_news_for_location(location: str) -> NewsMarketAnalysis:
         news_sentiment=sentiment,
         news_score=round(score, 3),
         data_source="NewsAPI.org",
+        agricultural_impact_records=agri_records,
+        detected_locations=detected_locs,
     )

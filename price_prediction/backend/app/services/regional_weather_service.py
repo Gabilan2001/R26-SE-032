@@ -227,28 +227,82 @@ class RegionalWeatherService:
             feat = self.get_station_features(station, target_date_str)
             w = weights.get(station, 0.25)
             feat["seasonal_weight"] = w
-            
-            # Primary signal: 21-day cumulative rain Z-score
+
             r_z = feat["rain_21d_z"]
-            feat["risk_level"] = "SEVERE" if abs(r_z) >= 2.0 else ("MODERATE" if abs(r_z) >= 1.0 else "LOW")
-            
+            dry_days = feat["consecutive_dry_days"]
+            rain_21 = feat["rain_21d_cum_mm"]
+            t3d = feat["temp_3d_avg_c"]
+
+            # Classify water stress and agricultural condition per station
+            if r_z >= 1.8 or feat["consecutive_wet_days"] >= 10:
+                water_status = "EXCESS_WATER_SATURATION"
+                water_stress = "EXCESS"
+                agri_stress = "HIGH"
+                risk_lvl = "SEVERE"
+                time_horiz = "Short-term (1-3 days harvest/transport)"
+                supply_risk = "Immediate harvest loss and transport disruption"
+            elif r_z >= 0.8:
+                water_status = "ELEVATED_MOISTURE"
+                water_stress = "ELEVATED"
+                agri_stress = "MODERATE"
+                risk_lvl = "MODERATE"
+                time_horiz = "Short-term (2-5 days)"
+                supply_risk = "Minor fieldwork and transport slowdown"
+            elif r_z <= -1.2 or dry_days >= 21 or (rain_21 < 15.0 and t3d >= 33.0):
+                water_status = "SEVERE_DROUGHT_STRESS"
+                water_stress = "HIGH"
+                agri_stress = "HIGH"
+                risk_lvl = "SEVERE"
+                time_horiz = "Medium to Long-term (14-60 days)"
+                supply_risk = "Potential future production and acreage reduction"
+            elif r_z <= -0.6 or dry_days >= 14 or (rain_21 < 35.0 and t3d >= 30.0):
+                water_status = "MODERATE_WATER_DEFICIT"
+                water_stress = "MODERATE"
+                agri_stress = "MODERATE"
+                risk_lvl = "MODERATE"
+                time_horiz = "Medium-term (7-21 days)"
+                supply_risk = "Irrigation strain; manageable if tanks active"
+            else:
+                water_status = "OPTIMAL_BALANCED"
+                water_stress = "LOW"
+                agri_stress = "LOW"
+                risk_lvl = "LOW"
+                time_horiz = "Immediate to Medium-term"
+                supply_risk = "Normal balanced crop conditions"
+
+            # Assign agro-ecological zone context
+            zone_map = {
+                "Anuradhapura": "Dry Zone (Low Country — Tank & Well Irrigated)",
+                "Badulla": "Intermediate/Hill Zone (Primary Yala supplier)",
+                "Dambulla": "Intermediate Zone (Central Trade & Distribution DEC)",
+                "Nuwara Eliya": "Wet Zone (Upcountry Intensive Terraces)",
+            }
+            feat["agro_ecological_zone"] = zone_map.get(station, "Agricultural Region")
+            feat["water_status"] = water_status
+            feat["water_stress_level"] = water_stress
+            feat["agricultural_stress_level"] = agri_stress
+            feat["risk_level"] = risk_lvl
+            feat["time_horizon"] = time_horiz
+            feat["supply_risk_summary"] = supply_risk
+
             composite_z += w * r_z
             region_features[station] = feat
 
-            # Fix: Primary signal is station with highest weighted contribution (season_weight * |Z-score|)
             weighted_contrib = w * abs(r_z)
             if weighted_contrib > max_weighted_contrib:
                 max_weighted_contrib = weighted_contrib
                 primary_station = station
 
+        # Classify overall risk level based on composite Z-score and drought flags
+        has_severe_drought = any(f["water_status"] == "SEVERE_DROUGHT_STRESS" for f in region_features.values())
+        has_severe_flood = any(f["water_status"] == "EXCESS_WATER_SATURATION" for f in region_features.values())
 
-        # Classify overall risk level based on composite Z-score
-        if abs(composite_z) < 1.0:
-            overall_risk = "LOW"
-        elif abs(composite_z) <= 2.0:
+        if has_severe_flood or has_severe_drought or abs(composite_z) > 2.0:
+            overall_risk = "SEVERE"
+        elif abs(composite_z) >= 1.0 or any(f["water_stress_level"] == "MODERATE" for f in region_features.values()):
             overall_risk = "MODERATE"
         else:
-            overall_risk = "SEVERE"
+            overall_risk = "LOW"
 
         # Market Storage Context (Dambulla DEC vs Pettah Warehouse ambient condition)
         storage_station = "Dambulla" if "Dambulla" in market else "Nuwara Eliya"
@@ -267,15 +321,47 @@ class RegionalWeatherService:
             ),
         }
 
-        # Growing Region Impact Summary
+        # Structured Agricultural Impact Assessment (Section 8 Standard Schema)
         prim_feat = region_features[primary_station]
-        explanation_text = (
-            f"Observed 21-day cumulative rainfall in {primary_station} ({prim_feat['rain_21d_cum_mm']} mm) "
-            f"has been {abs(prim_feat['rain_21d_z']):.1f}σ {'above' if prim_feat['rain_21d_z'] >= 0 else 'below'} "
-            f"the station's 10-year monthly seasonal baseline ({prim_feat['rain_21d_mean_mm']} mm). "
-            f"In historical project validation, elevated 21-day rainfall in this growing hub was statistically associated "
-            f"with subsequent market supply deficits and upward price pressure."
-        )
+        is_drought_signal = prim_feat["water_status"] in ("SEVERE_DROUGHT_STRESS", "MODERATE_WATER_DEFICIT")
+
+        if is_drought_signal:
+            explanation_text = (
+                f"In {primary_station} ({prim_feat['agro_ecological_zone']}), 21-day rainfall is {prim_feat['rain_21d_cum_mm']} mm "
+                f"({abs(prim_feat['rain_21d_z']):.1f}σ below the 10-year monthly seasonal baseline of {prim_feat['rain_21d_mean_mm']} mm) "
+                f"with 3-day average temperatures at {prim_feat['temp_3d_avg_c']}°C ({prim_feat['consecutive_dry_days']} consecutive dry days). "
+                f"While current daily market deliveries from active harvests continue normally in the short term, "
+                f"persistent dry conditions deplete minor irrigation tanks and groundwater, posing medium-to-long term "
+                f"water stress on field establishment and future tomato production."
+            )
+        else:
+            explanation_text = (
+                f"Observed 21-day cumulative rainfall in {primary_station} ({prim_feat['rain_21d_cum_mm']} mm) "
+                f"has been {abs(prim_feat['rain_21d_z']):.1f}σ {'above' if prim_feat['rain_21d_z'] >= 0 else 'below'} "
+                f"the station's 10-year monthly seasonal baseline ({prim_feat['rain_21d_mean_mm']} mm). "
+                f"In historical project validation, elevated 21-day rainfall in this growing hub was statistically associated "
+                f"with subsequent market supply deficits and upward price pressure."
+            )
+
+        structured_agricultural_assessment = {
+            "location": primary_station,
+            "agro_ecological_zone": prim_feat["agro_ecological_zone"],
+            "weather_condition": prim_feat["water_status"].replace("_", " ").title(),
+            "rainfall_status": f"21-day total: {prim_feat['rain_21d_cum_mm']} mm ({prim_feat['rain_21d_z']:+.1f}σ vs {prim_feat['rain_21d_mean_mm']} mm baseline)",
+            "heat_status": f"3-day avg temp: {prim_feat['temp_3d_avg_c']}°C (7-day: {prim_feat['temp_7d_avg_c']}°C)",
+            "water_stress": prim_feat["water_stress_level"],
+            "agricultural_stress": prim_feat["agricultural_stress_level"],
+            "tomato_supply_risk": prim_feat["supply_risk_summary"],
+            "price_direction": "Potential upward pressure (medium/long term)" if is_drought_signal else ("Upward pressure (short term)" if prim_feat["rain_21d_z"] >= 1.0 else "Stable baseline"),
+            "time_horizon": prim_feat["time_horizon"],
+            "confidence": "High" if abs(prim_feat["rain_21d_z"]) >= 1.5 else "Medium",
+            "evidence_type": "Direct meteorological multi-station historical series",
+            "future_data_sources_needed": [
+                "soil_moisture_depth_sensors",
+                "minor_irrigation_tank_capacity_pct",
+                "crop_evapotranspiration_et0_index",
+            ],
+        }
 
         return {
             "season": season,
@@ -284,8 +370,8 @@ class RegionalWeatherService:
             "overall_weather_risk": overall_risk,
             "composite_rain_21d_z": round(composite_z, 2),
             "primary_region": primary_station,
-            "primary_signal": "21-day rainfall anomaly",
-            "confidence_basis": "Empirical 21-day lag cross-correlation (r=+0.3975, FDR q=9.41e-82)",
+            "primary_signal": "21-day rainfall & water-stress anomaly",
+            "confidence_basis": "Empirical 21-day lag cross-correlation and agro-climatic water availability",
             "explanation": explanation_text,
             "growing_region_weather": {
                 "composite_risk_score": round(composite_z, 2),
@@ -293,6 +379,7 @@ class RegionalWeatherService:
                 "regions": region_features,
             },
             "market_storage_impact": market_storage_impact,
+            "structured_agricultural_assessment": structured_agricultural_assessment,
         }
 
     def calculate_weather_adjustment(

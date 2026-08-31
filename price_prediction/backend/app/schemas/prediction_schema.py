@@ -99,10 +99,11 @@ class PricePredictionResponse(BaseModel):
     predicted_prices: List[str] = Field(..., description="Weather-adjusted forecast strings for UI charts")
     predicted_price: float = Field(..., description="Day 1 weather-adjusted forecast price")
 
-    # Weather fields
+    # Weather & Corroborated Signal fields
     weather_flag_level: str = Field(..., description="none | moderate | severe")
     d14_cum_rain_mm: float = Field(..., description="Anuradhapura 14-day lagged cumulative rainfall change (mm)")
     regional_weather_impact: Optional[Dict[str, Any]] = Field(None, description="Multi-station Sri Lankan regional weather impact analysis")
+    corroborated_signals: Optional[Dict[str, Any]] = Field(None, description="Multi-source corroboration of weather and news intelligence")
 
     # News event flag fields
     news_flag_level: str = Field("none", description="none | watch | alert")
