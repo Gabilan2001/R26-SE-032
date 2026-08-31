@@ -1,0 +1,15 @@
+Severity calibration selection — leaf
+============================================================
+Generated: 2026-08-30T14:19:48
+Original YOLO/CNN datasets were not modified.
+No reference LOW/HIGH labels were generated.
+Selected images: 210
+Missing source files: 0
+Unreadable images skipped: 0
+Unique source photos (de-duplicated): 210
+Mean size: 512 x 512
+Per disease:
+  Early Blight: 72
+  Late Blight: 69
+  Leaf Miner: 69
+Manifest: D:\Research\Tomato_Severity_Dataset\data\severity_calibration\leaf\metadata\selection_manifest.csv

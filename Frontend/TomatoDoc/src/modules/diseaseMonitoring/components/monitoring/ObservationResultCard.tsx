@@ -104,7 +104,7 @@ export function ObservationResultCard({
             </View>
           ) : null}
           {isBaseline ? (
-            <Text style={styles.baselineHint}>First observation — baseline for this case.</Text>
+            <Text style={styles.baselineHint}>First observation - baseline for this case.</Text>
           ) : null}
         </View>
       </View>

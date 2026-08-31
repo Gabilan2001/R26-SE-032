@@ -57,7 +57,7 @@ export function weatherSummary(
   if (parsed.available === false) {
     const reason = String(parsed.reason ?? "").toLowerCase();
     if (reason.includes("location") || reason.includes("coordinate")) {
-      return "No location — weather not retrieved.";
+      return "No location - weather not retrieved.";
     }
     if (reason.includes("api") || reason.includes("key") || reason.includes("fail")) {
       return "Weather temporarily unavailable.";
@@ -67,7 +67,7 @@ export function weatherSummary(
   const d = parsed.details;
   const defaultNote = parsed.used_default_location ? " (Colombo default)" : "";
   if (d && (d.temperature != null || d.humidity != null)) {
-    return `Temp ${fmt(d.temperature, 0)}°C · Humidity ${fmt(d.humidity, 0)}% · Rain ${fmt(
+    return `Temp ${fmt(d.temperature, 0)}°C - Humidity ${fmt(d.humidity, 0)}% - Rain ${fmt(
       rainMm(d),
       1
     )} mm${defaultNote}`;

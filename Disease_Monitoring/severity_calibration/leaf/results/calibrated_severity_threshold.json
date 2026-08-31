@@ -1,0 +1,12 @@
+{
+  "method": "threshold_calibration",
+  "primary_metric": "f1",
+  "leaf_threshold": null,
+  "fruit_threshold": null,
+  "dataset_size": 210,
+  "calibration_size": 0,
+  "validation_size": 0,
+  "validated": false,
+  "plant_part": "leaf",
+  "notes": "No reference annotations yet. Annotate with the calibration UI first."
+}

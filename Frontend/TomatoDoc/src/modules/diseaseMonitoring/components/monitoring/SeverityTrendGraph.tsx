@@ -198,7 +198,7 @@ export function SeverityTrendGraph({ observations, peakObservationNumber }: Prop
               ]}
               onPress={() => setSelected((prev) => (prev === i ? null : i))}
               accessibilityRole="button"
-              accessibilityLabel={`Observation ${pt.observationNumber}, ${Math.round(pt.severityPct)} percent`}
+              accessibilityLabel={`Observation ${pt.observationNumber}, ${pt.severityPct.toFixed(1)} percent`}
             />
           );
         })}
@@ -217,7 +217,7 @@ export function SeverityTrendGraph({ observations, peakObservationNumber }: Prop
               Obs {selectedPoint.observationNumber} · {selectedPoint.dayLabel}
             </Text>
             <Text style={[styles.tooltipValue, { color: pointColor(selectedPoint) }]}>
-              {Math.round(selectedPoint.severityPct)}% · {selectedPoint.severityClass}
+              {selectedPoint.severityPct.toFixed(1)}% - {selectedPoint.severityClass}
             </Text>
             {selectedPoint.isPeak ? (
               <Text style={styles.tooltipPeak}>Peak severity</Text>

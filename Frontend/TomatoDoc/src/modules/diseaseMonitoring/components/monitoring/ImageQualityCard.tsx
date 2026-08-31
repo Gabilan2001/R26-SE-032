@@ -45,7 +45,7 @@ export function ImageQualityCard({ result, loading, skipped }: Props) {
       <View style={styles.card}>
         <Text style={styles.title}>Photo quality check</Text>
         <Text style={styles.skipped}>
-          Could not run quality check — you can still upload.
+          Could not run quality check - you can still upload.
         </Text>
       </View>
     );
@@ -84,7 +84,7 @@ export function ImageQualityCard({ result, loading, skipped }: Props) {
       })}
 
       <Text style={styles.footer}>
-        Tips only — upload is still allowed. The gate will validate crop type on upload.
+        Tips only - upload is still allowed. The gate will validate crop type on upload.
       </Text>
     </View>
   );

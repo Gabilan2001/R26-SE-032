@@ -35,8 +35,7 @@ export function HomeScreen({ onSelect, onExit }: Props) {
         <Text style={styles.title}>Tomato Disease Monitoring</Text>
         <Text style={styles.subtitle}>
           Observation-based severity and recovery tracking. Upload photos over time to compare
-          relative severity, visual consistency, and weather context — not disease identification
-          or treatment advice.
+          relative severity, visual consistency, and weather context - not disease identification.
         </Text>
 
         <Text style={styles.section}>Choose monitoring type</Text>

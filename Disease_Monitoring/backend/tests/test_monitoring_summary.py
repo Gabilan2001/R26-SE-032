@@ -18,7 +18,7 @@ def test_single_observation_baseline():
     assert summary["peak_severity_pct"] == 18.0
     assert summary["final_severity_pct"] == 18.0
     assert summary["overall_trend"] == TREND_BASELINE
-    assert summary["severity_timeline"] == "18%"
+    assert summary["severity_timeline"] == "18.0%"
 
 
 def test_improving_sequence():
@@ -30,7 +30,7 @@ def test_improving_sequence():
     assert summary["overall_change_pct"] == -7.0
     assert summary["overall_trend"] == TREND_IMPROVING
     assert summary["peak_observation_number"] == 2
-    assert summary["severity_timeline"] == "35% → 40% → 28%"
+    assert summary["severity_timeline"] == "35.0% → 40.0% → 28.0%"
     assert "Observation 2" in summary["peak_note"]
 
 

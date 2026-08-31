@@ -12,7 +12,10 @@ import { fetchKnownLocations } from "../../api/locations";
 import { useMonitoringPalette } from "../../theme/MonitoringThemeContext";
 import type { MonitoringPalette } from "../../theme/colors";
 import {
+  formatLocationNotice,
   formatLocationSummary,
+  gpsFailureMessage,
+  isGeolocationUsable,
   MANUAL_LOCATION_HINTS,
   manualLocationSelection,
   requestGpsLocation,
@@ -28,6 +31,8 @@ type Props = {
 export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
   const [loading, setLoading] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [noticeOk, setNoticeOk] = useState(true);
   const [options, setOptions] = useState<string[]>(Object.keys(MANUAL_LOCATION_HINTS));
   const p = useMonitoringPalette();
   const styles = useMemo(() => makeStyles(p), [p]);
@@ -40,15 +45,30 @@ export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
 
   const summary = formatLocationSummary(value);
 
+  const showNotice = (ok: boolean, text: string) => {
+    setNoticeOk(ok);
+    setNotice(text);
+  };
+
   const enableGps = async () => {
     setLoading(true);
+    setNotice("Asking for location...");
+    setNoticeOk(true);
     try {
-      const gps = await requestGpsLocation();
-      if (!gps) {
-        onChange(null);
+      if (!isGeolocationUsable()) {
+        showNotice(false, gpsFailureMessage("insecure_context", attachWeather));
         return;
       }
-      onChange(gps);
+
+      const result = await requestGpsLocation();
+      if (result.success) {
+        onChange(result.location);
+        const line = formatLocationNotice(result.location);
+        showNotice(true, line ?? "Location on.");
+        return;
+      }
+
+      showNotice(false, gpsFailureMessage(result.reason, attachWeather));
     } finally {
       setLoading(false);
     }
@@ -60,8 +80,14 @@ export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
       <Text style={styles.body}>
         {attachWeather
           ? "We use your location to retrieve local weather conditions for this observation."
-          : "Optional — set your area so future weather snapshots can be linked to this observation."}
+          : "Optional - set your area so future weather snapshots can be linked to this observation."}
       </Text>
+
+      {notice ? (
+        <View style={[styles.noticeBox, noticeOk ? styles.noticeOk : styles.noticeWarn]}>
+          <Text style={noticeOk ? styles.noticeOkText : styles.noticeWarnText}>{notice}</Text>
+        </View>
+      ) : null}
 
       {summary ? (
         <View style={styles.summaryBox}>
@@ -76,7 +102,7 @@ export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
       ) : (
         <Text style={styles.missing}>
           {attachWeather
-            ? "No location yet — GPS, pick an area, or use Colombo default for weather."
+            ? "No location yet - GPS, pick an area, or use Colombo default for weather."
             : "No location selected."}
         </Text>
       )}
@@ -99,13 +125,16 @@ export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
       </View>
 
       <Pressable
-        onPress={() =>
-          onChange(
-            attachWeather
-              ? manualLocationSelection("Colombo")
-              : { source: "none" }
-          )
-        }
+        onPress={() => {
+          if (attachWeather) {
+            const colombo = manualLocationSelection("Colombo");
+            onChange(colombo);
+            showNotice(true, formatLocationNotice(colombo) ?? "Location on - Colombo (default weather).");
+          } else {
+            onChange({ source: "none" });
+            showNotice(false, "Continuing without location.");
+          }
+        }}
         style={styles.skip}
       >
         <Text style={styles.skipText}>
@@ -125,8 +154,10 @@ export function LocationAccessCard({ value, onChange, attachWeather }: Props) {
                   key={label}
                   style={styles.optionRow}
                   onPress={() => {
-                    onChange(manualLocationSelection(label));
+                    const picked = manualLocationSelection(label);
+                    onChange(picked);
                     setPickerOpen(false);
+                    showNotice(true, formatLocationNotice(picked) ?? `Location on - ${label}.`);
                   }}
                 >
                   <Text style={styles.optionText}>{label}</Text>
@@ -155,6 +186,22 @@ function makeStyles(p: MonitoringPalette) {
     },
     title: { color: p.textPrimary, fontSize: 16, fontWeight: "800" },
     body: { color: p.textMuted, marginTop: 8, lineHeight: 20 },
+    noticeBox: {
+      marginTop: 12,
+      padding: 10,
+      borderRadius: 10,
+      borderWidth: 1,
+    },
+    noticeOk: {
+      backgroundColor: "rgba(74,223,111,0.12)",
+      borderColor: "rgba(74,223,111,0.35)",
+    },
+    noticeWarn: {
+      backgroundColor: "rgba(255,179,71,0.12)",
+      borderColor: "rgba(255,179,71,0.4)",
+    },
+    noticeOkText: { color: "#7CFF9C", fontWeight: "700", fontSize: 13, lineHeight: 18 },
+    noticeWarnText: { color: "#FFB347", fontWeight: "700", fontSize: 13, lineHeight: 18 },
     summaryBox: {
       marginTop: 12,
       padding: 12,

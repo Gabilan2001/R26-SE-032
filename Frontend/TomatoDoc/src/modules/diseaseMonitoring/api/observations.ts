@@ -213,6 +213,13 @@ export async function uploadObservation(params: {
   return res.json();
 }
 
+export async function deleteCase(caseId: string): Promise<void> {
+  const res = await fetch(apiUrl(`/cases/${caseId}`), { method: "DELETE" });
+  if (!res.ok && res.status !== 404) {
+    throw new Error(await res.text());
+  }
+}
+
 export const LEAF_DISEASES = ["early_blight", "late_blight", "leaf_miner"] as const;
 export const FRUIT_DISEASES = [
   "anthracnose",
