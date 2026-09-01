@@ -71,7 +71,7 @@ export default function ForecastChart({ data }) {
         {peakPrice && (
           <View style={styles.peakBadge}>
             <Text style={styles.peakText}>
-              Peak: {peakPrice} LKR (Day {peakDay || 1})
+              Expected Peak: ~{peakPrice} LKR (Day {peakDay || 1})
             </Text>
           </View>
         )}

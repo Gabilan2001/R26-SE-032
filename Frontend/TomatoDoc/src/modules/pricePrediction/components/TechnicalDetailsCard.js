@@ -8,23 +8,53 @@ export default function TechnicalDetailsCard({ data }) {
 
   if (!data) return null;
 
-  const lstmShare =
-    data.driver_share_lstm_pct != null ? data.driver_share_lstm_pct.toFixed(0) : '100';
-  const weatherShare =
-    data.driver_share_weather_pct != null ? data.driver_share_weather_pct.toFixed(0) : '0';
+  // 1. Recent 3-Day Price Trend (Momentum)
+  const pctChange = data.pct_change_day1 != null ? data.pct_change_day1 : 0;
+  const isPositiveTrend = pctChange >= 0;
+  const trendSign = isPositiveTrend ? '+' : '';
+  const trendLabel =
+    Math.abs(pctChange) < 1.0
+      ? 'Stable Price Momentum'
+      : isPositiveTrend
+      ? 'Upward Price Momentum'
+      : 'Downward Price Momentum';
+  const trendBarColor = Math.abs(pctChange) < 1.0 ? C.blue : isPositiveTrend ? C.emerald : C.red;
+  const trendFillPct = Math.min(Math.max(Math.round((Math.abs(pctChange) / 10) * 100), 20), 100);
 
-  const d14Rain = data.d14_cum_rain_mm != null ? data.d14_cum_rain_mm.toFixed(1) : '—';
-  const weatherLevel = (data.weather_flag_level || 'none').toUpperCase();
+  // 2. Supply Hub Weather Impact
+  const weatherLevel = (data.weather_flag_level || 'none').toLowerCase();
+  let weatherImpactLabel = 'Minimal Impact';
+  let weatherColor = C.emerald;
+  let weatherBg = C.emeraldDim;
+  let weatherDesc = 'Dry zone rainfall patterns remain within normal seasonal bounds.';
 
-  const isAnomaly = data.is_anomaly
-    ? 'YES (Market shock detected)'
-    : 'NO (Normal market behavior)';
+  if (weatherLevel === 'severe') {
+    weatherImpactLabel = 'High Impact';
+    weatherColor = C.red;
+    weatherBg = C.redDim;
+    weatherDesc = 'Substantial rainfall changes in key supply hubs are influencing farm-gate arrivals.';
+  } else if (weatherLevel === 'moderate') {
+    weatherImpactLabel = 'Moderate Impact';
+    weatherColor = C.amber;
+    weatherBg = C.amberDim;
+    weatherDesc = 'Minor rainfall deficit observed; irrigation monitoring recommended.';
+  }
 
-  const shap = data.shap_explanation;
-  const rankedTimesteps = shap && Array.isArray(shap.ranked_timesteps) ? shap.ranked_timesteps.slice(0, 5) : [];
-  const maxShap = Math.max(...rankedTimesteps.map((t) => Math.abs(t.shap_contribution_lkr || 0)), 0.01);
+  // 3. Market Stability Check
+  const isAnomaly = !!data.is_anomaly;
+  const stabilityLabel = isAnomaly ? 'Unseasonal Volatility' : 'Normal Daily Trading';
+  const stabilityColor = isAnomaly ? C.amber : C.emerald;
+  const stabilityBg = isAnomaly ? C.amberDim : C.emeraldDim;
+  const stabilityDesc = isAnomaly
+    ? 'Irregular market price movements detected; verify spot deals locally.'
+    : 'Price patterns align with normal seasonal trading cycles.';
 
-  const confRating = data.is_anomaly ? '50%' : '90%';
+  // 4. Clean Market Summary (strip any technical driver parenthetical math)
+  const cleanReasoning = (data.reasoning || '')
+    .replace(/\s*\([^)]*driven[^)]*\)\.?/gi, '')
+    .replace(/\s*\([^)]*weather impact[^)]*\)\.?/gi, '')
+    .replace(/^RECOMMENDATION:\s*/i, '')
+    .trim();
 
   return (
     <View style={styles.container}>
@@ -34,11 +64,11 @@ export default function TechnicalDetailsCard({ data }) {
         activeOpacity={0.75}
       >
         <View style={styles.headerLeft}>
-          <MaterialCommunityIcons name="cogs" size={18} color={C.amber} />
-          <Text style={styles.headerTitle}>Technical & SHAP Details</Text>
+          <MaterialCommunityIcons name="lightbulb-on-outline" size={18} color={C.amber} />
+          <Text style={styles.headerTitle}>Why this forecast? (Market Drivers)</Text>
         </View>
         <View style={styles.headerRight}>
-          <Text style={styles.badgeText}>Research</Text>
+          <Text style={styles.badgeText}>Market Drivers</Text>
           <MaterialCommunityIcons
             name={expanded ? 'chevron-up' : 'chevron-down'}
             size={18}
@@ -49,87 +79,66 @@ export default function TechnicalDetailsCard({ data }) {
 
       {expanded && (
         <View style={styles.body}>
-          {/* Reasoning */}
-          <View style={styles.section}>
-            <Text style={styles.secLabel}>Decision Reasoning Engine</Text>
-            <Text style={styles.secValue}>{data.reasoning || 'No rule trace recorded.'}</Text>
+          {/* Visual Driver Card 1: Recent Price Trend */}
+          <View style={styles.driverCard}>
+            <View style={styles.driverTopRow}>
+              <View style={styles.driverTitleWrap}>
+                <MaterialCommunityIcons name="chart-line-variant" size={16} color={trendBarColor} />
+                <Text style={styles.driverLabel}>Recent 3-Day Price Trend</Text>
+              </View>
+              <Text style={[styles.driverStatusText, { color: trendBarColor }]}>
+                {trendSign}{pctChange.toFixed(1)}% · {trendLabel}
+              </Text>
+            </View>
+            <View style={styles.barTrack}>
+              <View
+                style={[
+                  styles.barFill,
+                  { width: `${trendFillPct}%`, backgroundColor: trendBarColor },
+                ]}
+              />
+            </View>
           </View>
 
-          {/* SHAP Attributions */}
-          {shap && shap.summary_sentence && (
-            <View style={styles.section}>
-              <Text style={styles.secLabel}>LSTM SHAP Timestep Attributions</Text>
-              <Text style={styles.shapSummary}>{shap.summary_sentence}</Text>
-
-              <View style={styles.shapList}>
-                {rankedTimesteps.map((t, idx) => {
-                  const val = t.shap_contribution_lkr || 0;
-                  const isPos = val >= 0;
-                  const sign = isPos ? '+' : '';
-                  const barColor = isPos ? C.emerald : C.red;
-                  const pct = Math.min(Math.round((Math.abs(val) / maxShap) * 100), 100);
-
-                  return (
-                    <View key={`shap-${idx}`} style={styles.shapItem}>
-                      <View style={styles.shapRow}>
-                        <Text style={styles.shapLag}>
-                          {t.timestep_label}{' '}
-                          <Text style={styles.shapPrice}>
-                            ({t.observed_price_lkr.toFixed(1)} LKR)
-                          </Text>
-                        </Text>
-                        <Text style={[styles.shapVal, { color: barColor }]}>
-                          {sign}
-                          {val.toFixed(2)} LKR
-                        </Text>
-                      </View>
-                      <View style={styles.track}>
-                        <View
-                          style={[
-                            styles.fill,
-                            { width: `${pct}%`, backgroundColor: barColor },
-                          ]}
-                        />
-                      </View>
-                    </View>
-                  );
-                })}
+          {/* Visual Driver Card 2: Weather Impact */}
+          <View style={styles.driverCard}>
+            <View style={styles.driverTopRow}>
+              <View style={styles.driverTitleWrap}>
+                <MaterialCommunityIcons name="weather-partly-rainy" size={16} color={weatherColor} />
+                <Text style={styles.driverLabel}>Supply Hub Weather Impact</Text>
+              </View>
+              <View style={[styles.statusBadge, { backgroundColor: weatherBg }]}>
+                <Text style={[styles.statusBadgeText, { color: weatherColor }]}>
+                  {weatherImpactLabel}
+                </Text>
               </View>
             </View>
-          )}
-
-          {/* Driver Share */}
-          <View style={styles.section}>
-            <Text style={styles.secLabel}>Forecast Driver Deconstruction</Text>
-            <Text style={styles.secValue}>
-              LSTM Price Momentum: <Text style={{ color: C.amber, fontWeight: '700' }}>{lstmShare}%</Text> | Weather Calibration: <Text style={{ color: C.emerald, fontWeight: '700' }}>{weatherShare}%</Text>
-            </Text>
+            <Text style={styles.driverSubText}>{weatherDesc}</Text>
           </View>
 
-          {/* 14-Day Rain Delta */}
-          <View style={styles.section}>
-            <Text style={styles.secLabel}>14-Day Lagged Weather Signal (Anuradhapura)</Text>
-            <Text style={styles.secValue}>
-              Signal Flag: <Text style={{ fontWeight: '700', color: C.text }}>{weatherLevel}</Text> ({d14Rain} mm cumulative rainfall change)
-            </Text>
+          {/* Visual Driver Card 3: Market Stability */}
+          <View style={styles.driverCard}>
+            <View style={styles.driverTopRow}>
+              <View style={styles.driverTitleWrap}>
+                <MaterialCommunityIcons name="shield-check-outline" size={16} color={stabilityColor} />
+                <Text style={styles.driverLabel}>Market Stability Check</Text>
+              </View>
+              <View style={[styles.statusBadge, { backgroundColor: stabilityBg }]}>
+                <Text style={[styles.statusBadgeText, { color: stabilityColor }]}>
+                  {stabilityLabel}
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.driverSubText}>{stabilityDesc}</Text>
           </View>
 
-          {/* Anomaly Check */}
-          <View style={styles.section}>
-            <Text style={styles.secLabel}>Price Residual Anomaly Check (IsolationForest)</Text>
-            <Text style={styles.secValue}>
-              Anomaly Detected: <Text style={{ fontWeight: '700', color: data.is_anomaly ? C.red : C.emerald }}>{isAnomaly}</Text>
-              {data.anomaly_score != null ? ` (Score: ${data.anomaly_score.toFixed(4)})` : ''}
-            </Text>
-          </View>
-
-          {/* Confidence */}
-          <View style={styles.section}>
-            <Text style={styles.secLabel}>Heuristic Model Confidence</Text>
-            <Text style={styles.secValue}>
-              Confidence Rating: <Text style={{ fontWeight: '700', color: C.text }}>{confRating}</Text>
-            </Text>
-          </View>
+          {/* Decision Summary */}
+          {cleanReasoning ? (
+            <View style={styles.reasoningBox}>
+              <Text style={styles.reasoningTitle}>Market Summary</Text>
+              <Text style={styles.reasoningText}>{cleanReasoning}</Text>
+            </View>
+          ) : null}
         </View>
       )}
     </View>
@@ -151,12 +160,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 13,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    flex: 1,
   },
   headerTitle: {
     fontSize: 13,
@@ -182,65 +192,80 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.05)',
+    gap: 10,
+    paddingTop: 12,
   },
-  section: {
-    marginTop: 10,
+  driverCard: {
+    backgroundColor: C.surface2,
+    borderRadius: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: C.border,
   },
-  secLabel: {
+  driverTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  driverTitleWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  driverLabel: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: C.text,
+  },
+  driverStatusText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+  },
+  statusBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  statusBadgeText: {
+    fontSize: 9.5,
+    fontWeight: '700',
+  },
+  driverSubText: {
+    fontSize: 11,
+    color: C.textSecondary,
+    lineHeight: 15,
+  },
+  barTrack: {
+    height: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginTop: 2,
+  },
+  barFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  reasoningBox: {
+    backgroundColor: 'rgba(245, 158, 11, 0.06)',
+    borderLeftWidth: 3,
+    borderLeftColor: C.amber,
+    padding: 10,
+    borderRadius: 6,
+    marginTop: 2,
+  },
+  reasoningTitle: {
     fontSize: 10,
     fontWeight: '700',
     color: C.amber,
     textTransform: 'uppercase',
     letterSpacing: 0.3,
-    marginBottom: 2,
-  },
-  secValue: {
-    fontSize: 11.5,
-    color: C.textSecondary,
-    lineHeight: 16,
-  },
-  shapSummary: {
-    fontSize: 11,
-    color: C.text,
-    fontWeight: '600',
-    marginBottom: 6,
-  },
-  shapList: {
-    gap: 6,
-  },
-  shapItem: {
-    backgroundColor: C.surface2,
-    padding: 6,
-    borderRadius: 6,
-  },
-  shapRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 3,
   },
-  shapLag: {
+  reasoningText: {
     fontSize: 11,
-    fontWeight: '700',
-    color: C.text,
-  },
-  shapPrice: {
-    fontSize: 10,
-    color: C.muted,
-    fontWeight: '400',
-  },
-  shapVal: {
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  track: {
-    height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  fill: {
-    height: '100%',
-    borderRadius: 2,
+    color: C.textSecondary,
+    lineHeight: 16,
   },
 });

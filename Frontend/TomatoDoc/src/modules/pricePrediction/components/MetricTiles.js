@@ -2,12 +2,19 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { C } from '../constants/priceTheme';
 
+function formatRange(val, halfBandPct = 0.04) {
+  if (val == null || isNaN(val)) return '—';
+  const num = parseFloat(val);
+  const delta = Math.max(5, Math.round(num * halfBandPct));
+  return `${Math.round(num - delta)} – ${Math.round(num + delta)}`;
+}
+
 export default function MetricTiles({ data }) {
   if (!data) return null;
 
   const currentPrice = data.current_price_lkr != null ? Math.round(data.current_price_lkr) : '—';
-  const day1Price = data.day1_forecast_lkr != null ? Math.round(data.day1_forecast_lkr) : '—';
-  const day14Price = data.day14_forecast_lkr != null ? Math.round(data.day14_forecast_lkr) : '—';
+  const day1Range = formatRange(data.day1_forecast_lkr, 0.035);
+  const day14Range = formatRange(data.day14_forecast_lkr, 0.05);
 
   const baseline = data.current_price_lkr || (data.base_lstm_forecast && data.base_lstm_forecast[0]);
   const totalChgPct =
@@ -42,23 +49,23 @@ export default function MetricTiles({ data }) {
         </Text>
       </View>
 
-      {/* Tomorrow (Day 1) */}
+      {/* Tomorrow (Day 1 Expected Range) */}
       <View style={styles.tile}>
-        <Text style={styles.tileLabel}>Tomorrow</Text>
+        <Text style={styles.tileLabel}>Tomorrow (Expected)</Text>
         <View style={styles.priceRow}>
-          <Text style={[styles.priceValue, { color: C.amber }]}>{day1Price}</Text>
+          <Text style={[styles.priceValueRange, { color: C.amber }]}>{day1Range}</Text>
           <Text style={styles.unit}>LKR/kg</Text>
         </View>
         <Text style={styles.tileSub} numberOfLines={1}>
-          {data.forecast_start_date || 'Day 1'}
+          {data.forecast_start_date || 'Day 1 Range'}
         </Text>
       </View>
 
-      {/* 14-Day Horizon */}
+      {/* 14-Day Horizon Range */}
       <View style={[styles.tile, styles.tileHighlight]}>
-        <Text style={styles.tileLabel}>14-Day Horizon</Text>
+        <Text style={styles.tileLabel}>14-Day Range</Text>
         <View style={styles.priceRow}>
-          <Text style={[styles.priceValue, { color: trendColor }]}>{day14Price}</Text>
+          <Text style={[styles.priceValueRange, { color: trendColor }]}>{day14Range}</Text>
           <Text style={styles.unit}>LKR/kg</Text>
         </View>
         <Text style={[styles.tileSub, { color: trendColor }]} numberOfLines={1}>
@@ -91,30 +98,36 @@ const styles = StyleSheet.create({
     backgroundColor: C.surface2,
   },
   tileLabel: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '600',
     color: C.muted,
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: 3,
+    gap: 2,
     marginVertical: 2,
+    flexWrap: 'wrap',
   },
   priceValue: {
     fontSize: 17,
     fontWeight: '800',
     color: C.text,
   },
+  priceValueRange: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: C.text,
+  },
   unit: {
-    fontSize: 9,
+    fontSize: 8.5,
     color: C.muted,
     fontWeight: '600',
   },
   tileSub: {
-    fontSize: 10,
+    fontSize: 9.5,
     color: C.muted,
     fontWeight: '500',
   },

@@ -413,28 +413,26 @@ def get_full_recommendation(
     elif peak_day <= 2 and (terminal_change_pct < 0 or post_peak_drop_pct >= 3.5):
         # RULE 2: Early Peak (Days 1-2) Followed by Decline
         action_code = "SELL_NOW"
-        recommendation = "SELL NOW — Peak Price in Next 1–2 Days"
+        recommendation = "Selling Suggested — Peak Price in Next 1–2 Days"
         optimal_sell_day = peak_day
         optimal_sell_price_lkr = round(peak_price, 2)
         reasoning = (
-            f"RECOMMENDATION: SELL NOW — Peak Price in Next 1–2 Days. "
             f"The current price for {series_label} is {recent_actual_price:.2f} LKR/kg. "
             f"Prices are projected to reach an early peak of {peak_price:.2f} LKR/kg on Day {peak_day} (+{peak_change_pct:.1f}%) "
             f"and then decline toward {terminal_price:.2f} LKR/kg by Day {h_len} ({terminal_change_pct:+.1f}%). "
-            f"Selling immediately or near the Day {peak_day} peak is recommended to avoid lower returns as prices soften later in the horizon."
+            f"Selling during or near the Day {peak_day} peak is suggested to protect returns before prices soften."
         )
 
     elif forecast_trajectory[0] < recent_actual_price and terminal_change_pct <= -3.5 and peak_change_pct < 1.5:
         # RULE 3: Consistent Downward Trend
         action_code = "SELL_NOW"
-        recommendation = "SELL NOW — Prices Expected to Decline"
+        recommendation = "Selling Suggested — Prices Expected to Decline"
         optimal_sell_day = 1
         optimal_sell_price_lkr = round(forecast_trajectory[0], 2)
         reasoning = (
-            f"RECOMMENDATION: SELL NOW. "
             f"The current price for {series_label} is {recent_actual_price:.2f} LKR/kg. "
             f"Prices are projected to soften continuously across the forecast horizon down to {terminal_price:.2f} LKR/kg by Day {h_len} ({terminal_change_pct:+.1f}%). "
-            f"Selling sooner is recommended to reduce the risk of receiving lower market prices later."
+            f"Selling is suggested to protect earnings before further market price declines."
         )
 
     elif 3 <= peak_day <= 5 and peak_change_pct >= 3.5:
@@ -444,10 +442,9 @@ def get_full_recommendation(
         optimal_sell_day = peak_day
         optimal_sell_price_lkr = round(peak_price, 2)
         reasoning = (
-            f"RECOMMENDATION: HOLD. "
             f"The current price for {series_label} is {recent_actual_price:.2f} LKR/kg. "
             f"Prices are projected to rise toward a peak of {peak_price:.2f} LKR/kg around Day {peak_day} (+{peak_change_pct:.1f}%). "
-            f"Holding off on immediate sales for 2–4 days is recommended to capture higher returns. "
+            f"Holding off on immediate sales for 2–4 days is suggested to capture higher returns. "
             f"Note: ensure harvest timing aligns with crop maturity and ambient shelf life (3–5 days)."
         )
 
@@ -458,7 +455,6 @@ def get_full_recommendation(
         optimal_sell_day = peak_day
         optimal_sell_price_lkr = round(peak_price, 2)
         reasoning = (
-            f"RECOMMENDATION: HOLD. "
             f"The current price for {series_label} is {recent_actual_price:.2f} LKR/kg. "
             f"Higher market prices (up to {peak_price:.2f} LKR/kg, +{peak_change_pct:.1f}%) are projected later around Day {peak_day}. "
             f"Because tomatoes are perishable, plan staggered field harvesting rather than storing harvested tomatoes in ambient holding for extended periods."
@@ -467,26 +463,14 @@ def get_full_recommendation(
     else:
         # RULE 6: Stable Forecast (Default within +/- 3.5%)
         action_code = "STABLE"
-        recommendation = "SELL NOW OR HOLD — Prices Expected to Stay Stable"
+        recommendation = "Selling or Holding is Feasible — Prices Expected to Stay Stable"
         optimal_sell_day = peak_day
         optimal_sell_price_lkr = round(peak_price, 2)
         reasoning = (
-            f"RECOMMENDATION: SELL NOW OR HOLD — prices expected to stay stable. "
             f"The current price for {series_label} is {recent_actual_price:.2f} LKR/kg. "
             f"Expected prices remain relatively steady across the forecast horizon ({minimum_price:.2f} – {peak_price:.2f} LKR/kg). "
-            f"Selling based on convenience and normal market conditions is recommended."
+            f"Selling based on convenience and normal market conditions is suggested."
         )
-
-    # Driver Text Construction for transparency
-    if abs(day1_weather_adj) < 0.01:
-        driver_text = f"Day 1 is driven 100% by base market momentum ({base_lstm_change_lkr:+.2f} LKR/kg, no weather adjustment applied)"
-    else:
-        driver_text = (
-            f"Day 1 is driven {lstm_share_pct:.0f}% by base market momentum ({base_lstm_change_lkr:+.2f} LKR/kg) "
-            f"and {weather_share_pct:.0f}% by weather impact ({day1_weather_adj:+.2f} LKR/kg, flag: {flag_level})"
-        )
-
-    reasoning += f" ({driver_text})."
 
     # Append plain-language news alert if news_flag_level is "alert"
     if news_flag_level == "alert" and news_events:

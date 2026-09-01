@@ -53,9 +53,62 @@ export default function PlanningTab({ selectedMarket, selectedType }) {
   };
 
   const nom = seasonalData ? seasonalData.planning_estimates_nominal || {} : {};
-  const real = seasonalData ? seasonalData.real_price_estimates_constant_lkr || {} : {};
   const wObj = seasonalData ? seasonalData.weather || {} : {};
-  const isSeas5 = wObj.source === 'ECMWF SEAS5';
+
+  // Clean Price Values
+  const lowPrice = nom.low_p10 != null ? Math.round(nom.low_p10) : (nom.core_p25 != null ? Math.round(nom.core_p25) : '—');
+  const avgPrice = nom.median_p50 != null ? Math.round(nom.median_p50) : '—';
+  const highPrice = nom.high_p90 != null ? Math.round(nom.high_p90) : (nom.core_p75 != null ? Math.round(nom.core_p75) : '—');
+
+  // Simplified Climate Gauge Logic
+  let climateLabel = '⛅ Normal Seasonal Weather';
+  let climateColor = C.emerald;
+  let climateBg = C.emeraldDim;
+  let climateProb = 50;
+
+  if (wObj.ensemble_probability) {
+    const above = wObj.ensemble_probability.above_normal || 0;
+    const near = wObj.ensemble_probability.near_normal || 0;
+    const below = wObj.ensemble_probability.below_normal || 0;
+
+    if (above >= near && above >= below) {
+      climateLabel = '🌧️ Wetter than Normal';
+      climateColor = C.blue;
+      climateBg = 'rgba(59, 130, 246, 0.12)';
+      climateProb = above;
+    } else if (below >= near && below >= above) {
+      climateLabel = '☀️ Drier than Normal';
+      climateColor = C.amber;
+      climateBg = C.amberDim;
+      climateProb = below;
+    } else {
+      climateLabel = '⛅ Normal Seasonal Weather';
+      climateColor = C.emerald;
+      climateBg = C.emeraldDim;
+      climateProb = near;
+    }
+  } else if (wObj.regional_outlook) {
+    if (String(wObj.regional_outlook).toLowerCase().includes('above')) {
+      climateLabel = '🌧️ Wetter than Normal';
+      climateColor = C.blue;
+      climateBg = 'rgba(59, 130, 246, 0.12)';
+    } else if (String(wObj.regional_outlook).toLowerCase().includes('below')) {
+      climateLabel = '☀️ Drier than Normal';
+      climateColor = C.amber;
+      climateBg = C.amberDim;
+    } else {
+      climateLabel = '⛅ Normal Seasonal Weather';
+      climateColor = C.emerald;
+      climateBg = C.emeraldDim;
+    }
+  }
+
+  // Single Actionable Planning Sentence
+  const selectedMonthName = months.find((m) => m.num === targetMonth)?.name || 'Harvest Month';
+  let cleanGuidance = `Plan staggered crop cultivation to align peak harvest in ${selectedMonthName} with expected average returns of ${avgPrice} LKR/kg.`;
+  if (seasonalData?.planning_recommendation) {
+    cleanGuidance = seasonalData.planning_recommendation.split('.')[0] + '.';
+  }
 
   return (
     <View style={styles.container}>
@@ -67,7 +120,7 @@ export default function PlanningTab({ selectedMarket, selectedType }) {
         </View>
 
         <Text style={styles.descText}>
-          Plan crop sales 1–12 months ahead using 10 years of CPI-adjusted historical price distributions:
+          Select target harvest timing (1–12 months ahead) to view seasonal market price trends:
         </Text>
 
         <View style={styles.monthSelectorGrid}>
@@ -133,10 +186,10 @@ export default function PlanningTab({ selectedMarket, selectedType }) {
           <View style={styles.resultsHeader}>
             <View>
               <Text style={styles.resultsTitle}>
-                {seasonalData.target_month_name} {seasonalData.target_year} Price Distribution
+                {seasonalData.target_month_name} {seasonalData.target_year} Price Outlook
               </Text>
               <Text style={styles.resultsSub}>
-                Based on {seasonalData.historical_seasons_count || 10} years of historical data ({seasonalData.series || selectedMarket})
+                Based on historical seasonal price cycles ({seasonalData.series || selectedMarket})
               </Text>
             </View>
             <View style={styles.confBadge}>
@@ -146,71 +199,64 @@ export default function PlanningTab({ selectedMarket, selectedType }) {
             </View>
           </View>
 
-          {/* 3 Range Boxes */}
-          <Text style={styles.rangeLabel}>
-            Expected Core Planning Range (Nominal LKR, ~4% inflation assumed):
-          </Text>
+          {/* 3 Clean Price Cards */}
           <View style={styles.rangeRow}>
+            {/* Low Estimate */}
             <View style={[styles.rangeBox, { backgroundColor: C.redDim, borderColor: C.redBorder }]}>
-              <Text style={[styles.rangeBoxLabel, { color: C.red }]}>Core Low (25th)</Text>
-              <Text style={[styles.rangeBoxPrice, { color: C.red }]}>{nom.core_p25 || '—'}</Text>
+              <Text style={[styles.rangeBoxLabel, { color: C.red }]}>Low Estimate</Text>
+              <Text style={styles.rangeBoxSub}>(Market Glut)</Text>
+              <Text style={[styles.rangeBoxPrice, { color: C.red }]}>{lowPrice}</Text>
               <Text style={styles.rangeUnit}>LKR/kg</Text>
             </View>
 
+            {/* Expected Average */}
             <View style={[styles.rangeBox, { backgroundColor: C.blueDim, borderColor: C.blueBorder }]}>
-              <Text style={[styles.rangeBoxLabel, { color: C.blue }]}>Expected (50th)</Text>
-              <Text style={[styles.rangeBoxPrice, { color: C.blue }]}>{nom.median_p50 || '—'}</Text>
+              <Text style={[styles.rangeBoxLabel, { color: C.blue }]}>Expected Average</Text>
+              <Text style={styles.rangeBoxSub}>(Normal Season)</Text>
+              <Text style={[styles.rangeBoxPrice, { color: C.blue }]}>{avgPrice}</Text>
               <Text style={styles.rangeUnit}>LKR/kg</Text>
             </View>
 
+            {/* High Estimate */}
             <View style={[styles.rangeBox, { backgroundColor: C.emeraldDim, borderColor: C.emeraldBorder }]}>
-              <Text style={[styles.rangeBoxLabel, { color: C.emerald }]}>Core High (75th)</Text>
-              <Text style={[styles.rangeBoxPrice, { color: C.emerald }]}>{nom.core_p75 || '—'}</Text>
+              <Text style={[styles.rangeBoxLabel, { color: C.emerald }]}>High Estimate</Text>
+              <Text style={styles.rangeBoxSub}>(Supply Shortage)</Text>
+              <Text style={[styles.rangeBoxPrice, { color: C.emerald }]}>{highPrice}</Text>
               <Text style={styles.rangeUnit}>LKR/kg</Text>
             </View>
           </View>
 
-          <Text style={styles.riskRangeText}>
-            Wider Risk Range (10th–90th pctl): <Text style={styles.boldWhite}>{nom.low_p10} – {nom.high_p90} LKR/kg</Text> | Constant Real Baseline: <Text style={styles.boldWhite}>{real.median_p50} LKR/kg</Text>
-          </Text>
-
-          {/* SEAS5 Climate Outlook */}
-          {isSeas5 && wObj.ensemble_probability && (
-            <View style={styles.seas5Box}>
-              <View style={styles.seas5Header}>
-                <Text style={styles.seas5Title}>ECMWF SEAS5 Regional Climate Outlook</Text>
-                <Text style={styles.seas5Source}>50-member ensemble</Text>
-              </View>
-              <Text style={styles.seas5Outlook}>
-                Regional Tendency: <Text style={styles.boldWhite}>{wObj.regional_outlook}</Text>
+          {/* Simplified Climate Outlook Gauge */}
+          <View style={styles.climateCard}>
+            <View style={styles.climateHeaderRow}>
+              <Text style={styles.climateTitle}>
+                Expected Weather in {seasonalData.target_month_name}:
               </Text>
-              <View style={styles.probRow}>
-                <View style={styles.probCol}>
-                  <Text style={styles.probLabel}>Above Normal</Text>
-                  <Text style={[styles.probVal, { color: C.emerald }]}>{wObj.ensemble_probability.above_normal}%</Text>
-                </View>
-                <View style={styles.probCol}>
-                  <Text style={styles.probLabel}>Near Normal</Text>
-                  <Text style={[styles.probVal, { color: C.blue }]}>{wObj.ensemble_probability.near_normal}%</Text>
-                </View>
-                <View style={styles.probCol}>
-                  <Text style={styles.probLabel}>Below Normal</Text>
-                  <Text style={[styles.probVal, { color: C.red }]}>{wObj.ensemble_probability.below_normal}%</Text>
-                </View>
+              <View style={[styles.climateBadge, { backgroundColor: climateBg }]}>
+                <Text style={[styles.climateBadgeText, { color: climateColor }]}>
+                  {climateLabel}
+                </Text>
               </View>
             </View>
-          )}
 
-          {/* Agronomic Guidance */}
-          {seasonalData.planning_recommendation ? (
-            <View style={styles.guidanceBox}>
-              <MaterialCommunityIcons name="lightbulb-on-outline" size={18} color={C.emerald} />
-              <Text style={styles.guidanceText}>
-                <Text style={{ fontWeight: '700', color: C.emerald }}>Planning Guidance: </Text>
-                {seasonalData.planning_recommendation}
-              </Text>
+            <View style={styles.gaugeTrack}>
+              <View
+                style={[
+                  styles.gaugeFill,
+                  { width: `${Math.max(climateProb, 20)}%`, backgroundColor: climateColor },
+                ]}
+              />
             </View>
-          ) : null}
+          </View>
+
+          {/* Actionable Crop Planning Guidance */}
+          <View style={styles.guidanceBox}>
+            <MaterialCommunityIcons name="lightbulb-on-outline" size={18} color={C.emerald} />
+            <Text style={styles.guidanceText}>
+              <Text style={{ fontWeight: '700', color: C.emerald }}>Planning Tip: </Text>
+              {cleanGuidance}
+            </Text>
+          </View>
         </View>
       )}
     </View>
@@ -349,7 +395,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   resultsTitle: {
     fontSize: 13,
@@ -372,16 +418,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: C.amber,
   },
-  rangeLabel: {
-    fontSize: 10.5,
-    color: C.textSecondary,
-    fontWeight: '600',
-    marginBottom: 6,
-  },
   rangeRow: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   rangeBox: {
     flex: 1,
@@ -393,7 +433,12 @@ const styles = StyleSheet.create({
   rangeBoxLabel: {
     fontSize: 9.5,
     fontWeight: '700',
-    marginBottom: 2,
+    marginBottom: 1,
+  },
+  rangeBoxSub: {
+    fontSize: 8,
+    color: C.muted,
+    marginBottom: 3,
   },
   rangeBoxPrice: {
     fontSize: 16,
@@ -402,19 +447,9 @@ const styles = StyleSheet.create({
   rangeUnit: {
     fontSize: 8.5,
     color: C.muted,
+    marginTop: 1,
   },
-  riskRangeText: {
-    fontSize: 10,
-    color: C.muted,
-    lineHeight: 14,
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  boldWhite: {
-    color: C.text,
-    fontWeight: '700',
-  },
-  seas5Box: {
+  climateCard: {
     backgroundColor: C.surface2,
     borderRadius: 10,
     padding: 10,
@@ -422,39 +457,35 @@ const styles = StyleSheet.create({
     borderColor: C.border,
     marginBottom: 10,
   },
-  seas5Header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
+  climateHeaderRow: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 5,
+    marginBottom: 8,
   },
-  seas5Title: {
+  climateTitle: {
     fontSize: 11,
     fontWeight: '700',
     color: C.text,
   },
-  seas5Source: {
-    fontSize: 9,
-    color: C.muted,
+  climateBadge: {
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
-  seas5Outlook: {
-    fontSize: 10.5,
-    color: C.textSecondary,
-    marginBottom: 6,
+  climateBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
   },
-  probRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+  gaugeTrack: {
+    height: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 3,
+    overflow: 'hidden',
   },
-  probCol: {
-    alignItems: 'center',
-  },
-  probLabel: {
-    fontSize: 9,
-    color: C.muted,
-  },
-  probVal: {
-    fontSize: 13,
-    fontWeight: '800',
+  gaugeFill: {
+    height: '100%',
+    borderRadius: 3,
   },
   guidanceBox: {
     flexDirection: 'row',

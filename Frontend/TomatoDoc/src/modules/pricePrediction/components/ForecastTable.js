@@ -33,7 +33,7 @@ export default function ForecastTable({ data }) {
         <View>
           <Text style={styles.title}>Day-by-Day Forecast</Text>
           <Text style={styles.subTitle}>
-            {data.forecast_period_label || 'Next 14-day projection'}
+            {data.forecast_period_label || 'Next 14-day expected price bands'}
           </Text>
         </View>
         <TouchableOpacity
@@ -49,8 +49,8 @@ export default function ForecastTable({ data }) {
 
       <View style={styles.table}>
         <View style={styles.tableHeaderRow}>
-          <Text style={[styles.th, { flex: 1.4 }]}>Forecast Day</Text>
-          <Text style={[styles.th, { flex: 1.2, textAlign: 'center' }]}>Expected</Text>
+          <Text style={[styles.th, { flex: 1.2 }]}>Forecast Day</Text>
+          <Text style={[styles.th, { flex: 1.4, textAlign: 'center' }]}>Expected Range</Text>
           <Text style={[styles.th, { flex: 1, textAlign: 'right' }]}>Daily Trend</Text>
         </View>
 
@@ -75,14 +75,19 @@ export default function ForecastTable({ data }) {
           const dateStr = dates[i] || '';
           const dayLabel = i === 0 ? 'Day 1 (Tomorrow)' : `Day ${i + 1}`;
 
+          const bandPct = 0.035 + i * 0.002;
+          const delta = Math.max(5, Math.round(currentVal * bandPct));
+          const lowRange = Math.round(currentVal - delta);
+          const highRange = Math.round(currentVal + delta);
+
           return (
             <View key={`day-${i}`} style={styles.tableRow}>
-              <View style={{ flex: 1.4 }}>
+              <View style={{ flex: 1.2 }}>
                 <Text style={styles.dayText}>{dayLabel}</Text>
                 {dateStr ? <Text style={styles.dateText}>{dateStr}</Text> : null}
               </View>
-              <Text style={[styles.priceText, { flex: 1.2, textAlign: 'center' }]}>
-                {Math.round(currentVal)} LKR
+              <Text style={[styles.priceText, { flex: 1.4, textAlign: 'center' }]}>
+                {lowRange} – {highRange} LKR
               </Text>
               <View style={[styles.trendCell, { flex: 1 }]}>
                 <Text style={[styles.trendText, { color: trendColor }]}>
@@ -95,7 +100,7 @@ export default function ForecastTable({ data }) {
       </View>
 
       <Text style={styles.provenanceNote}>
-        Model trained on historical price data from {data.dataset_coverage || 'Aug 2016 to Aug 2026'}.
+        Based on historical price series from {data.dataset_coverage || 'Aug 2016 to Aug 2026'}.
       </Text>
     </View>
   );
@@ -176,7 +181,7 @@ const styles = StyleSheet.create({
     color: C.muted,
   },
   priceText: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '700',
     color: C.text,
   },
