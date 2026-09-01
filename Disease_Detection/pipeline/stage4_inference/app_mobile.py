@@ -6,7 +6,7 @@ module. This is the PRODUCT backend -- separate from app.py, which stays a
 multi-model research/comparison tool (5 models, used for the paper) and is
 not meant to be deployed.
 
-Only the one validated final model is served here: YOLOv8m 4-class,
+Only the one validated final model is served here: YOLOv8s 4-class,
 native-640 (Early_Blight, Late_Blight, Healthy, Leaf_Miner). Same leaf
 validation, background removal, and Gemini RAG treatment system as app.py --
 that logic is unchanged, just trimmed to one model so this is lighter to run
@@ -110,7 +110,10 @@ def classify_leaf(img_bgr, validator_model):
     return is_valid, pred_class, round(tomato_conf, 4)
 
 # ── The one final model ────────────────────────────────────────────────────────
-MODEL_PATH = BASE / "models" / "yolov8m_final" / "weights" / "best.pt"
+# YOLOv8s -- switched from YOLOv8m after manual comparison across many test
+# images showed YOLOv8s slightly more accurate (also backed by the research
+# tool's stored eval: 50% mAP50-95 vs YOLOv8m's 48%, see app.py's MODELS dict).
+MODEL_PATH = BASE / "models" / "yolov8s_compare" / "weights" / "best.pt"
 CLASS_NAMES = ["Early_Blight", "Late_Blight", "Healthy", "Leaf_Miner"]
 
 CLASS_COLORS_BGR = {
@@ -131,7 +134,7 @@ print("=" * 55)
 print("TomatoDoc — Disease Detection Backend (Mobile)")
 print("=" * 55)
 print(f"  Device : {'CUDA' if torch.cuda.is_available() else 'CPU'}")
-print("  Loading YOLOv8m (native-640, final)...")
+print("  Loading YOLOv8s (native-640, final)...")
 model = YOLO(str(MODEL_PATH))
 print("  Loaded ✅")
 print("  Loading leaf validator...")
@@ -319,7 +322,7 @@ def predict():
         "treatment": None,
         "bg_removal_applied": not skip_bg_removal,
         "model_info": {
-            "label": "YOLOv8m (4-class, native-640)",
+            "label": "YOLOv8s (4-class, native-640)",
             "classes": CLASS_NAMES,
             "conf_thr": CONF_THRESHOLD,
             "iou_thr": IOU_THRESHOLD,
@@ -400,7 +403,7 @@ def health():
     return jsonify({
         "status": "ok",
         "device": "CUDA" if torch.cuda.is_available() else "CPU",
-        "model": "yolov8m_final (native-640, 4-class)",
+        "model": "yolov8s_compare (native-640, 4-class)",
         "firestore": FIRESTORE_AVAILABLE,
     })
 
