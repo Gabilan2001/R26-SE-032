@@ -136,3 +136,25 @@ def update_price_dataset(request: PriceUpdateRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to update dataset: {exc}",
         ) from exc
+
+
+@router.post(
+    "/sync-daily",
+    status_code=status.HTTP_200_OK,
+    summary="Trigger daily CBSL and market price bulletin synchronization",
+)
+def sync_daily_prices():
+    """
+    Trigger the automated CBSL daily price ingestion pipeline.
+    Scans for new bulletins, resolves gaps, deduplicates entries, and updates the dataset.
+    """
+    try:
+        from app.services.scheduler_service import trigger_cbsl_ingestion_sync
+        result = trigger_cbsl_ingestion_sync()
+        return result
+    except Exception as exc:
+        logger.error("Failed to sync daily prices: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to sync daily prices: {exc}",
+        ) from exc

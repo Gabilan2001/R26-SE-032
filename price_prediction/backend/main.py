@@ -12,13 +12,24 @@ from app.routes.news_routes import router as news_router
 from app.routes.recommendation_routes import router as recommendation_router
 from app.routes.history_routes import router as history_router
 from app.routes.stats_routes import router as stats_router
+from contextlib import asynccontextmanager
 from app.routes.data_routes import router as data_router
 from app.routes.seasonal_routes import router as seasonal_router
+from app.services.scheduler_service import start_scheduler, stop_scheduler
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    start_scheduler()
+    yield
+    stop_scheduler()
+
 
 app = FastAPI(
     title="Tomato Price Prediction Service",
     description="AI-powered tomato price forecasting and market recommendations for farmers.",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(

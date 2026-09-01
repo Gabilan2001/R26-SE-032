@@ -20,7 +20,7 @@ logger = logging.getLogger("harti_scraper")
 
 HARTI_BASE_URL = "https://harti.gov.lk"
 HARTI_BULLETIN_URL = "https://harti.gov.lk/publications.php?category=bulletin"
-LOCAL_API_URL = "http://127.0.0.1:8000/prices/update"
+LOCAL_API_URL = "http://127.0.0.1:8008/prices/update"
 
 
 def check_harti_website() -> Dict[str, Any]:
@@ -130,6 +130,7 @@ def main():
     parser.add_argument("--date", type=str, help="Date string YYYY-MM-DD")
     parser.add_argument("--price", type=float, help="Price in LKR/kg")
     parser.add_argument("--api-url", type=str, default=LOCAL_API_URL, help="Backend API endpoint URL")
+    parser.add_argument("--sync-cbsl", action="store_true", default=False, help="Trigger automated CBSL Daily Price PDF report ingestion pipeline")
     args = parser.parse_args()
 
     results = check_harti_website()
@@ -147,12 +148,21 @@ def main():
     print("\n3. Prices Extracted From Web Scraping:")
     print(f"   Total extracted: {len(results['extracted_prices'])}")
     if not results["extracted_prices"]:
-        print("   NOTE: 0 prices extracted automatically because HARTI relies on PDF bulletins.")
-        print("   (Per system safety directives, NO fake data or dummy prices were generated.)")
+        print("   NOTE: 0 prices extracted from direct HTML because HARTI publishes reports as PDF bulletins.")
+        print("   -> Initiating automated CBSL Daily Price Report synchronization fallback...")
+
+    # If --sync-cbsl flag provided or auto fallback
+    if args.sync_cbsl or not results["extracted_prices"]:
+        try:
+            from scripts.update_cbsl_prices import run_ingestion_pipeline
+            print("\n4. Running CBSL Daily Price Report Ingestion Pipeline:")
+            run_ingestion_pipeline(dry_run=False, full_gap_rescan=False)
+        except Exception as exc:
+            logger.warning("CBSL fallback sync notice: %s", exc)
 
     # If manual CLI arguments provided, submit them to the API
     if args.market and args.type and args.date and args.price:
-        print("\n4. Submitting CLI Input Record To Dataset API:")
+        print("\n5. Submitting CLI Input Record To Dataset API:")
         submit_price_to_api(args.market, args.type, args.date, args.price, api_url=args.api_url)
 
     print("=" * 75 + "\n")
