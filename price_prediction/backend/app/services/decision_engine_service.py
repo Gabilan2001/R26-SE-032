@@ -170,14 +170,19 @@ def run_decision_engine(
 
     window_scaled = scaler.transform(raw_window.reshape(-1, 1)).reshape(1, 10, 1)
     curr_window = window_scaled.copy()
-    base_forecast_scaled = []
 
-    for _ in range(horizon_days):
-        pred_scaled = lstm_model.predict(curr_window, verbose=0)
-        base_forecast_scaled.append(float(pred_scaled[0, 0]))
-        curr_window = np.concatenate([curr_window[:, 1:, :], pred_scaled[:, np.newaxis, :]], axis=1)
+    # --- LEGACY RECURSIVE LSTM INFERENCE (KEPT FOR ROLLBACK) ---
+    # base_forecast_scaled = []
+    # for _ in range(horizon_days):
+    #     pred_scaled = lstm_model.predict(curr_window, verbose=0)
+    #     base_forecast_scaled.append(float(pred_scaled[0, 0]))
+    #     curr_window = np.concatenate([curr_window[:, 1:, :], pred_scaled[:, np.newaxis, :]], axis=1)
+    # base_forecast_lkr = scaler.inverse_transform(np.array(base_forecast_scaled).reshape(-1, 1)).flatten().tolist()
 
-    base_forecast_lkr = scaler.inverse_transform(np.array(base_forecast_scaled).reshape(-1, 1)).flatten().tolist()
+    # --- DIRECT MULTI-OUTPUT INFERENCE (NEW PRODUCTION ONE-SHOT FORWARD PASS) ---
+    preds_scaled = lstm_model.predict(curr_window, verbose=0)  # Shape: (1, 14)
+    full_14d_lkr = scaler.inverse_transform(preds_scaled).flatten().tolist()
+    base_forecast_lkr = full_14d_lkr[:horizon_days]
 
     # 2. Multi-Station Regional Weather Impact & Horizon Adjustment Calculation
     regional_service = RegionalWeatherService(weather_csv=weather_csv_path)

@@ -123,11 +123,16 @@ def get_shap_explanation(
         lookback_arr = np.array(lookback_prices_raw[-10:])
         live_scaled_2d = scaler.transform(lookback_arr.reshape(-1, 1)).reshape(1, 10)
 
-        # 3. Model Predictor Wrapper for 2D inputs
+        # 3. Model Predictor Wrapper for 2D inputs (Attributing Day-1 prediction)
         def predict_2d(x_2d: np.ndarray) -> np.ndarray:
             x_3d = np.reshape(x_2d, (x_2d.shape[0], 10, 1))
             preds_scaled = model.predict(x_3d, verbose=0)
-            return scaler.inverse_transform(preds_scaled).flatten()
+            if preds_scaled.ndim == 2 and preds_scaled.shape[1] > 1:
+                # Direct Multi-Output model: isolate Day-1 output for scalar attribution
+                d1_scaled = preds_scaled[:, 0:1]
+            else:
+                d1_scaled = preds_scaled
+            return scaler.inverse_transform(d1_scaled).flatten()
 
         # 4. Compute SHAP values via KernelExplainer
         explainer = shap.KernelExplainer(predict_2d, background_2d)

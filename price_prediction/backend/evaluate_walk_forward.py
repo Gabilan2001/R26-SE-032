@@ -70,6 +70,7 @@ MODEL_NAMES = [
     "Bidirectional GRU",
     "Random Forest",
     "XGBoost",
+    "Direct Multi-Output Bi-LSTM",
 ]
 
 
@@ -175,6 +176,31 @@ def train_gru_model(X_train_3d: np.ndarray, y_train_scaled: np.ndarray) -> Seque
     model.fit(
         X_train_3d,
         y_train_scaled,
+        epochs=35,
+        batch_size=32,
+        callbacks=[early_stop, reduce_lr],
+        verbose=0,
+    )
+    return model
+
+
+def train_lstm_direct_mimo_model(X_train_3d: np.ndarray, Y_train_14d_scaled: np.ndarray) -> Sequential:
+    """Build and train Direct Multi-Output (Dense-14) Bidirectional LSTM architecture."""
+    model = Sequential([
+        Bidirectional(LSTM(units=50, return_sequences=True), input_shape=(LOOKBACK, 1)),
+        Dropout(0.2),
+        Bidirectional(LSTM(units=50, return_sequences=False)),
+        Dropout(0.2),
+        Dense(units=25),
+        Dense(units=MAX_HORIZON),
+    ])
+    model.compile(optimizer="adam", loss="mean_squared_error")
+    early_stop = EarlyStopping(monitor="loss", patience=8, restore_best_weights=True)
+    reduce_lr = ReduceLROnPlateau(monitor="loss", factor=0.5, patience=4, min_lr=0.0001)
+
+    model.fit(
+        X_train_3d,
+        Y_train_14d_scaled,
         epochs=35,
         batch_size=32,
         callbacks=[early_stop, reduce_lr],
@@ -479,6 +505,50 @@ def evaluate_fold(
             **m,
         })
 
+    # =========================================================================
+    # 7. Direct Multi-Output Bidirectional LSTM (Dense-14 One-Shot Prediction)
+    # =========================================================================
+    # Construct 14-day training targets strictly within training slice (no future leakage)
+    X_train_mimo_raw = []
+    Y_train_mimo_raw = []
+    for orig_idx in range(LOOKBACK - 1, train_end_raw_idx - MAX_HORIZON):
+        X_train_mimo_raw.append(prices[orig_idx - LOOKBACK + 1 : orig_idx + 1])
+        Y_train_mimo_raw.append(prices[orig_idx + 1 : orig_idx + MAX_HORIZON + 1])
+
+    X_train_mimo_raw = np.array(X_train_mimo_raw)
+    Y_train_mimo_raw = np.array(Y_train_mimo_raw)
+
+    if len(X_train_mimo_raw) > 0:
+        X_train_mimo_scaled = scaler.transform(X_train_mimo_raw.reshape(-1, 1)).reshape(len(X_train_mimo_raw), LOOKBACK, 1)
+        Y_train_mimo_scaled = scaler.transform(Y_train_mimo_raw.reshape(-1, 1)).reshape(len(Y_train_mimo_raw), MAX_HORIZON)
+
+        mimo_model = train_lstm_direct_mimo_model(X_train_mimo_scaled, Y_train_mimo_scaled)
+        curr_scaled_mimo = scaler.transform(X_test_eval_raw.reshape(-1, 1)).reshape(valid_test_eval_count, LOOKBACK, 1)
+
+        # Single one-shot direct prediction for all 14 horizons
+        p_scaled_mimo = mimo_model.predict(curr_scaled_mimo, verbose=0)
+        p_real_mimo = scaler.inverse_transform(p_scaled_mimo.reshape(-1, 1)).reshape(valid_test_eval_count, MAX_HORIZON)
+
+        for h in HORIZONS:
+            y_true = actuals_by_h[h]
+            y_pred = p_real_mimo[:, h - 1]
+            m = calculate_metrics(y_true, y_pred, today_prices)
+            fold_results.append({
+                "Model": "Direct Multi-Output Bi-LSTM",
+                "Series": series_label,
+                "Market": market,
+                "Type": series_type,
+                "Fold": fold_num,
+                "Horizon": f"{h}-day",
+                "Horizon_Days": h,
+                "Train_Start": train_start_str,
+                "Train_End": train_end_str,
+                "Test_Start": test_start_str,
+                "Test_End": test_end_str,
+                "Sample_Count": valid_test_eval_count,
+                **m,
+            })
+
     return fold_results
 
 
@@ -538,15 +608,20 @@ def run_walk_forward_experiment(dry_run: bool = False) -> Tuple[pd.DataFrame, Di
 
     if not dry_run:
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-        csv_path = OUTPUT_DIR / "walk_forward_evaluation_results.csv"
-        json_path = OUTPUT_DIR / "walk_forward_evaluation_results.json"
+        csv_path_mimo = OUTPUT_DIR / "walk_forward_evaluation_with_mimo.csv"
+        json_path_mimo = OUTPUT_DIR / "walk_forward_evaluation_with_mimo.json"
+        csv_path_std = OUTPUT_DIR / "walk_forward_evaluation_results.csv"
+        json_path_std = OUTPUT_DIR / "walk_forward_evaluation_results.json"
 
-        results_df.to_csv(csv_path, index=False)
-        with open(json_path, "w", encoding="utf-8") as f:
+        results_df.to_csv(csv_path_mimo, index=False)
+        results_df.to_csv(csv_path_std, index=False)
+        with open(json_path_mimo, "w", encoding="utf-8") as f:
+            json.dump(json_summary, f, indent=2)
+        with open(json_path_std, "w", encoding="utf-8") as f:
             json.dump(json_summary, f, indent=2)
 
-        logger.info("Saved CSV results to %s", csv_path)
-        logger.info("Saved JSON summary to %s", json_path)
+        logger.info("Saved CSV results to %s and %s", csv_path_mimo, csv_path_std)
+        logger.info("Saved JSON summary to %s and %s", json_path_mimo, json_path_std)
 
     return results_df, json_summary
 
