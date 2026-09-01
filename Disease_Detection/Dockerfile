@@ -1,5 +1,5 @@
 # Dockerfile for app_mobile.py -- the TomatoDoc Disease module's production
-# backend (single YOLOv8m model, native-640, 4-class + Gemini RAG treatment).
+# backend (single YOLOv8s model, native-640, 4-class + Gemini RAG treatment).
 #
 # Build context MUST be this folder (Disease_Detection/), so it can reach
 # both pipeline/stage4_inference/ and models/. From this folder:
@@ -31,7 +31,7 @@ COPY pipeline/stage4_inference/ingest.py pipeline/stage4_inference/ingest.py
 COPY pipeline/stage4_inference/knowledge_base.json pipeline/stage4_inference/knowledge_base.json
 
 # ── Model weights (only the one final model -- not the 5-model research set) ──
-COPY models/yolov8m_final/weights/best.pt models/yolov8m_final/weights/best.pt
+COPY models/yolov8s_compare/weights/best.pt models/yolov8s_compare/weights/best.pt
 COPY models/leaf_validator.pth models/leaf_validator.pth
 
 # ── Build-time steps that need network access, baked into the image so the

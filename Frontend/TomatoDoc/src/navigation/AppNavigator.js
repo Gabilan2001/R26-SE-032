@@ -203,7 +203,7 @@ export default function AppNavigator() {
       <Stack.Screen
         name="DiseaseResult"
         component={DiseaseResultScreen}
-        options={{ title: 'Disease Result' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="DiseaseSettings"

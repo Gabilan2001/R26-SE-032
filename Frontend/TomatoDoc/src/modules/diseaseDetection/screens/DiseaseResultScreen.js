@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Animated,
   Image,
+  Modal,
   Pressable,
   ScrollView,
   StatusBar,
@@ -11,28 +12,28 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UIThemeContext } from '../../../context/UIThemeContext';
 import DiseaseChip from '../components/DiseaseChip';
+import { CLASS_COLORS } from '../constants/classColors';
 import { getTreatment } from '../api/scan';
 
-// ── Tokens ────────────────────────────────────────────────────────────────────
+// ── Tokens -- agricultural theme, matches DiseaseScanScreen ──────────────────
 const C = {
-  bg:           '#0f0f0f',
-  surface:      '#1a1a1a',
-  surface2:     '#222222',
-  accent:       '#c8f135',
-  text:         '#f0f0f0',
-  muted:        '#555555',
-  border:       'rgba(255,255,255,0.07)',
-  amber:        '#f5a623',
-  amberDim:     'rgba(245,166,35,0.08)',
-  amberBorder:  'rgba(245,166,35,0.22)',
-  success:      '#4adf6f',
-  successDim:   'rgba(74,223,111,0.10)',
-  successBorder:'rgba(74,223,111,0.22)',
-  warnBg:       'rgba(255,92,92,0.10)',
-  warnBorder:   'rgba(255,92,92,0.25)',
-  warn:         '#ff5c5c',
+  bg:           '#F8F7F2',
+  card:         '#FFFFFF',
+  cardBorder:   'rgba(36,53,42,0.08)',
+  tomato:       '#E34A3B',
+  tomatoDark:   '#C9362C',
+  tomatoDim:    'rgba(227,74,59,0.08)',
+  tomatoBorder: 'rgba(227,74,59,0.28)',
+  leaf:         '#3F7D45',
+  leafDim:      'rgba(63,125,69,0.08)',
+  leafBorder:   'rgba(63,125,69,0.30)',
+  softGreen:    '#E8F3E7',
+  text:         '#24352A',
+  muted:        '#68756B',
+  border:       'rgba(36,53,42,0.10)',
 };
 
 // ── Lightweight renderer for the Gemini treatment text ────────────────────────
@@ -97,6 +98,7 @@ function TreatmentText({ text }) {
 // ── Main Screen ───────────────────────────────────────────────────────────────
 export default function DiseaseResultScreen({ route, navigation }) {
   const { presentationMode } = useContext(UIThemeContext);
+  const insets = useSafeAreaInsets();
   const { result, imageUri } = route.params;
 
   const diseasesFound = result.diseases_found || [];
@@ -105,6 +107,14 @@ export default function DiseaseResultScreen({ route, navigation }) {
   // Covers blank-image / not-a-leaf / no-detection -- backend sets
   // valid: false and a human-readable `error` string for all of these.
   const isInvalid = result.valid === false;
+
+  // Full-screen tap-to-inspect viewer for the annotated detection image.
+  // Note: this is a plain full-screen view (centered image, dark backdrop,
+  // close button) -- NOT true pinch-to-zoom/pan. This project has no
+  // gesture/zoom library installed, and adding one plus wiring real pinch
+  // gestures is a real feature build, not a same-night theme change --
+  // worth doing properly later rather than rushed in.
+  const [viewerOpen, setViewerOpen] = useState(false);
 
   // Treatment arrives separately (see api/scan.js's getTreatment) so this
   // screen can show the detection the instant /predict returns instead of
@@ -159,8 +169,12 @@ export default function DiseaseResultScreen({ route, navigation }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 40 }]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* ── Back row ── */}
         <View style={styles.backRow}>
           <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
@@ -170,8 +184,14 @@ export default function DiseaseResultScreen({ route, navigation }) {
         </View>
 
         {/* ── Banner ── */}
-        <Animated.View style={[styles.banner, isInvalid && styles.bannerInvalid, { opacity: bannerOp, transform: [{ translateY: bannerY }] }]}>
-          <View style={[styles.bannerBlob, isInvalid && styles.bannerBlobInvalid]} pointerEvents="none" />
+        <Animated.View
+          style={[
+            styles.banner,
+            onlyHealthy && styles.bannerHealthy,
+            (hasProblem || isInvalid) && styles.bannerAttention,
+            { opacity: bannerOp, transform: [{ translateY: bannerY }] },
+          ]}
+        >
           <Text style={[styles.bannerTitle, presentationMode && { fontSize: 17 }]}>
             {isInvalid ? '⚠️ Could Not Analyze' : onlyHealthy ? '✅ Leaf looks healthy' : hasProblem ? '🦠 Issue(s) Detected' : 'Scan Complete'}
           </Text>
@@ -191,7 +211,13 @@ export default function DiseaseResultScreen({ route, navigation }) {
 
         {/* ── Annotated image ── */}
         <Animated.View style={[styles.resultCard, { opacity: cardOp }]}>
-          <View style={styles.resultImageWrap}>
+          <Text style={styles.resultCardTitle}>🔍 Detection Result</Text>
+          <Text style={styles.resultCardSub}>Your leaf has been analyzed</Text>
+          <TouchableOpacity
+            style={styles.resultImageWrap}
+            activeOpacity={result.annotated_image ? 0.9 : 1}
+            onPress={() => result.annotated_image && setViewerOpen(true)}
+          >
             {displayImage ? (
               <Image source={{ uri: displayImage }} style={styles.resultImage} />
             ) : (
@@ -199,9 +225,21 @@ export default function DiseaseResultScreen({ route, navigation }) {
                 <Text style={{ fontSize: 60, opacity: 0.3 }}>🍃</Text>
               </View>
             )}
-          </View>
+            {result.annotated_image && (
+              <View style={styles.tapHint}>
+                <Text style={styles.tapHintTxt}>🔎 Tap to inspect</Text>
+              </View>
+            )}
+          </TouchableOpacity>
           {result.annotated_image && (
-            <Text style={styles.imageCaption}>Boxes show detected regions, color-coded by class</Text>
+            <View style={styles.legendRow}>
+              {Object.entries(CLASS_COLORS).map(([name, color]) => (
+                <View key={name} style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: color }]} />
+                  <Text style={styles.legendLabel}>{name.replace('_', ' ')}</Text>
+                </View>
+              ))}
+            </View>
           )}
         </Animated.View>
 
@@ -222,7 +260,7 @@ export default function DiseaseResultScreen({ route, navigation }) {
             <Text style={styles.treatCardTitle}>💊 Treatment Guidance</Text>
             {treatmentLoading ? (
               <View style={styles.treatLoadingRow}>
-                <ActivityIndicator color={C.amber} />
+                <ActivityIndicator color={C.leaf} />
                 <Text style={styles.treatLoadingTxt}>Fetching treatment advice… (can take up to a minute)</Text>
               </View>
             ) : treatment?.answer ? (
@@ -246,16 +284,37 @@ export default function DiseaseResultScreen({ route, navigation }) {
         {/* ── Text CTA ── */}
         <Animated.View style={{ transform: [{ scale: btnScale }] }}>
           <Pressable
-            style={styles.btnPrimary}
+            style={({ pressed }) => [styles.btnSecondary, pressed && styles.btnSecondaryPressed]}
             onPressIn={onPressIn}
             onPressOut={onPressOut}
-            onPress={() => navigation.navigate('DiseaseScan')}
+            // DiseaseResultScreen lives on the outer stack, but DiseaseScan
+            // is a tab nested inside the DiseaseModule tab navigator -- a
+            // bare navigate('DiseaseScan') doesn't resolve from out here
+            // (that route name only exists inside DiseaseModule's own
+            // navigator), so the button silently did nothing.
+            onPress={() => navigation.navigate('DiseaseModule', { screen: 'DiseaseScan' })}
           >
-            <Text style={styles.btnPrimaryIcon}>↩</Text>
-            <Text style={styles.btnPrimaryTxt}>Scan Another Leaf</Text>
+            <Text style={styles.btnSecondaryIcon}>↩</Text>
+            <Text style={styles.btnSecondaryTxt}>Scan Another Leaf</Text>
           </Pressable>
         </Animated.View>
       </ScrollView>
+
+      {/* ── Full-screen image viewer ── */}
+      <Modal visible={viewerOpen} transparent animationType="fade" onRequestClose={() => setViewerOpen(false)}>
+        <View style={styles.viewerBackdrop}>
+          <TouchableOpacity
+            style={[styles.viewerClose, { top: insets.top + 14 }]}
+            onPress={() => setViewerOpen(false)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={styles.viewerCloseTxt}>✕</Text>
+          </TouchableOpacity>
+          {displayImage && (
+            <Image source={{ uri: displayImage }} style={styles.viewerImage} resizeMode="contain" />
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -267,52 +326,81 @@ const styles = StyleSheet.create({
   content: { padding: 18, paddingBottom: 40 },
 
   backRow:   { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14, paddingTop: 4 },
-  backBtn:   { width: 32, height: 32, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  backBtn:   { width: 32, height: 32, backgroundColor: C.card, borderWidth: 1, borderColor: C.border, borderRadius: 16,
+               alignItems: 'center', justifyContent: 'center',
+               shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
   backArrow: { fontSize: 15, color: C.text },
   screenTitle: { fontSize: 18, fontWeight: '800', color: C.text },
 
   banner: {
-    backgroundColor: '#1a1200',
-    borderWidth: 1, borderColor: C.amberBorder,
-    borderRadius: 20, padding: 16, marginBottom: 14, overflow: 'hidden',
+    backgroundColor: C.card,
+    borderWidth: 1, borderColor: C.cardBorder,
+    borderRadius: 20, padding: 16, marginBottom: 14,
+    shadowColor: '#24352A', shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 2,
   },
-  bannerInvalid: { backgroundColor: '#1a0d0d', borderColor: C.warnBorder },
-  bannerBlob:  { position: 'absolute', top: -30, right: -30, width: 100, height: 100, borderRadius: 50, backgroundColor: C.amber, opacity: 0.07 },
-  bannerBlobInvalid: { backgroundColor: C.warn },
+  bannerHealthy:   { backgroundColor: C.softGreen, borderColor: C.leafBorder },
+  bannerAttention: { backgroundColor: C.tomatoDim, borderColor: C.tomatoBorder },
   bannerTitle: { fontSize: 16, fontWeight: '800', color: C.text, marginBottom: 6 },
-  bannerText:  { fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 18, marginBottom: 12 },
+  bannerText:  { fontSize: 12, color: C.muted, lineHeight: 18, marginBottom: 12 },
 
   chipRow: { flexDirection: 'row', gap: 7, flexWrap: 'wrap' },
 
-  resultCard: { backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 20, overflow: 'hidden', marginBottom: 6 },
-  resultImageWrap: { width: '100%', height: 260, backgroundColor: '#0a1400', justifyContent: 'center', alignItems: 'center' },
+  resultCard: { backgroundColor: C.card, borderWidth: 1, borderColor: C.cardBorder, borderRadius: 20,
+                overflow: 'hidden', marginBottom: 6, padding: 16,
+                shadowColor: '#24352A', shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
+  resultCardTitle: { fontSize: 15, fontWeight: '800', color: C.text, marginBottom: 2 },
+  resultCardSub:   { fontSize: 11.5, color: C.muted, marginBottom: 12 },
+  resultImageWrap: { width: '100%', height: 260, backgroundColor: C.softGreen, borderRadius: 14, overflow: 'hidden',
+                      justifyContent: 'center', alignItems: 'center' },
   resultImage: { width: '100%', height: '100%', resizeMode: 'contain' },
   resultImagePlaceholder: { justifyContent: 'center', alignItems: 'center' },
-  imageCaption: { fontSize: 10, color: C.muted, textAlign: 'center', padding: 8 },
+  tapHint:     { position: 'absolute', bottom: 10, right: 10, backgroundColor: 'rgba(36,53,42,0.75)',
+                 borderRadius: 100, paddingHorizontal: 10, paddingVertical: 5 },
+  tapHintTxt:  { fontSize: 10.5, fontWeight: '700', color: '#fff' },
+  legendRow:   { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'center',
+                 paddingHorizontal: 4, paddingTop: 12 },
+  legendItem:  { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  legendDot:   { width: 9, height: 9, borderRadius: 5 },
+  legendLabel: { fontSize: 11, color: C.muted, fontWeight: '600' },
 
   warningBox:  { flexDirection: 'row', gap: 9, alignItems: 'flex-start',
-                 backgroundColor: C.warnBg, borderWidth: 1, borderColor: C.warnBorder,
+                 backgroundColor: C.tomatoDim, borderWidth: 1, borderColor: C.tomatoBorder,
                  borderRadius: 12, padding: 12, marginTop: 14, marginBottom: 4 },
-  warningIcon: { fontSize: 13, color: C.warn, marginTop: 1 },
-  warningTxt:  { flex: 1, fontSize: 11, color: C.warn, lineHeight: 17 },
+  warningIcon: { fontSize: 13, color: C.tomatoDark, marginTop: 1 },
+  warningTxt:  { flex: 1, fontSize: 11, color: C.tomatoDark, lineHeight: 17 },
 
-  treatCard: { backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 20, padding: 16, marginTop: 14, marginBottom: 16 },
+  treatCard: { backgroundColor: C.card, borderWidth: 1, borderColor: C.cardBorder, borderRadius: 20, padding: 16,
+               marginTop: 14, marginBottom: 16,
+               shadowColor: '#24352A', shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 2 },
   treatCardTitle: { fontSize: 15, fontWeight: '800', color: C.text, marginBottom: 12 },
   treatLoadingRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 4 },
-  treatLoadingTxt: { flex: 1, fontSize: 12, color: 'rgba(255,255,255,0.6)', lineHeight: 17 },
+  treatLoadingTxt: { flex: 1, fontSize: 12, color: C.muted, lineHeight: 17 },
   treatErrorTxt: { fontSize: 12, color: C.muted, lineHeight: 18 },
-  treatH3:   { fontSize: 13, fontWeight: '800', color: C.amber, marginTop: 10, marginBottom: 6 },
-  treatBody: { fontSize: 12.5, color: 'rgba(255,255,255,0.75)', lineHeight: 19 },
+  treatH3:   { fontSize: 13, fontWeight: '800', color: C.leaf, marginTop: 10, marginBottom: 6 },
+  treatBody: { flex: 1, fontSize: 12.5, color: C.text, lineHeight: 20 },
   treatBold: { fontWeight: '800', color: C.text },
-  treatBulletRow: { flexDirection: 'row', gap: 7, marginBottom: 6, alignItems: 'flex-start' },
-  treatBulletDot: { fontSize: 12.5, color: C.amber, fontWeight: '800', minWidth: 14 },
+  treatBulletRow: { flexDirection: 'row', gap: 7, marginBottom: 7, alignItems: 'flex-start' },
+  treatBulletDot: { fontSize: 12.5, color: C.leaf, fontWeight: '800', minWidth: 14 },
 
   sourcesBox: { marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: C.border },
   sourcesTitle: { fontSize: 10, fontWeight: '700', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 6 },
   sourceLine: { fontSize: 10.5, color: C.muted, lineHeight: 16, marginBottom: 3 },
 
-  btnPrimary:    { backgroundColor: C.accent, borderRadius: 14, paddingVertical: 15,
-                   flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
-  btnPrimaryIcon:{ fontSize: 15 },
-  btnPrimaryTxt: { fontSize: 14, fontWeight: '800', color: '#0f0f0f', letterSpacing: 0.3 },
+  // Secondary action -- same visual language as the primary Analyze button
+  // on the scan screen, but clearly distinct: leaf-green border on white
+  // rather than a solid tomato-red fill.
+  btnSecondary:        { backgroundColor: C.card, borderRadius: 14, paddingVertical: 15,
+                          borderWidth: 1.5, borderColor: C.leafBorder,
+                          flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
+  btnSecondaryPressed: { backgroundColor: C.leafDim },
+  btnSecondaryIcon:    { fontSize: 15, color: C.leaf },
+  btnSecondaryTxt:     { fontSize: 14, fontWeight: '800', color: C.leaf, letterSpacing: 0.3 },
+
+  // Full-screen viewer -- plain tap-to-inspect (no pinch/pan yet, see note
+  // in the component above).
+  viewerBackdrop: { flex: 1, backgroundColor: 'rgba(10,14,10,0.96)', alignItems: 'center', justifyContent: 'center' },
+  viewerImage:    { width: '100%', height: '80%' },
+  viewerClose:    { position: 'absolute', right: 16, width: 38, height: 38, borderRadius: 19,
+                    backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center', zIndex: 1 },
+  viewerCloseTxt: { fontSize: 18, color: '#fff', fontWeight: '700' },
 });
