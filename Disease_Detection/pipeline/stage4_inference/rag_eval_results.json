@@ -1,0 +1,656 @@
+[
+  {
+    "id": "EB1",
+    "category": "single-disease",
+    "query": "What fungicide should I use for early blight, and how much for one plant?",
+    "diseases_filter": [
+      "Early_Blight"
+    ],
+    "answer": "Based on the provided context, here is the treatment guidance for tomato Early Blight:\n\n### Recommended Fungicide\n* **Difenoconazole** (Systemic Fungicide): Research from NCBI (2024) shows up to 65% disease reduction when applied every 7–10 days according to label instructions. \n\n---\n\n### Application Guidance for a Single Plant\n* **Amount per plant:** The context does not state a specific milliliter volume or exact chemical dosage per plant. However, according to Department of Agriculture (DOA) Sri Lanka (2020) guidelines, you should spray a single plant by thoroughly covering both the **upper and lower leaf surfaces until the point of runoff** (when the liquid just begins to drip off the leaves). \n* **Mixing & Scaling:** Prepare the smallest practical batch according to the product's package label instructions. For larger plantings, scale up the total solution proportionally using the same mixing ratio and spray each plant to the point of runoff.\n\n---\n\n### Best Application Practices (DOA Sri Lanka, 2020)\n* **Timing:** Apply at the initial stage of disease development, or as a preventive spray before expected rainy/humid weather. Spray in the early morning or late afternoon to avoid heat stress on the plants.\n* **Resistance Management:** Alternate between different fungicide groups to prevent the disease from becoming resistant.\n* **Safety:** Always wear protective equipment when spraying and follow pre-harvest intervals strictly.\n\n---\n\n### Professional Advice\nAlways consult the **Horticultural Crops Research and Development Institute (HORDI), DOA Sri Lanka** at (+94) 081-2388011 or visit [doa.gov.lk](https://doa.gov.lk/hordi-crop-tomato/) for official pesticide recommendations and professional guidance.",
+    "sources": [
+      "Department of Agriculture Sri Lanka - HORDI Tomato Crop Guide (2020) | doa.gov.lk",
+      "Bacillus velezensis against Early Blight - NCBI Research (2024) | ncbi.nlm.nih.gov"
+    ],
+    "retrieved_chunks": [
+      {
+        "text": "Application tips for Early Blight fungicides: Apply fungicides at the INITIAL stage of disease development — do not wait until severe infection Spray both upper AND lower leaf surfaces thoroughly Apply to the point of runoff for complete coverage Reapply after heavy rainfall Alternate between different fungicide groups to prevent resistance development Apply in early morning or late afternoon to avoid heat stress on plants",
+        "category": "application_tips",
+        "disease": "early_blight",
+        "relevance": 0.764
+      },
+      {
+        "text": "Chemical treatment for Early Blight: Use Difenoconazole at Per label instructions every 7-10 days. Type: Systemic. Highly effective systemic fungicide. Research shows up to 65% disease reduction over control.",
+        "category": "chemical_treatment",
+        "disease": "early_blight",
+        "relevance": 0.725
+      },
+      {
+        "text": "Prevention of Early Blight - Monitoring: Inspect plants regularly (at least twice a week) especially during humid conditions Begin preventive fungicide spray program before symptoms appear if conditions are favorable Monitor weather — apply protective fungicide spray before expected rainy or humid periods",
+        "category": "prevention",
+        "disease": "early_blight",
+        "relevance": 0.681
+      },
+      {
+        "text": "General Integrated Pest Management for tomato diseases in Sri Lanka: Use certified disease-free seeds and healthy transplants Select DOA Sri Lanka released varieties suited to your agroclimatic zone Follow recommended spacing and fertilization guidelines Practice regular field monitoring — early detection is key Use fungicides as a last resort and follow DOA pesticide recommendations Always follow pesticide label instructions for dosage and safety Wear protective equipment when applying fungicides Observe pre-harvest intervals strictly before consuming or selling produce Contact: Horticultural Crops Research and Development Institute (HORDI), (+94) 081-2388011, https://doa.gov.lk/hordi-crop-tomato/",
+        "category": "ipm",
+        "disease": "general",
+        "relevance": 0.353
+      }
+    ]
+  },
+  {
+    "id": "EB2",
+    "category": "single-disease",
+    "query": "How can I prevent early blight from spreading in my tomato garden?",
+    "diseases_filter": [
+      "Early_Blight"
+    ],
+    "answer": "To prevent Early Blight (*Alternaria solani*) from spreading in your tomato garden, follow these recommended practices based on official guidelines from the **Department of Agriculture (DOA) Sri Lanka**:\n\n### Cultural & Sanitation Practices\n* **Use Resistant Varieties:** Plant DOA-released disease-resistant or tolerant varieties such as *Thilina*, *KWR*, *Ravi*, or *Maheshi*.\n* **Use Healthy Seeds:** Always use certified disease-free seeds and healthy transplants.\n* **Crop Rotation:** Do not plant tomatoes or other Solanaceae crops (like eggplant, chili, or potato) in the same field for at least 2–3 years.\n* **Prune Infected Leaves:** Remove infected leaves from the base of the plant as soon as symptoms appear.\n* **Proper Watering:** Avoid overhead watering. Use drip or furrow irrigation to keep foliage dry, and water early in the morning so any wet leaves dry before nightfall.\n* **Plant Spacing & Staking:** Follow the DOA-recommended spacing of 80cm x 50cm to promote good air circulation. Stake or trellis plants to keep foliage off the ground.\n* **Weed & Debris Management:** Remove weeds regularly as they can harbor the fungus. Immediately remove and destroy infected plant debris after harvest (do not compost it).\n\n### Field Monitoring & Preventive Sprays\n* **Regular Inspection:** Inspect your plants at least twice a week, especially during humid weather.\n* **Preventive Fungicide Program:** Apply a protective fungicide spray before symptoms appear if weather conditions are rainy or humid and favor disease development. Always follow pesticide label instructions for dosage, safety, and pre-harvest intervals.\n\n---\nFor professional advice and specific preventive spray recommendations suited to your region, consult the **Horticultural Crops Research and Development Institute (HORDI), Gannoruwa** at (+94) 081-2388011 or visit [doa.gov.lk/hordi-crop-tomato/](https://doa.gov.lk/hordi-crop-tomato/).",
+    "sources": [
+      "Department of Agriculture Sri Lanka - HORDI Tomato Crop Guide (2020) | doa.gov.lk"
+    ],
+    "retrieved_chunks": [
+      {
+        "text": "Prevention of Early Blight - Cultural Practices: Use disease-resistant or tolerant tomato varieties (e.g., DOA released varieties: Thilina, KWR, Ravi, Maheshi) Practice crop rotation — do not plant tomatoes or other Solanaceae crops in the same field for at least 2-3 years Remove and destroy infected plant debris immediately after harvest — do not compost Remove infected leaves from the base of the plant as soon as symptoms appear Avoid overhead irrigation — use drip or furrow irrigation to keep foliage dry Water plants in the morning so foliage dries before nightfall Maintain proper plant spacing (80cm x 50cm as recommended by DOA Sri Lanka) for good air circulation Stake or trellis plants to keep foliage off the ground Remove weeds regularly — weeds can harbor the pathogen and increase disease pressure",
+        "category": "prevention",
+        "disease": "early_blight",
+        "relevance": 0.725
+      },
+      {
+        "text": "Early Blight (Alternaria solani): Early Blight is caused by the soil-borne fungus Alternaria solani. It is one of the most common and economically significant tomato diseases in Sri Lanka and tropical regions. Despite its name, it can occur at any growth stage. Severity: Moderate to Severe. Type: Fungal Disease.",
+        "category": "overview",
+        "disease": "early_blight",
+        "relevance": 0.695
+      },
+      {
+        "text": "Prevention of Early Blight - Monitoring: Inspect plants regularly (at least twice a week) especially during humid conditions Begin preventive fungicide spray program before symptoms appear if conditions are favorable Monitor weather — apply protective fungicide spray before expected rainy or humid periods",
+        "category": "prevention",
+        "disease": "early_blight",
+        "relevance": 0.682
+      },
+      {
+        "text": "General Integrated Pest Management for tomato diseases in Sri Lanka: Use certified disease-free seeds and healthy transplants Select DOA Sri Lanka released varieties suited to your agroclimatic zone Follow recommended spacing and fertilization guidelines Practice regular field monitoring — early detection is key Use fungicides as a last resort and follow DOA pesticide recommendations Always follow pesticide label instructions for dosage and safety Wear protective equipment when applying fungicides Observe pre-harvest intervals strictly before consuming or selling produce Contact: Horticultural Crops Research and Development Institute (HORDI), (+94) 081-2388011, https://doa.gov.lk/hordi-crop-tomato/",
+        "category": "ipm",
+        "disease": "general",
+        "relevance": 0.504
+      }
+    ]
+  },
+  {
+    "id": "EB3",
+    "category": "single-disease",
+    "query": "My tomato leaves have brown spots with rings, is this early blight and how do I treat it?",
+    "diseases_filter": [
+      "Early_Blight"
+    ],
+    "answer": "Based on information from the **Department of Agriculture (DOA) Sri Lanka**:\n\n### Identification\n**Yes**, dark brown to black spots with concentric rings (a bull's-eye pattern), often surrounded by a yellow halo on older lower leaves, are classic symptoms of **Early Blight** (*Alternaria solani*).\n\n---\n\n### Treatment & Management (Cultural Practices)\nAccording to **DOA Sri Lanka**, you can manage Early Blight using the following practices:\n\n1. **Remove Infected Leaves:** Immediately remove and destroy infected lower leaves from the base of the plant as soon as symptoms appear.\n2. **Sanitation:** Remove and destroy infected plant debris right after harvest — **do not compost it**. Keep the area clear of weeds.\n3. **Water Management:** Avoid overhead watering. Use drip or furrow irrigation to keep leaves dry, and water in the morning so foliage dries before nightfall.\n4. **Plant Support & Spacing:** Stake or trellis your tomato plants to keep foliage off the ground, and maintain DOA-recommended spacing (80 cm × 50 cm) for proper air circulation.\n5. **Crop Rotation:** Do not plant tomatoes or other *Solanaceae* crops in the same soil for at least 2–3 years.\n6. **Resistant Varieties:** For future plantings, use certified disease-free seeds or DOA-released varieties such as *Thilina*, *KWR*, *Ravi*, or *Maheshi*.\n\n---\n\n### Important Note on Chemical Treatment\n*The provided context does not contain specific chemical fungicide names, application dosages, or single-plant spray volume details.* DOA Sri Lanka advises using fungicides only as a last resort. \n\nFor official pesticide recommendations and professional guidance, please contact:\n* **Horticultural Crops Research and Development Institute (HORDI), DOA Sri Lanka**\n* **Phone:** (+94) 081-2388011  \n* **Website:** [https://doa.gov.lk/hordi-crop-tomato/](https://doa.gov.lk/hordi-crop-tomato/)",
+    "sources": [
+      "Department of Agriculture Sri Lanka - HORDI Tomato Crop Guide (2020) | doa.gov.lk"
+    ],
+    "retrieved_chunks": [
+      {
+        "text": "Early Blight symptoms: Dark brown to black spots with concentric rings (bull's-eye pattern) on older lower leaves Yellow halo surrounding the lesions Spots enlarge and merge causing leaf yellowing and defoliation Defoliation starts from the base of the plant and moves upwards Dark sunken lesions can also appear on fruits and stems Severely affected leaves drop prematurely reducing yield",
+        "category": "symptoms",
+        "disease": "early_blight",
+        "relevance": 0.643
+      },
+      {
+        "text": "Early Blight (Alternaria solani): Early Blight is caused by the soil-borne fungus Alternaria solani. It is one of the most common and economically significant tomato diseases in Sri Lanka and tropical regions. Despite its name, it can occur at any growth stage. Severity: Moderate to Severe. Type: Fungal Disease.",
+        "category": "overview",
+        "disease": "early_blight",
+        "relevance": 0.632
+      },
+      {
+        "text": "Prevention of Early Blight - Cultural Practices: Use disease-resistant or tolerant tomato varieties (e.g., DOA released varieties: Thilina, KWR, Ravi, Maheshi) Practice crop rotation — do not plant tomatoes or other Solanaceae crops in the same field for at least 2-3 years Remove and destroy infected plant debris immediately after harvest — do not compost Remove infected leaves from the base of the plant as soon as symptoms appear Avoid overhead irrigation — use drip or furrow irrigation to keep foliage dry Water plants in the morning so foliage dries before nightfall Maintain proper plant spacing (80cm x 50cm as recommended by DOA Sri Lanka) for good air circulation Stake or trellis plants to keep foliage off the ground Remove weeds regularly — weeds can harbor the pathogen and increase disease pressure",
+        "category": "prevention",
+        "disease": "early_blight",
+        "relevance": 0.515
+      },
+      {
+        "text": "General Integrated Pest Management for tomato diseases in Sri Lanka: Use certified disease-free seeds and healthy transplants Select DOA Sri Lanka released varieties suited to your agroclimatic zone Follow recommended spacing and fertilization guidelines Practice regular field monitoring — early detection is key Use fungicides as a last resort and follow DOA pesticide recommendations Always follow pesticide label instructions for dosage and safety Wear protective equipment when applying fungicides Observe pre-harvest intervals strictly before consuming or selling produce Contact: Horticultural Crops Research and Development Institute (HORDI), (+94) 081-2388011, https://doa.gov.lk/hordi-crop-tomato/",
+        "category": "ipm",
+        "disease": "general",
+        "relevance": 0.398
+      }
+    ]
+  },
+  {
+    "id": "LB1",
+    "category": "single-disease",
+    "query": "How do I prevent late blight in my tomato farm?",
+    "diseases_filter": [
+      "Late_Blight"
+    ],
+    "answer": "Based on official recommendations from the **Department of Agriculture (DOA) Sri Lanka**, here is how you can prevent Late Blight on your tomato farm:\n\n### 1. Cultural Practices & Spacing\n* **Use Resistant Varieties:** Select certified disease-free seeds, healthy transplants, or resistant varieties suited to your agroclimatic zone. Contact DOA Sri Lanka (HORDI, Gannoruwa) for currently recommended resistant varieties.\n* **Proper Spacing & Site Selection:** Maintain a spacing of **80 cm × 50 cm** to ensure good air circulation. Avoid planting in low-lying areas with poor air movement.\n* **Smart Watering:** Avoid overhead irrigation—use drip or furrow irrigation. Water plants only in the morning to allow leaves to dry during the day.\n* **Crop Rotation:** Do not plant tomatoes or potatoes (which share the same pathogen) in the same field for **2–3 years**.\n\n### 2. Field Sanitation & Hygiene\n* **Debris Removal:** Immediately remove and destroy all infected plant debris and crop residue after harvest. Remove volunteer tomato and potato plants.\n* **Avoid Wet Working Conditions:** Do not work in infected fields when plants are wet, as spores spread easily on clothing and equipment. Always work in healthy fields first and infected fields last.\n* **Disinfect Equipment:** Clean and disinfect tools between fields, and do not store infected plant material near healthy crops or bring infected transplants into a clean field.\n\n### 3. Monitoring & Preventive Fungicides\n* **Watch the Weather:** Cool temperatures (10–20°C) combined with rain or high humidity create high risk. Inspect lower leaves and the undersides of leaves regularly.\n* **Early Action:** Begin preventive fungicide applications before symptoms appear when weather conditions favor the disease. Act immediately at the first sign of infection and inform neighboring farmers, as wind-blown spores spread quickly.\n* **Safety First:** Follow pesticide label guidelines, wear protective gear, and strictly observe pre-harvest intervals.\n\n***\n\n**Professional Advice:** \nFor further guidance on approved fungicides and local resistant varieties, contact the **Horticultural Crops Research and Development Institute (HORDI), Gannoruwa**:\n* **Phone:** (+94) 081-2388011\n* **Website:** [doa.gov.lk/hordi-crop-tomato](https://doa.gov.lk/hordi-crop-tomato/)",
+    "sources": [
+      "Department of Agriculture Sri Lanka - HORDI Tomato Crop Guide (2020) | doa.gov.lk"
+    ],
+    "retrieved_chunks": [
+      {
+        "text": "Prevention of Late Blight - Cultural Practices: Use resistant tomato varieties when available — ask DOA Sri Lanka (HORDI, Gannoruwa) for currently recommended resistant varieties Avoid planting in low-lying areas with poor air movement Maintain proper plant spacing (80cm x 50cm) for good air circulation Avoid overhead irrigation — use drip or furrow irrigation Water plants in the morning only — allow foliage to dry during the day Remove and destroy all infected plant debris immediately after harvest Practice crop rotation — do not plant tomatoes or potatoes (same pathogen) in same field for 2-3 years Do not bring infected transplants into a clean field Remove volunteer tomato and potato plants which can harbor the pathogen",
+        "category": "prevention",
+        "disease": "late_blight",
+        "relevance": 0.722
+      },
+      {
+        "text": "Prevention of Late Blight - Monitoring and Early Action: Monitor weather forecasts — cool temperatures (10-20°C) with rain or high humidity signal high risk Begin preventive fungicide applications before symptoms appear when weather favors disease Inspect lower leaves and undersides of leaves for early symptoms Act immediately at first sign of infection — do not delay treatment Inform neighboring farmers if late blight is detected — spores spread by wind and can infect nearby fields",
+        "category": "prevention",
+        "disease": "late_blight",
+        "relevance": 0.679
+      },
+      {
+        "text": "Prevention of Late Blight - Field Sanitation: Remove all crop debris and destroy after harvest Avoid working in infected fields when plants are wet — spores spread on clothing and equipment Work in infected fields last — do not move from infected to healthy fields Clean and disinfect equipment between fields Do not store infected fruits or plant material near healthy plants",
+        "category": "prevention",
+        "disease": "late_blight",
+        "relevance": 0.626
+      },
+      {
+        "text": "General Integrated Pest Management for tomato diseases in Sri Lanka: Use certified disease-free seeds and healthy transplants Select DOA Sri Lanka released varieties suited to your agroclimatic zone Follow recommended spacing and fertilization guidelines Practice regular field monitoring — early detection is key Use fungicides as a last resort and follow DOA pesticide recommendations Always follow pesticide label instructions for dosage and safety Wear protective equipment when applying fungicides Observe pre-harvest intervals strictly before consuming or selling produce Contact: Horticultural Crops Research and Development Institute (HORDI), (+94) 081-2388011, https://doa.gov.lk/hordi-crop-tomato/",
+        "category": "ipm",
+        "disease": "general",
+        "relevance": 0.461
+      }
+    ]
+  },
+  {
+    "id": "LB2",
+    "category": "single-disease",
+    "query": "What is the best treatment for late blight on tomatoes?",
+    "diseases_filter": [
+      "Late_Blight"
+    ],
+    "answer": "Based on the official recommendations from the **Department of Agriculture (DOA) Sri Lanka**, here are the chemical treatment options for tomato **Late Blight**:\n\n### Chemical Treatments (DOA Sri Lanka Pesticide Recommendations, 2019)\n1. **Azoxystrobin 250 g/l SC** (Systemic)\n   * **Mixing rate:** 16 ml per 16 liters of water (standard knapsack sprayer). For a small 1-liter batch, mix 1 ml per 1 liter of water.\n   * **Frequency:** Apply every 10–12 days.\n   * **Pre-Harvest Interval (PHI):** 14 days (do not harvest fruit for 14 days after applying).\n\n2. **Mancozeb 64% + Metalaxyl 8% WP** (Systemic + Contact)\n   * **Mixing rate:** 50 g per 16 liters of water (standard knapsack sprayer). For a small 1-liter batch, mix approximately 3.1 g per 1 liter of water.\n   * **Frequency:** Apply every 12–14 days.\n   * **Pre-Harvest Interval (PHI):** 14 days (do not harvest fruit for 14 days after applying).\n\n---\n\n### Single Plant & Application Instructions\n* **Batch Sizing & Volume:** The provided DOA guidance specifies mixing ratios based on a full 16-liter knapsack sprayer. The exact spray volume required for a single plant is not specified in the context, but you should prepare a small 1-liter mix for a few plants (using the ratios above) and thoroughly cover the foliage. For larger plantings, scale up proportionally using the same ratio.\n* **Safety:** Always wear protective gear during application, observe the 14-day pre-harvest interval strictly, and use fungicides as a last resort.\n\nFor professional advice and further assistance, always consult **DOA Sri Lanka (HORDI, Gannoruwa)** at (+94) 081-2388011 or visit their official website.",
+    "sources": [
+      "Department of Agriculture Sri Lanka - HORDI Tomato Crop Guide (2020) | doa.gov.lk",
+      "Pesticide Recommendation - Department of Agriculture Sri Lanka (2019) | doa.gov.lk"
+    ],
+    "retrieved_chunks": [
+      {
+        "text": "Prevention of Late Blight - Cultural Practices: Use resistant tomato varieties when available — ask DOA Sri Lanka (HORDI, Gannoruwa) for currently recommended resistant varieties Avoid planting in low-lying areas with poor air movement Maintain proper plant spacing (80cm x 50cm) for good air circulation Avoid overhead irrigation — use drip or furrow irrigation Water plants in the morning only — allow foliage to dry during the day Remove and destroy all infected plant debris immediately after harvest Practice crop rotation — do not plant tomatoes or potatoes (same pathogen) in same field for 2-3 years Do not bring infected transplants into a clean field Remove volunteer tomato and potato plants which can harbor the pathogen",
+        "category": "prevention",
+        "disease": "late_blight",
+        "relevance": 0.716
+      },
+      {
+        "text": "Chemical treatment for Late Blight: Use Azoxystrobin 250 g/l SC at 16ml per 16 litres of water (standard knapsack sprayer) every 10-12 days. Pre-harvest interval: 14 days — do not harvest fruit within 14 days of the last spray. Type: Systemic. Official DOA Sri Lanka Pesticide Recommendations (2019), Fungicides section, Crop 14 (Potato and Tomato), Late Blight.",
+        "category": "chemical_treatment",
+        "disease": "late_blight",
+        "relevance": 0.648
+      },
+      {
+        "text": "Chemical treatment for Late Blight: Use Mancozeb 64% + Metalaxyl 8% WP at 50g per 16 litres of water (standard knapsack sprayer) every 12-14 days. Pre-harvest interval: 14 days — do not harvest fruit within 14 days of the last spray. Type: Systemic + Contact. Official DOA Sri Lanka Pesticide Recommendations (2019), Fungicides section, Crop 14 (Potato and Tomato), Late Blight. Contains a systemic component for better control than contact fungicides alone. Corrected from an earlier version of this knowledge base which had the wrong dosage and litre-basis.",
+        "category": "chemical_treatment",
+        "disease": "late_blight",
+        "relevance": 0.645
+      },
+      {
+        "text": "General Integrated Pest Management for tomato diseases in Sri Lanka: Use certified disease-free seeds and healthy transplants Select DOA Sri Lanka released varieties suited to your agroclimatic zone Follow recommended spacing and fertilization guidelines Practice regular field monitoring — early detection is key Use fungicides as a last resort and follow DOA pesticide recommendations Always follow pesticide label instructions for dosage and safety Wear protective equipment when applying fungicides Observe pre-harvest intervals strictly before consuming or selling produce Contact: Horticultural Crops Research and Development Institute (HORDI), (+94) 081-2388011, https://doa.gov.lk/hordi-crop-tomato/",
+        "category": "ipm",
+        "disease": "general",
+        "relevance": 0.506
+      }
+    ]
+  },
+  {
+    "id": "LB3",
+    "category": "single-disease",
+    "query": "Is late blight dangerous enough to destroy my whole crop?",
+    "diseases_filter": [
+      "Late_Blight"
+    ],
+    "answer": "According to the Department of Agriculture (DOA) Sri Lanka (2020), Late Blight is a serious disease that requires immediate action because spores spread rapidly by wind, water, clothing, and equipment, and can quickly infect nearby plants and fields. \n\nKey details from DOA Sri Lanka regarding its severity and control:\n* **Rapid Spread:** Late Blight spores are carried by wind and spread easily on clothing or equipment, especially during rainy, cool (10°C–20°C), or high-humidity (>90%) conditions.\n* **Immediate Action Required:** You must act immediately at the very first sign of infection and not delay treatment, as weather conditions can lead to high-risk outbreaks. Inform neighboring farmers if detected.\n* **Preventive Management:** Remove and destroy crop debris, avoid working in fields when plants are wet, and apply preventive fungicides before symptoms appear during high-risk weather.\n\nFor official guidance and specific chemical control recommendations, always consult the **Horticultural Crops Research and Development Institute (HORDI), DOA Sri Lanka** (Contact: +94 081-2388011 / https://doa.gov.lk/hordi-crop-tomato/).",
+    "sources": [
+      "Department of Agriculture Sri Lanka - HORDI Tomato Crop Guide (2020) | doa.gov.lk"
+    ],
+    "retrieved_chunks": [
+      {
+        "text": "Conditions that favor Late Blight: Cool temperatures (10°C - 20°C) with high relative humidity (>90%) Prolonged wet or rainy weather Overhead irrigation creating wet foliage Poor air circulation in dense plantings Cloudy weather with little sunlight Night temperatures below 20°C with warm days",
+        "category": "conditions",
+        "disease": "late_blight",
+        "relevance": 0.624
+      },
+      {
+        "text": "Prevention of Late Blight - Field Sanitation: Remove all crop debris and destroy after harvest Avoid working in infected fields when plants are wet — spores spread on clothing and equipment Work in infected fields last — do not move from infected to healthy fields Clean and disinfect equipment between fields Do not store infected fruits or plant material near healthy plants",
+        "category": "prevention",
+        "disease": "late_blight",
+        "relevance": 0.61
+      },
+      {
+        "text": "Prevention of Late Blight - Monitoring and Early Action: Monitor weather forecasts — cool temperatures (10-20°C) with rain or high humidity signal high risk Begin preventive fungicide applications before symptoms appear when weather favors disease Inspect lower leaves and undersides of leaves for early symptoms Act immediately at first sign of infection — do not delay treatment Inform neighboring farmers if late blight is detected — spores spread by wind and can infect nearby fields",
+        "category": "prevention",
+        "disease": "late_blight",
+        "relevance": 0.608
+      },
+      {
+        "text": "General Integrated Pest Management for tomato diseases in Sri Lanka: Use certified disease-free seeds and healthy transplants Select DOA Sri Lanka released varieties suited to your agroclimatic zone Follow recommended spacing and fertilization guidelines Practice regular field monitoring — early detection is key Use fungicides as a last resort and follow DOA pesticide recommendations Always follow pesticide label instructions for dosage and safety Wear protective equipment when applying fungicides Observe pre-harvest intervals strictly before consuming or selling produce Contact: Horticultural Crops Research and Development Institute (HORDI), (+94) 081-2388011, https://doa.gov.lk/hordi-crop-tomato/",
+        "category": "ipm",
+        "disease": "general",
+        "relevance": 0.276
+      }
+    ]
+  },
+  {
+    "id": "LM1",
+    "category": "single-disease",
+    "query": "How do I treat leaf miner on one plant?",
+    "diseases_filter": [
+      "Leaf_Miner"
+    ],
+    "answer": "To treat leaf miner on a **single tomato plant**, follow these steps based on official recommendations from the Department of Agriculture (DOA) Sri Lanka:\n\n### 1. Small-Batch Chemical Treatments (DOA Sri Lanka, 2019)\nApply chemical treatments **only if damage (active larvae/mines) is seen**:\n\n*   **Option A: Abamectin 18 g/l EC**\n    *   **Per-plant amount:** A single mature tomato plant typically requires about 50–100 ml of spray mixture for full leaf coverage.\n    *   **Smallest practical mix:** Mix **0.625 ml of Abamectin into 1 litre of water** (proportional to the standard rate of 10 ml per 16-litre knapsack sprayer). Spray the single plant thoroughly.\n*   **Option B: Spinetoram 25% WG**\n    *   **Per-plant amount:** 50–100 ml of spray mixture per plant.\n    *   **Smallest practical mix:** Mix **0.25 g of Spinetoram into 1 litre of water** (proportional to the standard rate of 4 g per 16-litre knapsack sprayer).\n*   **Application Rules:** Apply only for larvae control. Wait at least **7 days** between applications if repeated spraying is needed.\n*   **Safety & Pre-Harvest Interval (PHI):** Do not harvest or consume fruit within **14 days** of spraying. Always wear protective equipment when applying chemical sprays.\n*   *Note for larger plantings:* Scale up using the same water-to-chemical ratio (e.g., 10 ml Abamectin or 4 g Spinetoram per 16 litres of water for a full field knapsack).\n\n---\n\n### 2. Physical & Cultural Controls (General IPM Guidance - Unverified against DOA)\n*   Inspect leaves regularly and manually remove and destroy any leaves showing active mines before larvae can grow into adults.\n\n---\n\n### Professional Advice\nAlways follow pesticide label instructions strictly. For further guidance, contact the **Horticultural Crops Research and Development Institute (HORDI), DOA Sri Lanka** at (+94) 081-2388011 or visit [doa.gov.lk/hordi-crop-tomato/](https://doa.gov.lk/hordi-crop-tomato/).",
+    "sources": [
+      "Department of Agriculture Sri Lanka - HORDI Tomato Crop Guide (2020) | doa.gov.lk",
+      "Pesticide Recommendation - Department of Agriculture Sri Lanka (2019) | doa.gov.lk",
+      "General agricultural extension guidance — NOT yet verified against a Sri Lanka DOA-specific source"
+    ],
+    "retrieved_chunks": [
+      {
+        "text": "Prevention of Leaf Miner - Cultural Practices: Inspect young leaves regularly — remove and destroy leaves with active mines before larvae mature into adults Practice crop rotation and avoid planting near previously infested Solanaceae crops Remove and destroy host weeds near the field that can harbor leaf miner flies Avoid excessive nitrogen fertilization — lush, soft growth is more attractive to egg-laying females",
+        "category": "prevention",
+        "disease": "leaf_miner",
+        "relevance": 0.678
+      },
+      {
+        "text": "Chemical treatment for Leaf Miner: Use Spinetoram 25% WG at 4g per 16 litres of water (standard knapsack sprayer) every minimum 7 days between applications, only if damage is seen. Pre-harvest interval: 14 days — do not harvest fruit within 14 days of the last spray. Type: Contact + ingestion, biological-derived. Official DOA Sri Lanka Pesticide Recommendations (2019), Insecticides section, Crop 06 (Tomato — Polytunnel Pests), Leaf Miner/Fruit Borer (Tuta absoluta). Apply only for larvae control.",
+        "category": "chemical_treatment",
+        "disease": "leaf_miner",
+        "relevance": 0.663
+      },
+      {
+        "text": "Chemical treatment for Leaf Miner: Use Abamectin 18 g/l EC at 10ml per 16 litres of water (standard knapsack sprayer) every minimum 7 days between applications, only if damage is seen. Pre-harvest interval: 14 days — do not harvest fruit within 14 days of the last spray. Type: Contact + translaminar (moves short distance into leaf tissue). Official DOA Sri Lanka Pesticide Recommendations (2019), Insecticides section, Crop 06 (Tomato — Polytunnel Pests), Leaf Miner/Fruit Borer (Tuta absoluta). Apply only for larvae control.",
+        "category": "chemical_treatment",
+        "disease": "leaf_miner",
+        "relevance": 0.653
+      },
+      {
+        "text": "General Integrated Pest Management for tomato diseases in Sri Lanka: Use certified disease-free seeds and healthy transplants Select DOA Sri Lanka released varieties suited to your agroclimatic zone Follow recommended spacing and fertilization guidelines Practice regular field monitoring — early detection is key Use fungicides as a last resort and follow DOA pesticide recommendations Always follow pesticide label instructions for dosage and safety Wear protective equipment when applying fungicides Observe pre-harvest intervals strictly before consuming or selling produce Contact: Horticultural Crops Research and Development Institute (HORDI), (+94) 081-2388011, https://doa.gov.lk/hordi-crop-tomato/",
+        "category": "ipm",
+        "disease": "general",
+        "relevance": 0.368
+      }
+    ]
+  },
+  {
+    "id": "LM2",
+    "category": "single-disease",
+    "query": "What causes the white squiggly lines on my tomato leaves?",
+    "diseases_filter": [
+      "Leaf_Miner"
+    ],
+    "answer": "Based on the provided sources, the white squiggly lines (winding, serpentine pale or white tunnels) on your tomato leaves are caused by **Leaf Miner** larvae tunneling through the inside of the leaf tissue as they feed and grow.\n\nHere are the details from verified agricultural sources:\n\n* **Primary Cause:** In Sri Lanka, the Department of Agriculture (DOA) officially attributes tomato leaf miner damage to **_Tuta absoluta_** larvae (Source: *DOA Sri Lanka Pesticide Recommendations 2019*). Globally, visually similar serpentine leaf mines on other crops can also be caused by *Liriomyza* leaf-mining flies (Source: *General IPM guidance — unverified against a Sri Lanka-specific source*).\n* **Symptoms:** The larvae create irregular, serpentine trails that widen as they grow. Adults also leave small white speckled puncture marks from feeding and egg-laying near the trails. Severely damaged leaves may turn yellow, dry out, and drop prematurely (Source: *General IPM guidance — unverified against a Sri Lanka-specific source*).\n\n**Next Steps:**\nIf treatment becomes necessary, always monitor early and consult the **Horticultural Crops Research and Development Institute (HORDI), DOA Sri Lanka** (+94 081-2388011) for official guidance and diagnosis.",
+    "sources": [
+      "Department of Agriculture Sri Lanka - HORDI Tomato Crop Guide (2020) | doa.gov.lk",
+      "Pesticide Recommendation - Department of Agriculture Sri Lanka (2019) | doa.gov.lk",
+      "General agricultural extension guidance — NOT yet verified against a Sri Lanka DOA-specific source"
+    ],
+    "retrieved_chunks": [
+      {
+        "text": "Leaf Miner symptoms: Winding, serpentine white to pale tunnels (mines) visible on the leaf surface, following an irregular trail Small white speckled puncture marks from adult feeding/egg-laying, often clustered near the trail Tunnels widen progressively as the larva grows inside Heavily mined leaves may yellow, dry out, and drop prematurely Multiple overlapping mines can occur on a single leaf under heavy infestation Unlike blight, damage does not spread as dark lesions — it stays confined to visible tunnel trails",
+        "category": "symptoms",
+        "disease": "leaf_miner",
+        "relevance": 0.467
+      },
+      {
+        "text": "Leaf Miner (Tuta absoluta (Sri Lanka DOA's official designation for tomato leaf miner damage, under Polytunnel Pests); visually similar serpentine mining can also be caused by Liriomyza spp. leaf-mining flies on other crops): Leaf miner damage on Sri Lankan tomato is officially attributed by the DOA (Pesticide Recommendations 2019, Polytunnel Pests) to Tuta absoluta, whose larvae tunnel through leaf tissue creating winding pale/white trails, and can progress to boring fruit. Globally, visually similar serpentine leaf mines are also caused by Liriomyza leaf-mining flies on various crops. Severity: Mild to Moderate on leaves alone — mainly reduces photosynthesis and cosmetic quality; this pest can also bore into fruit, which is more economically damaging, so it should not be dismissed as purely cosmetic. Type: Insect Pest (Leaf-mining moth larvae, also bores fruit at later stages).",
+        "category": "overview",
+        "disease": "leaf_miner",
+        "relevance": 0.462
+      },
+      {
+        "text": "Chemical treatment for Leaf Miner: Use Emamectin benzoate 5% SG at 6g per 16 litres of water (standard knapsack sprayer) every minimum 7 days between applications, only if damage is seen. Pre-harvest interval: 10 days — do not harvest fruit within 10 days of the last spray. Type: Contact + ingestion (larvicide). Official DOA Sri Lanka Pesticide Recommendations (2019), Insecticides section, Crop 06 (Tomato — Polytunnel Pests), Leaf Miner/Fruit Borer (Tuta absoluta). Apply only for larvae control.",
+        "category": "chemical_treatment",
+        "disease": "leaf_miner",
+        "relevance": 0.319
+      },
+      {
+        "text": "General Integrated Pest Management for tomato diseases in Sri Lanka: Use certified disease-free seeds and healthy transplants Select DOA Sri Lanka released varieties suited to your agroclimatic zone Follow recommended spacing and fertilization guidelines Practice regular field monitoring — early detection is key Use fungicides as a last resort and follow DOA pesticide recommendations Always follow pesticide label instructions for dosage and safety Wear protective equipment when applying fungicides Observe pre-harvest intervals strictly before consuming or selling produce Contact: Horticultural Crops Research and Development Institute (HORDI), (+94) 081-2388011, https://doa.gov.lk/hordi-crop-tomato/",
+        "category": "ipm",
+        "disease": "general",
+        "relevance": 0.396
+      }
+    ]
+  },
+  {
+    "id": "LM3",
+    "category": "single-disease",
+    "query": "Are there natural or organic ways to control leaf miners?",
+    "diseases_filter": [
+      "Leaf_Miner"
+    ],
+    "answer": "Based on the provided context, here are natural and cultural ways to control leaf miners:\n\n### Cultural and Non-Chemical Methods \n*(Source: General IPM guidance - not yet verified against a Sri Lanka-specific source)*\n\n* **Hand Removal:** Regularly inspect plants (at least twice a week), especially young leaves. Hand-pick, remove, and destroy heavily mined leaves or leaves with active mine trails. This directly destroys the larvae before they mature into adults.\n* **Yellow Sticky Traps:** Place yellow sticky traps near your tomato plants to monitor adult fly activity and catch/reduce adult flies.\n* **Protect Natural Predators:** Avoid using broad-spectrum chemical insecticides, as they kill natural parasitoid wasps that naturally keep leaf miner populations low.\n* **Weed Control:** Remove and destroy host weeds near your field or garden that can harbor leaf miner flies.\n* **Fertilizer Management:** Avoid applying excessive nitrogen fertilizer, as lush, soft leaf growth attracts egg-laying females.\n* **Crop Management:** Practice crop rotation and avoid planting tomatoes near previously infested crops from the Solanaceae family.\n\n### General IPM Practices \n*(Source: Department of Agriculture Sri Lanka - HORDI)*\n* Select DOA Sri Lanka released tomato varieties suited to your agroclimatic zone.\n* Use certified disease-free seeds and healthy transplants, and maintain recommended plant spacing.\n* Perform regular field monitoring for early detection.\n\nFor official local recommendations and professional advice regarding pest management in Sri Lanka, please contact the **Horticultural Crops Research and Development Institute (HORDI), Gannoruwa**:\n* **Phone:** (+94) 081-2388011  \n* **Website:** https://doa.gov.lk/hordi-crop-tomato/",
+    "sources": [
+      "Department of Agriculture Sri Lanka - HORDI Tomato Crop Guide (2020) | doa.gov.lk",
+      "General agricultural extension guidance — NOT yet verified against a Sri Lanka DOA-specific source"
+    ],
+    "retrieved_chunks": [
+      {
+        "text": "Prevention of Leaf Miner - Cultural Practices: Inspect young leaves regularly — remove and destroy leaves with active mines before larvae mature into adults Practice crop rotation and avoid planting near previously infested Solanaceae crops Remove and destroy host weeds near the field that can harbor leaf miner flies Avoid excessive nitrogen fertilization — lush, soft growth is more attractive to egg-laying females",
+        "category": "prevention",
+        "disease": "leaf_miner",
+        "relevance": 0.718
+      },
+      {
+        "text": "Application tips for Leaf Miner fungicides: IMPORTANT (DOA official notes): Apply insecticides ONLY for larvae control, not as a blanket preventive spray Apply at a minimum of 7 days between sprays, only if damage is actually seen This pest shows high resistance development — do NOT repeat the same insecticide in consecutive applications; rotate between different products and combine with IPM practices Remove and destroy heavily mined leaves by hand — this directly removes larvae before they mature Avoid broad-spectrum insecticides where possible — they kill the natural parasitoid wasps that usually keep leaf miner populations low Use yellow sticky traps near plants to monitor and reduce adult fly/moth numbers Always observe the pre-harvest interval (PHI) for the specific product used before harvesting fruit",
+        "category": "application_tips",
+        "disease": "leaf_miner",
+        "relevance": 0.62
+      },
+      {
+        "text": "Prevention of Leaf Miner - Monitoring: Use yellow sticky traps to monitor adult fly activity and time interventions Inspect plants at least twice a week, especially younger leaves, for early mine trails",
+        "category": "prevention",
+        "disease": "leaf_miner",
+        "relevance": 0.599
+      },
+      {
+        "text": "General Integrated Pest Management for tomato diseases in Sri Lanka: Use certified disease-free seeds and healthy transplants Select DOA Sri Lanka released varieties suited to your agroclimatic zone Follow recommended spacing and fertilization guidelines Practice regular field monitoring — early detection is key Use fungicides as a last resort and follow DOA pesticide recommendations Always follow pesticide label instructions for dosage and safety Wear protective equipment when applying fungicides Observe pre-harvest intervals strictly before consuming or selling produce Contact: Horticultural Crops Research and Development Institute (HORDI), (+94) 081-2388011, https://doa.gov.lk/hordi-crop-tomato/",
+        "category": "ipm",
+        "disease": "general",
+        "relevance": 0.337
+      }
+    ]
+  },
+  {
+    "id": "CO1",
+    "category": "co-occurrence",
+    "query": "Both early and late blight detected, what should I do?",
+    "diseases_filter": [
+      "Early_Blight",
+      "Late_Blight"
+    ],
+    "answer": "### Early Blight Treatment\nAccording to the Department of Agriculture (DOA) Sri Lanka, Early Blight is caused by the fungus *Alternaria solani*. \n* **Action:** Regular monitoring (at least twice a week) and protective fungicide spraying are required, especially during rainy or humid periods.\n\n### Late Blight Treatment\nAccording to DOA Sri Lanka, Late Blight spreads rapidly in cool (10–20°C), wet, or high-humidity conditions.\n* **Action:** Act immediately at the first sign of infection. Monitor weather conditions and apply preventive/protective fungicides when risk factors are high. Inform neighboring farmers as wind-borne spores can destroy fields quickly.\n\n---\n\n### Combined Treatment\nBecause both Early Blight and Late Blight are fungal diseases, **you do NOT need two separate fungicide products.** \n\nPer **DOA Sri Lanka's official Pesticide Recommendations (2019)**, a single application of any one of the following official fungicides controls **both** Early Blight and Late Blight simultaneously:\n* **Mancozeb 80% WP**\n* **Mancozeb 64% + Metalaxyl 8% WP**\n* **Metiram 55% + Pyraclostrobin 5% WG**\n\n#### Application Guidance:\n* **Single Plant Focus:** Treat an individual plant by spraying the solution thoroughly over all foliage (including the undersides of leaves) until completely covered. For larger plantings, scale up the total spray volume proportionally using the same product-to-water ratio.\n* **Intervals:** Use whichever dosage/spray interval is specified for the products. If intervals differ between the two blights, follow the shorter (more frequent) interval for safety.\n\n*Note: The provided context does not specify the exact mixing dosage (grams per liter) or per-plant volume required. Please consult DOA Sri Lanka (HORDI, Gannoruwa) or check the product label for exact dosage rates before spraying.*",
+    "sources": [
+      "Department of Agriculture Sri Lanka - HORDI Tomato Crop Guide (2020) | doa.gov.lk",
+      "Pesticide Recommendation - Department of Agriculture Sri Lanka (2019) | doa.gov.lk",
+      "General agricultural extension guidance — NOT yet verified against a Sri Lanka DOA-specific source"
+    ],
+    "retrieved_chunks": [
+      {
+        "text": "Prevention of Early Blight - Monitoring: Inspect plants regularly (at least twice a week) especially during humid conditions Begin preventive fungicide spray program before symptoms appear if conditions are favorable Monitor weather — apply protective fungicide spray before expected rainy or humid periods",
+        "category": "prevention",
+        "disease": "early_blight",
+        "relevance": 0.615
+      },
+      {
+        "text": "Early Blight symptoms: Dark brown to black spots with concentric rings (bull's-eye pattern) on older lower leaves Yellow halo surrounding the lesions Spots enlarge and merge causing leaf yellowing and defoliation Defoliation starts from the base of the plant and moves upwards Dark sunken lesions can also appear on fruits and stems Severely affected leaves drop prematurely reducing yield",
+        "category": "symptoms",
+        "disease": "early_blight",
+        "relevance": 0.614
+      },
+      {
+        "text": "Early Blight (Alternaria solani): Early Blight is caused by the soil-borne fungus Alternaria solani. It is one of the most common and economically significant tomato diseases in Sri Lanka and tropical regions. Despite its name, it can occur at any growth stage. Severity: Moderate to Severe. Type: Fungal Disease.",
+        "category": "overview",
+        "disease": "early_blight",
+        "relevance": 0.517
+      },
+      {
+        "text": "Prevention of Late Blight - Monitoring and Early Action: Monitor weather forecasts — cool temperatures (10-20°C) with rain or high humidity signal high risk Begin preventive fungicide applications before symptoms appear when weather favors disease Inspect lower leaves and undersides of leaves for early symptoms Act immediately at first sign of infection — do not delay treatment Inform neighboring farmers if late blight is detected — spores spread by wind and can infect nearby fields",
+        "category": "prevention",
+        "disease": "late_blight",
+        "relevance": 0.655
+      },
+      {
+        "text": "Late Blight symptoms: Irregular dark green to brown water-soaked spots on leaves, often surrounded by a pale yellow-green halo White-grayish mold (sporulation) visible on the underside of leaves under high humidity Spots rapidly enlarge and turn dark brown to black causing complete leaf death Dark water-soaked lesions on stems — stem lesions can girdle and kill entire branches Dark, firm, brown lesions on fruits — affected fruits quickly rot Disease spreads extremely rapidly — entire field can be destroyed in 7-10 days under favorable conditions Distinctive foul smell from rotting affected tissue",
+        "category": "symptoms",
+        "disease": "late_blight",
+        "relevance": 0.559
+      },
+      {
+        "text": "Conditions that favor Late Blight: Cool temperatures (10°C - 20°C) with high relative humidity (>90%) Prolonged wet or rainy weather Overhead irrigation creating wet foliage Poor air circulation in dense plantings Cloudy weather with little sunlight Night temperatures below 20°C with warm days",
+        "category": "conditions",
+        "disease": "late_blight",
+        "relevance": 0.53
+      },
+      {
+        "text": "When multiple diseases/pests are detected together — All three detected together (Early Blight + Late Blight + Leaf Miner): Use one fungicide product effective against both blights (see the Early+Late Blight guidance above) PLUS one insecticide for Leaf Miner (see the Leaf Miner treatment options) — this is two products/sprays total, not three, since one fungicide already covers both fungal diseases. These two sprays can potentially be tank-mixed into one application if compatible; otherwise apply as two separate sprays, prioritizing whichever problem looks more severe first if time/resources are limited.",
+        "category": "co_occurrence",
+        "disease": "general",
+        "relevance": 0.528
+      },
+      {
+        "text": "When multiple diseases/pests are detected together — Early Blight + Late Blight (both fungal): If both Early Blight and Late Blight are detected on the same plant, you do NOT need two separate fungicide products. Per DOA Sri Lanka's official Pesticide Recommendations (2019), Mancozeb 80% WP, the Mancozeb 64% + Metalaxyl 8% WP combination, and Metiram 55% + Pyraclostrobin 5% WG are each officially listed for BOTH Early Blight and Late Blight — one spray of any of these products, at the dosage listed for that product, treats both diseases at once. Use whichever dosage/interval is listed for the disease present, and if the two overlap in interval, follow the shorter (more frequent) interval to be safe for both.",
+        "category": "co_occurrence",
+        "disease": "general",
+        "relevance": 0.434
+      },
+      {
+        "text": "When multiple diseases/pests are detected together — Leaf Miner + either fungal blight (insect + fungus): Leaf Miner is an insect/moth pest, not a fungus — a fungicide (used for Early/Late Blight) cannot control it, and an insecticide cannot control a fungal disease. If Leaf Miner is detected together with Early Blight and/or Late Blight, you need BOTH a fungicide (for the blight) AND a separate insecticide (for the leaf miner) — there is no single product that treats both categories. To save time, the fungicide and insecticide sprays can often be tank-mixed and applied together in one spray trip on the same day, but only if the specific products are chemically compatible — always check the product labels for tank-mix compatibility, or test a small batch first, before combining. This knowledge base does not have a DOA-verified list of specific compatible tank-mix pairs, so when in doubt, apply them as separate sprays or consult DOA Sri Lanka (HORDI, Gannoruwa) for compatibility advice.",
+        "category": "co_occurrence",
+        "disease": "general",
+        "relevance": 0.383
+      }
+    ]
+  },
+  {
+    "id": "CO2",
+    "category": "co-occurrence",
+    "query": "My plant has both leaf miner damage and early blight symptoms, how do I treat both?",
+    "diseases_filter": [
+      "Early_Blight",
+      "Leaf_Miner"
+    ],
+    "answer": "Based on the provided verified agricultural context, here is the step-by-step treatment plan for managing both **Early Blight** and **Leaf Miner** on your tomato plants.\n\n---\n\n### 1. Early Blight Treatment (Fungal Disease)\n\n* **Chemical Options:**\n  * **Chlorothalonil:** Apply per label instructions every 7–14 days. This is a contact/protectant broad-spectrum fungicide (*Source: Cornell University Extension — general extension guidance*).\n  * **DOA Recommended Products:** Options include Mancozeb 80% WP, Mancozeb 64% + Metalaxyl 8% WP, or Metiram 55% + Pyraclostrobin 5% WG (*Source: DOA Sri Lanka, Pesticide Recommendations 2019*).\n* **Application Method for a Single Plant:**\n  * Mix a small batch according to the product label instructions. \n  * Spray the single plant thoroughly on both upper and lower leaf surfaces until the solution begins to run off (*point of runoff*). \n  * Apply early in the morning or late afternoon to avoid heat stress. Reapply after heavy rainfall. \n  * *Note for larger plantings:* Prepare additional solution scaling up proportionally using the same ratio.\n* **Management Tips:**\n  * Start applications at the initial stage of disease development.\n  * Alternate between different fungicide groups to prevent resistance development (*Source: DOA Sri Lanka*).\n\n---\n\n### 2. Leaf Miner Treatment (Insect Pest)\n\n* **Application Method & Tips:**\n  * Apply insecticides **only** when active larvae damage is observed, not as a blanket preventive spray (*Source: General IPM guidance / DOA official notes*).\n  * Maintain a minimum of 7 days between sprays. \n  * Rotate between different insecticide products with each application because leaf miners build resistance quickly (*Source: General IPM guidance*).\n  * Apply to a single plant by thoroughly targeting affected foliage, scaling up proportionally for larger areas.\n* **Cultural & Biological Practices:**\n  * Remove and destroy heavily mined leaves by hand to physically eliminate larvae before they mature.\n  * Use yellow sticky traps near plants to monitor and catch adult insects.\n  * Avoid broad-spectrum insecticides where possible to protect beneficial parasitoid wasps (*Source: General IPM guidance*).\n  * Always respect the Pre-Harvest Interval (PHI) listed on the product label before harvesting fruit.\n\n---\n\n### Combined Treatment Strategy\n\n* **Product Requirements:** Leaf Miner is an insect pest and Early Blight is a fungal disease. A fungicide cannot control leaf miners, and an insecticide cannot treat Early Blight; **you need two distinct products** (one fungicide and one insecticide) (*Source: General IPM guidance*).\n* **Tank-Mixing & Application:** To save time, you can potentially tank-mix the fungicide and insecticide to apply them together in a single application on the same day. However, this is **only possible if the specific products are chemically compatible**. \n* **Compatibility Caution:** Always check the product labels for compatibility or mix a small test batch first. Because a specific list of compatible tank-mix pairs is not provided in this context, consult **DOA Sri Lanka (HORDI, Gannoruwa)** for advice on chemical compatibility before combining sprays or using products not yet verified for your location. If compatibility is uncertain, apply them as separate sprays.",
+    "sources": [
+      "Pesticide Recommendation - Department of Agriculture Sri Lanka (2019) | doa.gov.lk",
+      "Department of Agriculture Sri Lanka - HORDI Tomato Crop Guide (2020) | doa.gov.lk",
+      "Managing Tomato Diseases - Cornell University Extension (2023) | vegetables.cornell.edu",
+      "General agricultural extension guidance — NOT yet verified against a Sri Lanka DOA-specific source"
+    ],
+    "retrieved_chunks": [
+      {
+        "text": "Early Blight symptoms: Dark brown to black spots with concentric rings (bull's-eye pattern) on older lower leaves Yellow halo surrounding the lesions Spots enlarge and merge causing leaf yellowing and defoliation Defoliation starts from the base of the plant and moves upwards Dark sunken lesions can also appear on fruits and stems Severely affected leaves drop prematurely reducing yield",
+        "category": "symptoms",
+        "disease": "early_blight",
+        "relevance": 0.567
+      },
+      {
+        "text": "Chemical treatment for Early Blight: Use Chlorothalonil at Per label instructions every 7-14 days. Type: Contact (Protectant). Broad-spectrum protectant. Apply to upper and lower leaf surfaces. Reapply after rain.",
+        "category": "chemical_treatment",
+        "disease": "early_blight",
+        "relevance": 0.566
+      },
+      {
+        "text": "Application tips for Early Blight fungicides: Apply fungicides at the INITIAL stage of disease development — do not wait until severe infection Spray both upper AND lower leaf surfaces thoroughly Apply to the point of runoff for complete coverage Reapply after heavy rainfall Alternate between different fungicide groups to prevent resistance development Apply in early morning or late afternoon to avoid heat stress on plants",
+        "category": "application_tips",
+        "disease": "early_blight",
+        "relevance": 0.566
+      },
+      {
+        "text": "Leaf Miner symptoms: Winding, serpentine white to pale tunnels (mines) visible on the leaf surface, following an irregular trail Small white speckled puncture marks from adult feeding/egg-laying, often clustered near the trail Tunnels widen progressively as the larva grows inside Heavily mined leaves may yellow, dry out, and drop prematurely Multiple overlapping mines can occur on a single leaf under heavy infestation Unlike blight, damage does not spread as dark lesions — it stays confined to visible tunnel trails",
+        "category": "symptoms",
+        "disease": "leaf_miner",
+        "relevance": 0.594
+      },
+      {
+        "text": "Leaf Miner (Tuta absoluta (Sri Lanka DOA's official designation for tomato leaf miner damage, under Polytunnel Pests); visually similar serpentine mining can also be caused by Liriomyza spp. leaf-mining flies on other crops): Leaf miner damage on Sri Lankan tomato is officially attributed by the DOA (Pesticide Recommendations 2019, Polytunnel Pests) to Tuta absoluta, whose larvae tunnel through leaf tissue creating winding pale/white trails, and can progress to boring fruit. Globally, visually similar serpentine leaf mines are also caused by Liriomyza leaf-mining flies on various crops. Severity: Mild to Moderate on leaves alone — mainly reduces photosynthesis and cosmetic quality; this pest can also bore into fruit, which is more economically damaging, so it should not be dismissed as purely cosmetic. Type: Insect Pest (Leaf-mining moth larvae, also bores fruit at later stages).",
+        "category": "overview",
+        "disease": "leaf_miner",
+        "relevance": 0.531
+      },
+      {
+        "text": "Application tips for Leaf Miner fungicides: IMPORTANT (DOA official notes): Apply insecticides ONLY for larvae control, not as a blanket preventive spray Apply at a minimum of 7 days between sprays, only if damage is actually seen This pest shows high resistance development — do NOT repeat the same insecticide in consecutive applications; rotate between different products and combine with IPM practices Remove and destroy heavily mined leaves by hand — this directly removes larvae before they mature Avoid broad-spectrum insecticides where possible — they kill the natural parasitoid wasps that usually keep leaf miner populations low Use yellow sticky traps near plants to monitor and reduce adult fly/moth numbers Always observe the pre-harvest interval (PHI) for the specific product used before harvesting fruit",
+        "category": "application_tips",
+        "disease": "leaf_miner",
+        "relevance": 0.519
+      },
+      {
+        "text": "When multiple diseases/pests are detected together — All three detected together (Early Blight + Late Blight + Leaf Miner): Use one fungicide product effective against both blights (see the Early+Late Blight guidance above) PLUS one insecticide for Leaf Miner (see the Leaf Miner treatment options) — this is two products/sprays total, not three, since one fungicide already covers both fungal diseases. These two sprays can potentially be tank-mixed into one application if compatible; otherwise apply as two separate sprays, prioritizing whichever problem looks more severe first if time/resources are limited.",
+        "category": "co_occurrence",
+        "disease": "general",
+        "relevance": 0.621
+      },
+      {
+        "text": "When multiple diseases/pests are detected together — Leaf Miner + either fungal blight (insect + fungus): Leaf Miner is an insect/moth pest, not a fungus — a fungicide (used for Early/Late Blight) cannot control it, and an insecticide cannot control a fungal disease. If Leaf Miner is detected together with Early Blight and/or Late Blight, you need BOTH a fungicide (for the blight) AND a separate insecticide (for the leaf miner) — there is no single product that treats both categories. To save time, the fungicide and insecticide sprays can often be tank-mixed and applied together in one spray trip on the same day, but only if the specific products are chemically compatible — always check the product labels for tank-mix compatibility, or test a small batch first, before combining. This knowledge base does not have a DOA-verified list of specific compatible tank-mix pairs, so when in doubt, apply them as separate sprays or consult DOA Sri Lanka (HORDI, Gannoruwa) for compatibility advice.",
+        "category": "co_occurrence",
+        "disease": "general",
+        "relevance": 0.563
+      },
+      {
+        "text": "When multiple diseases/pests are detected together — Early Blight + Late Blight (both fungal): If both Early Blight and Late Blight are detected on the same plant, you do NOT need two separate fungicide products. Per DOA Sri Lanka's official Pesticide Recommendations (2019), Mancozeb 80% WP, the Mancozeb 64% + Metalaxyl 8% WP combination, and Metiram 55% + Pyraclostrobin 5% WG are each officially listed for BOTH Early Blight and Late Blight — one spray of any of these products, at the dosage listed for that product, treats both diseases at once. Use whichever dosage/interval is listed for the disease present, and if the two overlap in interval, follow the shorter (more frequent) interval to be safe for both.",
+        "category": "co_occurrence",
+        "disease": "general",
+        "relevance": 0.44
+      }
+    ]
+  },
+  {
+    "id": "CO3",
+    "category": "co-occurrence",
+    "query": "I see late blight and leaf miner on the same leaf, what should I spray?",
+    "diseases_filter": [
+      "Late_Blight",
+      "Leaf_Miner"
+    ],
+    "answer": "Here is the treatment guide based on verified recommendations from the Department of Agriculture (DOA) Sri Lanka and general IPM guidance.\n\n---\n\n### 1. Late Blight Treatment (Fungal Disease)\n* **Source:** DOA Sri Lanka Pesticide Recommendations (2019) & DOA Sri Lanka (2020)\n\n**Single Plant / Small Batch Application:**\nTo prepare a standard knapsack sprayer (16 Liters) or smaller proportional batch:\n* **Option A:** **Azoxystrobin 250 g/l SC** — Mix **16 ml per 16 Liters of water** (1 ml per 1 Liter of water for smaller batches). For a single tomato plant (which typically requires around 100–250 ml of spray solution depending on size to achieve complete canopy wetness), mix **1 ml of product in 1 Liter of water** as the smallest practical batch.\n* **Option B:** **Metiram 55% + Pyraclostrobin 5% WG** — Mix **32 g per 16 Liters of water** (2 g per 1 Liter of water).\n* **Application:** Apply every 10–12 days (or every 5–7 days during cool, wet weather). \n* **Pre-Harvest Interval (PHI):** 14 days (do not harvest fruit within 14 days of spraying).\n* **Cultural Care:** Remove and burn severely infected leaves immediately (do NOT compost). Clean spray equipment thoroughly between fields.\n* **Scaling:** Larger plantings scale up proportionally using the same ratio (e.g., 16 L for full field plots).\n\n---\n\n### 2. Leaf Miner Treatment (Insect Pest)\n* **Source:** DOA Sri Lanka Pesticide Recommendations (2019) & General IPM Guidance (Unverified)\n\n**Single Plant / Small Batch Application:**\n* **Chemical Option:** **Abamectin 18 g/l EC** — Mix **10 ml per 16 Liters of water** (approx. 0.625 ml per 1 Liter of water for small batches). Apply only to target active larvae if leaf damage/mines are visibly seen.\n* **Application:** Apply at a minimum of 7 days between sprays. Do not apply as a blanket preventive spray. Rotate with other products in subsequent applications to prevent resistance.\n* **Pre-Harvest Interval (PHI):** 14 days.\n* **Cultural Care:** Hand-pick and destroy heavily mined leaves directly to remove larvae. Use yellow sticky traps near plants to monitor/catch adult flies. Avoid broad-spectrum sprays that kill natural parasitoid wasps.\n\n---\n\n### Combined Treatment\n* **Source:** DOA Sri Lanka (2019) & General IPM Guidance (Unverified)\n\nBecause **Late Blight is caused by a fungus** and **Leaf Miner is an insect pest**, there is no single product that can treat both categories at once. You must use BOTH a fungicide (for Late Blight) and an insecticide (for Leaf Miner).\n\n* **Tank-Mixing:** To save time, these two sprays can potentially be tank-mixed and applied together in a single application trip. However, you must check product labels first for chemical compatibility or test a small mix batch beforehand.\n* **Disclaimer:** Official verified tank-mix compatibility lists are not specified in this knowledge base. \n\n---\n\n> **Recommendation:** Always consult **DOA Sri Lanka (HORDI, Gannoruwa)** for professional advice on localized management and product compatibility before combining chemicals.",
+    "sources": [
+      "Department of Agriculture Sri Lanka - HORDI Tomato Crop Guide (2020) | doa.gov.lk",
+      "Pesticide Recommendation - Department of Agriculture Sri Lanka (2019) | doa.gov.lk",
+      "General agricultural extension guidance — NOT yet verified against a Sri Lanka DOA-specific source"
+    ],
+    "retrieved_chunks": [
+      {
+        "text": "Application tips for Late Blight fungicides: CRITICAL: Apply fungicides PREVENTIVELY — late blight is extremely difficult to control after detection Increase spray frequency to every 5-7 days during cool wet weather Apply systemic fungicides (Metalaxyl mixtures) for better penetration into plant tissue Always tank-mix mobile/systemic fungicides with a protectant fungicide Alternate fungicide groups to prevent resistance — P. infestans develops resistance rapidly Remove and destroy severely infected plant material immediately Do NOT compost infected material — destroy by burning Spray equipment can spread spores — clean thoroughly between fields",
+        "category": "application_tips",
+        "disease": "late_blight",
+        "relevance": 0.662
+      },
+      {
+        "text": "Chemical treatment for Late Blight: Use Metiram 55% + Pyraclostrobin 5% WG at 32g per 16 litres of water (standard knapsack sprayer) every 10-12 days. Pre-harvest interval: 14 days — do not harvest fruit within 14 days of the last spray. Type: Contact + Systemic. Official DOA Sri Lanka Pesticide Recommendations (2019), Fungicides section, Crop 14 (Potato and Tomato), Late Blight. This is a WG (water dispersible granule/powder) product, measured in grams, not millilitres — corrected from an earlier version of this knowledge base.",
+        "category": "chemical_treatment",
+        "disease": "late_blight",
+        "relevance": 0.612
+      },
+      {
+        "text": "Chemical treatment for Late Blight: Use Azoxystrobin 250 g/l SC at 16ml per 16 litres of water (standard knapsack sprayer) every 10-12 days. Pre-harvest interval: 14 days — do not harvest fruit within 14 days of the last spray. Type: Systemic. Official DOA Sri Lanka Pesticide Recommendations (2019), Fungicides section, Crop 14 (Potato and Tomato), Late Blight.",
+        "category": "chemical_treatment",
+        "disease": "late_blight",
+        "relevance": 0.61
+      },
+      {
+        "text": "Application tips for Leaf Miner fungicides: IMPORTANT (DOA official notes): Apply insecticides ONLY for larvae control, not as a blanket preventive spray Apply at a minimum of 7 days between sprays, only if damage is actually seen This pest shows high resistance development — do NOT repeat the same insecticide in consecutive applications; rotate between different products and combine with IPM practices Remove and destroy heavily mined leaves by hand — this directly removes larvae before they mature Avoid broad-spectrum insecticides where possible — they kill the natural parasitoid wasps that usually keep leaf miner populations low Use yellow sticky traps near plants to monitor and reduce adult fly/moth numbers Always observe the pre-harvest interval (PHI) for the specific product used before harvesting fruit",
+        "category": "application_tips",
+        "disease": "leaf_miner",
+        "relevance": 0.619
+      },
+      {
+        "text": "Chemical treatment for Leaf Miner: Use Abamectin 18 g/l EC at 10ml per 16 litres of water (standard knapsack sprayer) every minimum 7 days between applications, only if damage is seen. Pre-harvest interval: 14 days — do not harvest fruit within 14 days of the last spray. Type: Contact + translaminar (moves short distance into leaf tissue). Official DOA Sri Lanka Pesticide Recommendations (2019), Insecticides section, Crop 06 (Tomato — Polytunnel Pests), Leaf Miner/Fruit Borer (Tuta absoluta). Apply only for larvae control.",
+        "category": "chemical_treatment",
+        "disease": "leaf_miner",
+        "relevance": 0.586
+      },
+      {
+        "text": "Leaf Miner symptoms: Winding, serpentine white to pale tunnels (mines) visible on the leaf surface, following an irregular trail Small white speckled puncture marks from adult feeding/egg-laying, often clustered near the trail Tunnels widen progressively as the larva grows inside Heavily mined leaves may yellow, dry out, and drop prematurely Multiple overlapping mines can occur on a single leaf under heavy infestation Unlike blight, damage does not spread as dark lesions — it stays confined to visible tunnel trails",
+        "category": "symptoms",
+        "disease": "leaf_miner",
+        "relevance": 0.577
+      },
+      {
+        "text": "When multiple diseases/pests are detected together — All three detected together (Early Blight + Late Blight + Leaf Miner): Use one fungicide product effective against both blights (see the Early+Late Blight guidance above) PLUS one insecticide for Leaf Miner (see the Leaf Miner treatment options) — this is two products/sprays total, not three, since one fungicide already covers both fungal diseases. These two sprays can potentially be tank-mixed into one application if compatible; otherwise apply as two separate sprays, prioritizing whichever problem looks more severe first if time/resources are limited.",
+        "category": "co_occurrence",
+        "disease": "general",
+        "relevance": 0.72
+      },
+      {
+        "text": "When multiple diseases/pests are detected together — Leaf Miner + either fungal blight (insect + fungus): Leaf Miner is an insect/moth pest, not a fungus — a fungicide (used for Early/Late Blight) cannot control it, and an insecticide cannot control a fungal disease. If Leaf Miner is detected together with Early Blight and/or Late Blight, you need BOTH a fungicide (for the blight) AND a separate insecticide (for the leaf miner) — there is no single product that treats both categories. To save time, the fungicide and insecticide sprays can often be tank-mixed and applied together in one spray trip on the same day, but only if the specific products are chemically compatible — always check the product labels for tank-mix compatibility, or test a small batch first, before combining. This knowledge base does not have a DOA-verified list of specific compatible tank-mix pairs, so when in doubt, apply them as separate sprays or consult DOA Sri Lanka (HORDI, Gannoruwa) for compatibility advice.",
+        "category": "co_occurrence",
+        "disease": "general",
+        "relevance": 0.702
+      },
+      {
+        "text": "When multiple diseases/pests are detected together — Early Blight + Late Blight (both fungal): If both Early Blight and Late Blight are detected on the same plant, you do NOT need two separate fungicide products. Per DOA Sri Lanka's official Pesticide Recommendations (2019), Mancozeb 80% WP, the Mancozeb 64% + Metalaxyl 8% WP combination, and Metiram 55% + Pyraclostrobin 5% WG are each officially listed for BOTH Early Blight and Late Blight — one spray of any of these products, at the dosage listed for that product, treats both diseases at once. Use whichever dosage/interval is listed for the disease present, and if the two overlap in interval, follow the shorter (more frequent) interval to be safe for both.",
+        "category": "co_occurrence",
+        "disease": "general",
+        "relevance": 0.558
+      }
+    ]
+  },
+  {
+    "id": "OOD1",
+    "category": "out-of-domain",
+    "query": "Who is the president of India?",
+    "diseases_filter": null,
+    "answer": "I can only answer questions about tomato Early Blight, Late Blight, and Leaf Miner treatment and prevention based on verified agricultural sources.",
+    "sources": [
+      "Department of Agriculture Sri Lanka - HORDI Tomato Crop Guide (2020) | doa.gov.lk",
+      "Pesticide Recommendation - Department of Agriculture Sri Lanka (2019) | doa.gov.lk"
+    ],
+    "retrieved_chunks": [
+      {
+        "text": "Chemical treatment for Leaf Miner: Use Indoxacarb 150 g/l EC at 6ml per 16 litres of water (standard knapsack sprayer) every minimum 7 days between applications, only if damage is seen. Pre-harvest interval: 14 days — do not harvest fruit within 14 days of the last spray. Type: Contact + ingestion (larvicide). Official DOA Sri Lanka Pesticide Recommendations (2019), Insecticides section, Crop 06 (Tomato — Polytunnel Pests), Leaf Miner/Fruit Borer (Tuta absoluta). Apply only for larvae control.",
+        "category": "chemical_treatment",
+        "disease": "leaf_miner",
+        "relevance": 0.209
+      },
+      {
+        "text": "General Integrated Pest Management for tomato diseases in Sri Lanka: Use certified disease-free seeds and healthy transplants Select DOA Sri Lanka released varieties suited to your agroclimatic zone Follow recommended spacing and fertilization guidelines Practice regular field monitoring — early detection is key Use fungicides as a last resort and follow DOA pesticide recommendations Always follow pesticide label instructions for dosage and safety Wear protective equipment when applying fungicides Observe pre-harvest intervals strictly before consuming or selling produce Contact: Horticultural Crops Research and Development Institute (HORDI), (+94) 081-2388011, https://doa.gov.lk/hordi-crop-tomato/",
+        "category": "ipm",
+        "disease": "general",
+        "relevance": 0.175
+      },
+      {
+        "text": "Chemical treatment for Leaf Miner: Use Abamectin 18 g/l EC at 10ml per 16 litres of water (standard knapsack sprayer) every minimum 7 days between applications, only if damage is seen. Pre-harvest interval: 14 days — do not harvest fruit within 14 days of the last spray. Type: Contact + translaminar (moves short distance into leaf tissue). Official DOA Sri Lanka Pesticide Recommendations (2019), Insecticides section, Crop 06 (Tomato — Polytunnel Pests), Leaf Miner/Fruit Borer (Tuta absoluta). Apply only for larvae control.",
+        "category": "chemical_treatment",
+        "disease": "leaf_miner",
+        "relevance": 0.166
+      }
+    ]
+  },
+  {
+    "id": "OOD2",
+    "category": "out-of-domain",
+    "query": "What is the best fertilizer for growing roses?",
+    "diseases_filter": null,
+    "answer": "I can only answer questions about tomato Early Blight, Late Blight, and Leaf Miner treatment and prevention based on verified agricultural sources.",
+    "sources": [
+      "Department of Agriculture Sri Lanka - HORDI Tomato Crop Guide (2020) | doa.gov.lk"
+    ],
+    "retrieved_chunks": [
+      {
+        "text": "Prevention of Early Blight - Soil and Nutrition Management: Apply well-decomposed organic matter (10 t/ha) to improve soil health Maintain balanced fertilization — potassium and calcium strengthen plant cell walls reducing susceptibility Avoid excessive nitrogen fertilization which promotes lush growth susceptible to disease Maintain soil pH between 5.5-7.5 as recommended by DOA Sri Lanka Ensure good soil drainage to reduce root stress",
+        "category": "prevention",
+        "disease": "early_blight",
+        "relevance": 0.363
+      },
+      {
+        "text": "How much Leaf Miner treatment to use for ONE plant: 150-200ml of mixed spray solution for one fully-grown plant, sprayed to the point of run-off (leaves visibly wet, droplets just starting to drip). Same general coverage principle as fungicide sprays — younger/smaller plants need less. Since leaf miner larvae are protected inside the leaf tissue, thorough coverage matters more for controlling adults/eggs than for reaching the larvae directly. The DOA dosages above are already given per 16-litre knapsack sprayer, which is the standard local sprayer size. If treating only 1-2 plants, mixing a full 16L batch is wasteful and impractical to measure down; prepare a minimum of 1 litre instead (1/16 of the listed dose), enough for roughly 5-6 mature plants at 150-200ml each.",
+        "category": "application_volume",
+        "disease": "leaf_miner",
+        "relevance": 0.349
+      },
+      {
+        "text": "Prevention of Late Blight - Soil and Nutrition: Ensure good soil drainage — waterlogged conditions favor P. infestans Apply balanced fertilization — avoid excess nitrogen Use well-decomposed organic matter to improve soil structure and drainage",
+        "category": "prevention",
+        "disease": "late_blight",
+        "relevance": 0.326
+      }
+    ]
+  },
+  {
+    "id": "OOD3",
+    "category": "out-of-domain-adjacent",
+    "query": "My tomato plant has yellowing leaves and looks unhealthy, what disease is this?",
+    "diseases_filter": null,
+    "answer": "Based on the provided context from the Department of Agriculture (DOA) Sri Lanka, the context does not contain enough specific symptom information (such as leaf spot patterns or rot descriptions) to identify whether your plant has Early Blight, Late Blight, or another issue based solely on yellowing leaves. \n\nBoth Early Blight (*Alternaria solani*) and Late Blight (*Phytophthora infestans*) are major tomato diseases in Sri Lanka, but specific visual symptoms are required for an accurate diagnosis.\n\nFor professional advice and accurate diagnosis, please consult DOA Sri Lanka:\n* **Horticultural Crops Research and Development Institute (HORDI), Gannoruwa**\n* **Phone:** (+94) 081-2388011\n* **Website:** https://doa.gov.lk/hordi-crop-tomato/",
+    "sources": [
+      "Department of Agriculture Sri Lanka - HORDI Tomato Crop Guide (2020) | doa.gov.lk"
+    ],
+    "retrieved_chunks": [
+      {
+        "text": "Early Blight (Alternaria solani): Early Blight is caused by the soil-borne fungus Alternaria solani. It is one of the most common and economically significant tomato diseases in Sri Lanka and tropical regions. Despite its name, it can occur at any growth stage. Severity: Moderate to Severe. Type: Fungal Disease.",
+        "category": "overview",
+        "disease": "early_blight",
+        "relevance": 0.473
+      },
+      {
+        "text": "Late Blight (Phytophthora infestans): Late Blight is caused by Phytophthora infestans, a highly destructive pathogen historically responsible for the Irish Potato Famine. In Sri Lanka and tropical regions, it can spread extremely rapidly under cool, wet conditions and destroy an entire tomato crop within days if not managed promptly. Severity: Very Severe — Can destroy entire crop rapidly. Type: Oomycete Disease (Water Mold).",
+        "category": "overview",
+        "disease": "late_blight",
+        "relevance": 0.47
+      },
+      {
+        "text": "General Integrated Pest Management for tomato diseases in Sri Lanka: Use certified disease-free seeds and healthy transplants Select DOA Sri Lanka released varieties suited to your agroclimatic zone Follow recommended spacing and fertilization guidelines Practice regular field monitoring — early detection is key Use fungicides as a last resort and follow DOA pesticide recommendations Always follow pesticide label instructions for dosage and safety Wear protective equipment when applying fungicides Observe pre-harvest intervals strictly before consuming or selling produce Contact: Horticultural Crops Research and Development Institute (HORDI), (+94) 081-2388011, https://doa.gov.lk/hordi-crop-tomato/",
+        "category": "ipm",
+        "disease": "general",
+        "relevance": 0.465
+      }
+    ]
+  }
+]
