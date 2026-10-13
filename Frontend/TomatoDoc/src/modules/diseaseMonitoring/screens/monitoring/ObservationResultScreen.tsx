@@ -127,7 +127,7 @@ export function ObservationResultScreen({
 function makeStyles(p: MonitoringPalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: p.bg },
-    content: { padding: 18, paddingBottom: 40 },
+    content: { padding: 18, paddingBottom: 120 },
     guideBox: {
       marginTop: 12,
       backgroundColor: "#FDECEA",

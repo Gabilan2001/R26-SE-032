@@ -180,7 +180,7 @@ export default function DiseaseResultScreen({ route, navigation }) {
       />
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[styles.content, { paddingTop: 18, paddingBottom: insets.bottom + 40 }]}
+        contentContainerStyle={[styles.content, { paddingTop: 18, paddingBottom: insets.bottom + 120 }]}
         showsVerticalScrollIndicator={false}
       >
 

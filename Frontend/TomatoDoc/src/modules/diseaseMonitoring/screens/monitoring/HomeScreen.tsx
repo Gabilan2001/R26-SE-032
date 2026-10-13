@@ -75,7 +75,7 @@ export function HomeScreen({ onSelect, onExit }: Props) {
 function makeStyles(p: MonitoringPalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: p.bg },
-    content: { padding: 18, paddingBottom: 40 },
+    content: { padding: 18, paddingBottom: 120 },
     title: { color: p.textPrimary, fontSize: 26, fontWeight: "800", marginTop: 8 },
     subtitle: { color: p.textMuted, marginTop: 10, lineHeight: 21, marginBottom: 22 },
     section: {
