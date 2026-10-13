@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingBottom: 14,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.05)',
+    borderTopColor: 'rgba(30, 48, 39, 0.07)',
     gap: 10,
     paddingTop: 12,
   },
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
   },
   barTrack: {
     height: 5,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: '#F3F5EE',
     borderRadius: 3,
     overflow: 'hidden',
     marginTop: 2,
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   reasoningBox: {
-    backgroundColor: 'rgba(245, 158, 11, 0.06)',
+    backgroundColor: '#FBF1DA',
     borderLeftWidth: 3,
     borderLeftColor: C.amber,
     padding: 10,

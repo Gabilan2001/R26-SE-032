@@ -19,30 +19,32 @@ import { getHistory } from '../api/historyApi';
 import { getFruitHistory } from '../api/fruitHistoryApi';
 import { formatDateTime } from '../utils/formatters';
 
+import { palette as P, radius, shadow } from '../theme';
+import ScreenHeader from '../components/ScreenHeader';
 const { width } = Dimensions.get('window');
 
 // ── Tokens ────────────────────────────────────────────────────────────────────
 const C = {
-  bg:           '#0f0f0f',
-  surface:      '#1a1a1a',
-  surface2:     '#222222',
-  accent:       '#c8f135',
-  accentDim:    'rgba(200,241,53,0.10)',
-  accentBorder: 'rgba(200,241,53,0.22)',
-  text:         '#f0f0f0',
-  muted:        '#555555',
-  border:       'rgba(255,255,255,0.07)',
-  danger:       '#ff5c5c',
-  dangerDim:    'rgba(255,92,92,0.10)',
-  dangerBorder: 'rgba(255,92,92,0.18)',
-  warn:         '#f5a623',
-  warnDim:      'rgba(245,166,35,0.10)',
+  bg: P.bg,
+  surface: P.surface,
+  surface2: P.surface2,
+  accent: P.forestMid,
+  accentDim: P.surfaceTint,
+  accentBorder: '#CFE3B8',
+  text: P.text,
+  muted: P.muted,
+  border: P.border,
+  danger: P.danger,
+  dangerDim: P.dangerDim,
+  dangerBorder: P.dangerDim,
+  warn: P.warn,
+  warnDim: P.warnDim,
   warnBorder:   'rgba(245,166,35,0.20)',
-  success:      '#4adf6f',
-  successDim:   'rgba(74,223,111,0.10)',
+  success: P.good,
+  successDim: P.goodDim,
   successBorder:'rgba(74,223,111,0.20)',
-  glass:        'rgba(255,255,255,0.04)',
-  glassBorder:  'rgba(255,255,255,0.06)',
+  glass:        P.border,
+  glassBorder:  P.border,
 };
 
 // ── Status helpers ────────────────────────────────────────────────────────────
@@ -65,7 +67,7 @@ function GlassCard({ children, style }) {
   return (
     <View style={[styles.glassCard, style]}>
       <LinearGradient
-        colors={['rgba(255,255,255,0.04)', 'rgba(255,255,255,0.01)']}
+        colors={['rgba(214,239,117,0.10)', 'rgba(255,255,255,0)']}
         style={StyleSheet.absoluteFill}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -97,7 +99,7 @@ function SummaryCard({ num, label, numColor, delay = 0 }) {
       }
     ]}>
       <LinearGradient
-        colors={['rgba(255,255,255,0.03)', 'rgba(255,255,255,0.01)']}
+        colors={['rgba(214,239,117,0.10)', 'rgba(255,255,255,0)']}
         style={StyleSheet.absoluteFill}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -138,7 +140,7 @@ function HistoryItem({ item, mode, onPress, index }) {
         onPress={onPress}
       >
         <LinearGradient
-          colors={['rgba(255,255,255,0.03)', 'rgba(255,255,255,0.01)']}
+          colors={['rgba(214,239,117,0.10)', 'rgba(255,255,255,0)']}
           style={StyleSheet.absoluteFill}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -310,11 +312,10 @@ export default function HistoryScreen({ navigation, route }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
 
-      <Animated.View style={[styles.header, { opacity: headerOp }]}>
-        <Text style={[styles.title, presentationMode && { fontSize: 28 }]}>History</Text>
-        <Text style={styles.headerSub}>{filtered.length} records</Text>
+      <Animated.View style={{ opacity: headerOp }}>
+        <ScreenHeader title="History" subtitle={`${filtered.length} records`} eyebrow="Scan history" />
       </Animated.View>
 
       <View style={styles.searchWrap}>
@@ -350,7 +351,7 @@ export default function HistoryScreen({ navigation, route }) {
             >
               {mode === m && (
                 <LinearGradient
-                  colors={['rgba(200,241,53,0.08)', 'rgba(200,241,53,0.02)']}
+                  colors={['rgba(86,130,60,0.08)', 'rgba(86,130,60,0.02)']}
                   style={StyleSheet.absoluteFill}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
@@ -430,28 +431,12 @@ const styles = StyleSheet.create({
   },
 
   // ── Header ──
-  header: {
-    paddingHorizontal: 18,
-    paddingTop: 58,
-    paddingBottom: 14,
-    gap: 2,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: C.text,
-  },
-  headerSub: {
-    fontSize: 12,
-    color: C.muted,
-    fontWeight: '500',
-  },
-
   // ── Search ──
   searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: 18,
+    marginTop: 16,
     marginBottom: 14,
     backgroundColor: C.surface,
     borderWidth: 1.5,
@@ -611,7 +596,7 @@ const styles = StyleSheet.create({
   // ── List ──
   listContent: {
     paddingHorizontal: 18,
-    paddingBottom: 40,
+    paddingBottom: 130,
     paddingTop: 2,
   },
 
@@ -686,9 +671,9 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: P.border,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: P.border,
   },
   histBadgeTxt: {
     fontSize: 10,
@@ -706,7 +691,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: P.border,
     borderWidth: 1,
     borderColor: C.border,
     alignItems: 'center',

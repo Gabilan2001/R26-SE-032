@@ -17,19 +17,21 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthContext } from '../context/AuthContext';
 
+import { LinearGradient } from 'expo-linear-gradient';
+import { palette as P, gradients, radius, shadow } from '../theme';
 const C = {
-  bg: '#0f0f0f',
-  surface: '#1a1a1a',
-  surface2: '#222222',
-  accent: '#c8f135',
-  accentDim: 'rgba(200,241,53,0.10)',
-  accentBorder: 'rgba(200,241,53,0.22)',
-  text: '#f0f0f0',
-  muted: '#666666',
-  border: 'rgba(255,255,255,0.07)',
-  danger: '#ff5c5c',
-  dangerDim: 'rgba(255,92,92,0.12)',
-  success: '#4adf6f',
+  bg: P.bg,
+  surface: P.surface,
+  surface2: P.surface2,
+  accent: P.forestMid,
+  accentDim: P.surfaceTint,
+  accentBorder: '#CFE3B8',
+  text: P.text,
+  muted: P.muted,
+  border: P.border,
+  danger: P.danger,
+  dangerDim: P.dangerDim,
+  success: P.good,
 };
 
 function getStrength(pass) {
@@ -152,26 +154,27 @@ export default function RegisterScreen({ navigation }) {
       style={styles.root}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
 
       <ScrollView
-        contentContainerStyle={[
-          styles.scroll,
-          { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 32 },
-        ]}
+        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Back */}
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
-          <MaterialCommunityIcons name="arrow-left" size={20} color={C.text} />
-        </TouchableOpacity>
-
         {/* Hero */}
-        <View style={styles.hero}>
+        <LinearGradient
+          colors={gradients.hero}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.hero, { paddingTop: insets.top + 16 }]}
+        >
+          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
+            <MaterialCommunityIcons name="arrow-left" size={20} color={P.onDark} />
+          </TouchableOpacity>
+
           <View style={styles.logoRow}>
             <View style={styles.logoBox}>
-              <MaterialCommunityIcons name="account-plus-outline" size={24} color="#0f0f0f" />
+              <MaterialCommunityIcons name="account-plus-outline" size={24} color={P.forest} />
             </View>
             <View style={styles.badge}>
               <View style={styles.badgeDot} />
@@ -181,12 +184,12 @@ export default function RegisterScreen({ navigation }) {
 
           <Text style={styles.heroTitle}>
             Join{'\n'}
-            <Text style={styles.heroAccent}>TomatoDoc</Text>
+            <Text style={styles.heroAccent}>TomatoDoc.</Text>
           </Text>
           <Text style={styles.heroSub}>
             Create an account to save scans, track crop health, and access treatment plans.
           </Text>
-        </View>
+        </LinearGradient>
 
         {/* Form */}
         <Animated.View style={[styles.formCard, { opacity, transform: [{ translateY: slideY }] }]}>
@@ -246,7 +249,7 @@ export default function RegisterScreen({ navigation }) {
           <TouchableOpacity style={styles.termsRow} onPress={() => setTerms((t) => !t)} activeOpacity={0.8}>
             <View style={[styles.termsCheck, terms && styles.termsCheckActive]}>
               {terms && (
-                <MaterialCommunityIcons name="check" size={14} color="#0f0f0f" />
+                <MaterialCommunityIcons name="check" size={14} color={P.onDark} />
               )}
             </View>
             <Text style={styles.termsText}>
@@ -264,10 +267,10 @@ export default function RegisterScreen({ navigation }) {
               disabled={!isReady || loading}
             >
               {loading ? (
-                <ActivityIndicator color="#0f0f0f" size="small" />
+                <ActivityIndicator color={P.onDark} size="small" />
               ) : (
                 <>
-                  <MaterialCommunityIcons name="account-check-outline" size={20} color="#0f0f0f" style={styles.btnIcon} />
+                  <MaterialCommunityIcons name="account-check-outline" size={20} color={P.onDark} style={styles.btnIcon} />
                   <Text style={styles.btnPrimaryText}>Create account</Text>
                 </>
               )}
@@ -299,49 +302,57 @@ export default function RegisterScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
-  scroll: { flexGrow: 1, paddingHorizontal: 24 },
+  scroll: { flexGrow: 1 },
 
   backBtn: {
     width: 40,
     height: 40,
-    backgroundColor: C.surface,
+    backgroundColor: 'rgba(255,255,255,0.10)',
     borderWidth: 1,
-    borderColor: C.border,
-    borderRadius: 12,
+    borderColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
   },
 
-  hero: { marginBottom: 24 },
+  hero: {
+    paddingHorizontal: 24,
+    paddingBottom: 56,
+    borderBottomLeftRadius: radius.xl,
+    borderBottomRightRadius: radius.xl,
+  },
   logoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 },
   logoBox: {
     width: 48,
     height: 48,
-    borderRadius: 14,
-    backgroundColor: C.accent,
+    borderRadius: 15,
+    backgroundColor: P.lime,
     alignItems: 'center',
     justifyContent: 'center',
   },
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: C.accentDim,
+    backgroundColor: 'rgba(255,255,255,0.10)',
     borderWidth: 1,
-    borderColor: C.accentBorder,
+    borderColor: 'rgba(255,255,255,0.18)',
     borderRadius: 100,
     paddingHorizontal: 12,
-    paddingVertical: 5,
+    paddingVertical: 6,
   },
-  badgeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.accent, marginRight: 6 },
-  badgeText: { fontSize: 11, fontWeight: '600', color: C.accent, letterSpacing: 0.4 },
-  heroTitle: { fontSize: 30, fontWeight: '800', color: C.text, lineHeight: 36, marginBottom: 10 },
-  heroAccent: { color: C.accent },
-  heroSub: { fontSize: 14, color: C.muted, lineHeight: 21 },
+  badgeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: P.lime, marginRight: 6 },
+  badgeText: { fontSize: 11, fontWeight: '700', color: P.lime, letterSpacing: 0.4 },
+  heroTitle: { fontSize: 36, fontWeight: '800', color: P.onDark, lineHeight: 40, marginBottom: 10, letterSpacing: -1.2 },
+  heroAccent: { color: P.lime },
+  heroSub: { fontSize: 14, color: P.onDarkSoft, lineHeight: 21 },
 
   formCard: {
+    marginHorizontal: 20,
+    marginTop: -32,
+    ...shadow.raised,
     backgroundColor: C.surface,
-    borderRadius: 20,
+    borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: C.border,
     padding: 22,
@@ -354,7 +365,7 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: C.dangerDim,
     borderWidth: 1,
-    borderColor: 'rgba(255,92,92,0.2)',
+    borderColor: P.dangerBorder,
     borderRadius: 10,
     padding: 12,
     marginBottom: 16,
@@ -407,14 +418,14 @@ const styles = StyleSheet.create({
   btnPrimary: {
     flexDirection: 'row',
     backgroundColor: C.accent,
-    borderRadius: 12,
-    paddingVertical: 15,
+    borderRadius: 14,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
   btnPrimaryDisabled: { opacity: 0.35 },
   btnIcon: { marginRight: 8 },
-  btnPrimaryText: { fontSize: 15, fontWeight: '700', color: '#0f0f0f', letterSpacing: 0.2 },
+  btnPrimaryText: { fontSize: 15, fontWeight: '700', color: P.onDark, letterSpacing: 0.2 },
 
   divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 20, gap: 12 },
   dividerLine: { flex: 1, height: 1, backgroundColor: C.border },

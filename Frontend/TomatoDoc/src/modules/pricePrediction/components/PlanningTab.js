@@ -74,7 +74,7 @@ export default function PlanningTab({ selectedMarket, selectedType }) {
     if (above >= near && above >= below) {
       climateLabel = '🌧️ Wetter than Normal';
       climateColor = C.blue;
-      climateBg = 'rgba(59, 130, 246, 0.12)';
+      climateBg = '#E6F1F8';
       climateProb = above;
     } else if (below >= near && below >= above) {
       climateLabel = '☀️ Drier than Normal';
@@ -91,7 +91,7 @@ export default function PlanningTab({ selectedMarket, selectedType }) {
     if (String(wObj.regional_outlook).toLowerCase().includes('above')) {
       climateLabel = '🌧️ Wetter than Normal';
       climateColor = C.blue;
-      climateBg = 'rgba(59, 130, 246, 0.12)';
+      climateBg = '#E6F1F8';
     } else if (String(wObj.regional_outlook).toLowerCase().includes('below')) {
       climateLabel = '☀️ Drier than Normal';
       climateColor = C.amber;
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
   },
   gaugeTrack: {
     height: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: '#F3F5EE',
     borderRadius: 3,
     overflow: 'hidden',
   },
@@ -490,7 +490,7 @@ const styles = StyleSheet.create({
   guidanceBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+    backgroundColor: '#E4F4E8',
     borderLeftWidth: 3,
     borderLeftColor: C.emerald,
     padding: 10,

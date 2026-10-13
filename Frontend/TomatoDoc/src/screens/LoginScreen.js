@@ -17,18 +17,20 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthContext } from '../context/AuthContext';
 
+import { LinearGradient } from 'expo-linear-gradient';
+import { palette as P, gradients, radius, shadow } from '../theme';
 const C = {
-  bg: '#0f0f0f',
-  surface: '#1a1a1a',
-  surface2: '#222222',
-  accent: '#c8f135',
-  accentDim: 'rgba(200,241,53,0.10)',
-  accentBorder: 'rgba(200,241,53,0.22)',
-  text: '#f0f0f0',
-  muted: '#666666',
-  border: 'rgba(255,255,255,0.07)',
-  danger: '#ff5c5c',
-  dangerDim: 'rgba(255,92,92,0.12)',
+  bg: P.bg,
+  surface: P.surface,
+  surface2: P.surface2,
+  accent: P.forestMid,
+  accentDim: P.surfaceTint,
+  accentBorder: '#CFE3B8',
+  text: P.text,
+  muted: P.muted,
+  border: P.border,
+  danger: P.danger,
+  dangerDim: P.dangerDim,
 };
 
 function InputField({
@@ -110,38 +112,38 @@ export default function LoginScreen({ navigation }) {
       style={styles.root}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
 
       <ScrollView
-        contentContainerStyle={[
-          styles.scroll,
-          { paddingTop: insets.top + 48, paddingBottom: insets.bottom + 32 },
-        ]}
+        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         {/* Hero */}
-        <View style={styles.hero}>
+        <LinearGradient
+          colors={gradients.hero}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.hero, { paddingTop: insets.top + 44 }]}
+        >
           <View style={styles.logoRow}>
             <View style={styles.logoBox}>
-              <MaterialCommunityIcons name="sprout" size={26} color="#0f0f0f" />
+              <MaterialCommunityIcons name="sprout" size={26} color={P.forest} />
             </View>
-            <View>
-              <View style={styles.badge}>
-                <View style={styles.badgeDot} />
-                <Text style={styles.badgeText}>Plant Health AI</Text>
-              </View>
+            <View style={styles.badge}>
+              <View style={styles.badgeDot} />
+              <Text style={styles.badgeText}>Plant Health AI</Text>
             </View>
           </View>
 
           <Text style={styles.heroTitle}>
             Welcome to{'\n'}
-            <Text style={styles.heroAccent}>TomatoDoc</Text>
+            <Text style={styles.heroAccent}>TomatoDoc.</Text>
           </Text>
           <Text style={styles.heroSub}>
             Sign in to scan crops, review diagnoses, and access treatment guidance.
           </Text>
-        </View>
+        </LinearGradient>
 
         {/* Form */}
         <Animated.View style={[styles.formCard, { opacity, transform: [{ translateY: slideY }] }]}>
@@ -199,10 +201,10 @@ export default function LoginScreen({ navigation }) {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#0f0f0f" size="small" />
+                <ActivityIndicator color={P.onDark} size="small" />
               ) : (
                 <>
-                  <MaterialCommunityIcons name="login" size={20} color="#0f0f0f" style={styles.btnIcon} />
+                  <MaterialCommunityIcons name="login" size={20} color={P.onDark} style={styles.btnIcon} />
                   <Text style={styles.btnPrimaryText}>Sign in</Text>
                 </>
               )}
@@ -234,40 +236,48 @@ export default function LoginScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
-  scroll: { flexGrow: 1, paddingHorizontal: 24 },
+  scroll: { flexGrow: 1 },
 
-  hero: { marginBottom: 28 },
-  logoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 },
+  hero: {
+    paddingHorizontal: 24,
+    paddingBottom: 56,
+    borderBottomLeftRadius: radius.xl,
+    borderBottomRightRadius: radius.xl,
+  },
+  logoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 22 },
   logoBox: {
     width: 48,
     height: 48,
-    borderRadius: 14,
-    backgroundColor: C.accent,
+    borderRadius: 15,
+    backgroundColor: P.lime,
     alignItems: 'center',
     justifyContent: 'center',
   },
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: C.accentDim,
+    backgroundColor: 'rgba(255,255,255,0.10)',
     borderWidth: 1,
-    borderColor: C.accentBorder,
+    borderColor: 'rgba(255,255,255,0.18)',
     borderRadius: 100,
     paddingHorizontal: 12,
-    paddingVertical: 5,
+    paddingVertical: 6,
   },
-  badgeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.accent, marginRight: 6 },
-  badgeText: { fontSize: 11, fontWeight: '600', color: C.accent, letterSpacing: 0.4 },
-  heroTitle: { fontSize: 30, fontWeight: '800', color: C.text, lineHeight: 36, marginBottom: 10 },
-  heroAccent: { color: C.accent },
-  heroSub: { fontSize: 14, color: C.muted, lineHeight: 21 },
+  badgeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: P.lime, marginRight: 6 },
+  badgeText: { fontSize: 11, fontWeight: '700', color: P.lime, letterSpacing: 0.4 },
+  heroTitle: { fontSize: 36, fontWeight: '800', color: P.onDark, lineHeight: 40, marginBottom: 10, letterSpacing: -1.2 },
+  heroAccent: { color: P.lime },
+  heroSub: { fontSize: 14, color: P.onDarkSoft, lineHeight: 21 },
 
   formCard: {
     backgroundColor: C.surface,
-    borderRadius: 20,
+    borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: C.border,
     padding: 22,
+    marginHorizontal: 20,
+    marginTop: -32,
+    ...shadow.raised,
   },
   formTitle: {
     fontSize: 17,
@@ -314,7 +324,7 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: C.dangerDim,
     borderWidth: 1,
-    borderColor: 'rgba(255,92,92,0.2)',
+    borderColor: P.dangerBorder,
     borderRadius: 10,
     padding: 12,
     marginBottom: 16,
@@ -324,15 +334,15 @@ const styles = StyleSheet.create({
   btnPrimary: {
     flexDirection: 'row',
     backgroundColor: C.accent,
-    borderRadius: 12,
-    paddingVertical: 15,
+    borderRadius: 14,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 16,
   },
   btnLoading: { opacity: 0.7 },
   btnIcon: { marginRight: 8 },
-  btnPrimaryText: { fontSize: 15, fontWeight: '700', color: '#0f0f0f', letterSpacing: 0.2 },
+  btnPrimaryText: { fontSize: 15, fontWeight: '700', color: P.onDark, letterSpacing: 0.2 },
 
   divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 20, gap: 12 },
   dividerLine: { flex: 1, height: 1, backgroundColor: C.border },
@@ -346,7 +356,7 @@ const styles = StyleSheet.create({
     backgroundColor: C.surface2,
     borderWidth: 1,
     borderColor: C.border,
-    borderRadius: 12,
+    borderRadius: 14,
     paddingVertical: 14,
   },
   btnSecondaryText: { fontSize: 14, fontWeight: '500', color: C.text },

@@ -59,7 +59,7 @@ export default function InsightsTab({ predictionData, newsData }) {
       name: 'Badulla',
       defaultLabel: 'Higher Rainfall Expected',
       defaultColor: C.blue,
-      defaultBg: 'rgba(59, 130, 246, 0.12)',
+      defaultBg: '#E6F1F8',
       defaultIcon: '🔵',
       defaultNote: 'Adequate rain supporting active vegetable crop growth.',
     },
@@ -114,7 +114,7 @@ export default function InsightsTab({ predictionData, newsData }) {
             } else if (waterStatus === 'ELEVATED_MOISTURE') {
               statusLabel = 'Higher Rainfall Expected';
               stColor = C.blue;
-              stBg = 'rgba(59, 130, 246, 0.12)';
+              stBg = '#E6F1F8';
               statusIcon = '🔵';
             } else if (waterStatus === 'OPTIMAL_BALANCED') {
               statusLabel = 'Favourable / Balanced';
@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   analysisBox: {
-    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+    backgroundColor: '#E4F4E8',
     borderLeftWidth: 3,
     borderLeftColor: C.emerald,
     padding: 10,
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     color: C.text,
     lineHeight: 17,
-    backgroundColor: 'rgba(245, 158, 11, 0.06)',
+    backgroundColor: '#FBF1DA',
     borderLeftWidth: 3,
     borderLeftColor: C.amber,
     padding: 10,
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
   storageTipBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+    backgroundColor: '#E4F4E8',
     borderLeftWidth: 3,
     borderLeftColor: C.emerald,
     padding: 10,

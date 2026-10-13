@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -40,6 +39,7 @@ import {
   type ObservationLocationSelection,
 } from "../../utils/locationCapture";
 
+import { ScreenFrame as SafeAreaView } from "../../components/ScreenFrame";
 type Props = {
   caseData: MonitoringCase;
   cropPart: CropPart;

@@ -60,7 +60,7 @@ export function MismatchConfirmationModal({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.65)",
+    backgroundColor: "rgba(14,51,38,0.55)",
     justifyContent: "flex-end",
   },
   sheet: {
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: "center",
   },
-  primaryText: { color: "#04210f", fontWeight: "700" },
+  primaryText: { color: "#FFFFFF", fontWeight: "700" },
   secondary: {
     marginTop: 10,
     borderWidth: 1,

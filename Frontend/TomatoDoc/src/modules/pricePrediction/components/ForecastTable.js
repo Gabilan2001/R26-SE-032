@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.04)',
+    borderBottomColor: 'rgba(30, 48, 39, 0.06)',
   },
   dayText: {
     fontSize: 12,
