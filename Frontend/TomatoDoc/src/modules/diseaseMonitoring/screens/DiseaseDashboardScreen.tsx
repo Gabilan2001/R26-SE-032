@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Alert,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Switch,
@@ -37,6 +36,7 @@ import {
   trendFarmerLabel,
 } from "../utils/observationLabels";
 
+import { ScreenFrame as SafeAreaView } from "../components/ScreenFrame";
 /** Demo weather coordinates (Colombo) — contextual only, not treatment advice. */
 const DEMO_WEATHER_COORDS = { latitude: 6.9271, longitude: 79.8612 };
 
@@ -568,7 +568,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     flexGrow: 1,
   },
-  primaryBtnText: { color: "#04210f", fontWeight: "700" },
+  primaryBtnText: { color: "#FFFFFF", fontWeight: "700" },
   secondaryBtn: {
     borderWidth: 1,
     borderColor: palette.cardBorder,

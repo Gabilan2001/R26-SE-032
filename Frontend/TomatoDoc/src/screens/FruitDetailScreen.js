@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Card, Chip, Text } from 'react-native-paper';
+import { palette as P, radius, shadow } from '../theme';
 
 const splitText = (value) =>
   Array.isArray(value)
@@ -49,18 +50,17 @@ export default function FruitDetailScreen({ route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f0f0f' },
-  content: { padding: 16, gap: 12 },
-  hero: { borderRadius: 16, backgroundColor: '#1a1a1a' },
+  container: { flex: 1, backgroundColor: P.bg },
+  content: { padding: 16, gap: 12, paddingBottom: 40 },
+  hero: { borderRadius: radius.xl, backgroundColor: P.forestMid, ...shadow.card },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  title: { color: '#f0f0f0', fontSize: 22, fontWeight: '800' },
-  desc: { color: '#aaaaaa', marginTop: 8 },
-  conf: { color: '#c8f135', fontWeight: '700', marginTop: 10 },
-  sectionCard: { borderRadius: 16, backgroundColor: '#1a1a1a' },
-  sectionTitle: { color: '#f0f0f0', fontWeight: '800', marginBottom: 8 },
-  bullet: { color: '#d6d6d6', marginBottom: 6, lineHeight: 20 },
-  empty: { color: '#888' },
-  goodChip: { backgroundColor: 'rgba(74,223,111,0.16)' },
-  alertChip: { backgroundColor: 'rgba(255,92,92,0.16)' },
+  title: { color: '#FFFFFF', fontSize: 24, fontWeight: '800', letterSpacing: -0.5, flex: 1, marginRight: 10 },
+  desc: { color: 'rgba(255,255,255,0.8)', marginTop: 8, lineHeight: 20 },
+  conf: { color: P.lime, fontWeight: '800', marginTop: 10 },
+  sectionCard: { borderRadius: radius.lg, backgroundColor: P.surface, borderWidth: 1, borderColor: P.border, ...shadow.card },
+  sectionTitle: { color: P.text, fontWeight: '800', fontSize: 15, marginBottom: 10 },
+  bullet: { color: P.textSoft, marginBottom: 8, lineHeight: 21 },
+  empty: { color: P.muted },
+  goodChip: { backgroundColor: P.goodDim },
+  alertChip: { backgroundColor: P.dangerDim },
 });
-

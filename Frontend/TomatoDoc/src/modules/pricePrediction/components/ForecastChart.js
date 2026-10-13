@@ -33,7 +33,7 @@ export default function ForecastChart({ data }) {
     datasets: [
       {
         data: chartPoints,
-        color: (opacity = 1) => `rgba(245, 158, 11, ${opacity})`, // Amber line
+        color: (opacity = 1) => `rgba(201, 138, 18, ${opacity})`, // Amber line
         strokeWidth: 2.5,
       },
     ],
@@ -42,10 +42,12 @@ export default function ForecastChart({ data }) {
   const chartConfig = {
     backgroundColor: C.surface,
     backgroundGradientFrom: C.surface,
-    backgroundGradientTo: C.surface2,
+    backgroundGradientTo: C.surface,
+    fillShadowGradient: C.amber,
+    fillShadowGradientOpacity: 0.16,
     decimalPlaces: 0,
-    color: (opacity = 1) => `rgba(240, 240, 240, ${opacity})`,
-    labelColor: (opacity = 1) => `rgba(160, 160, 160, ${opacity})`,
+    color: (opacity = 1) => `rgba(30, 48, 39, ${opacity})`,
+    labelColor: (opacity = 1) => `rgba(94, 110, 100, ${opacity})`,
     propsForDots: {
       r: '3.5',
       strokeWidth: '1.5',
@@ -53,7 +55,7 @@ export default function ForecastChart({ data }) {
       fill: C.surface,
     },
     propsForBackgroundLines: {
-      stroke: 'rgba(255, 255, 255, 0.05)',
+      stroke: 'rgba(30, 48, 39, 0.07)',
       strokeDasharray: '4',
     },
   };

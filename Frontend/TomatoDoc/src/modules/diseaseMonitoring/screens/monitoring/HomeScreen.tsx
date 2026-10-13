@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   Pressable,
-  SafeAreaView,
   ScrollView,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
@@ -14,6 +13,7 @@ import type { CropPart } from "../../api/observations";
 import { useMonitoringPalette } from "../../theme/MonitoringThemeContext";
 import type { MonitoringPalette } from "../../theme/colors";
 
+import { ScreenFrame as SafeAreaView } from "../../components/ScreenFrame";
 type Props = {
   onSelect: (cropPart: CropPart) => void;
   onExit?: () => void;
@@ -94,7 +94,7 @@ function makeStyles(p: MonitoringPalette) {
       marginBottom: 12,
     },
     cardFruit: {
-      borderColor: "rgba(255,92,92,0.20)",
+      borderColor: "#F5C5BF",
     },
     cardTop: {
       flexDirection: "row",
@@ -112,19 +112,19 @@ function makeStyles(p: MonitoringPalette) {
       borderColor: p.accentBorder,
     },
     readyBadgeFruit: {
-      backgroundColor: "rgba(255,92,92,0.08)",
-      borderColor: "rgba(255,92,92,0.20)",
+      backgroundColor: "#FDEDEA",
+      borderColor: "#F5C5BF",
     },
     readyText: { color: p.accent, fontSize: 10, fontWeight: "800" },
-    readyTextFruit: { color: "#ff5c5c" },
+    readyTextFruit: { color: "#E34A3B" },
     pendingBadge: {
-      backgroundColor: "#2a2210",
+      backgroundColor: "#FBF1DA",
       borderRadius: 999,
       paddingHorizontal: 10,
       paddingVertical: 4,
       borderWidth: 1,
-      borderColor: "#FFB347",
+      borderColor: "#B7791F",
     },
-    pendingText: { color: "#FFB347", fontSize: 10, fontWeight: "800" },
+    pendingText: { color: "#B7791F", fontSize: 10, fontWeight: "800" },
   });
 }

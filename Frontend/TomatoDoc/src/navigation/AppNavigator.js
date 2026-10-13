@@ -1,8 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useContext } from 'react';
 import HomeScreen from '../screens/HomeScreen';
 import UserScreen from '../screens/UserScreen';
 import ScanScreen from '../screens/ScanScreen';
@@ -19,38 +17,16 @@ import DiseaseResultScreen from '../modules/diseaseDetection/screens/DiseaseResu
 import DiseaseHistoryScreen from '../modules/diseaseDetection/screens/DiseaseHistoryScreen';
 import DiseaseSettingsScreen from '../modules/diseaseDetection/screens/DiseaseSettingsScreen';
 import PricePredictionScreen from '../modules/pricePrediction/screens/PricePredictionScreen';
-import { UIThemeContext } from '../context/UIThemeContext';
+import { tabOptions, stackHeaderOptions } from '../theme/navigation';
 
 const Stack = createNativeStackNavigator();
 const Tabs = createBottomTabNavigator();
 const ModuleTabs = createBottomTabNavigator();
 
 function TabRoutes() {
-  const { palette } = useContext(UIThemeContext);
-
   return (
     <Tabs.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: palette.card,
-          position: 'absolute',
-          marginHorizontal: 14,
-          marginBottom: 10,
-          borderRadius: 20,
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 8,
-          borderTopWidth: 0,
-          elevation: 8,
-        },
-        tabBarActiveTintColor: palette.primary,
-        tabBarInactiveTintColor: palette.muted,
-        tabBarIcon: ({ color, size }) => {
-          const map = { Home: 'home', User: 'account-circle' };
-          return <MaterialCommunityIcons name={map[route.name]} size={size} color={color} />;
-        },
-      })}
+      screenOptions={tabOptions({ Home: 'home', User: 'account-circle' })}
     >
       <Tabs.Screen name="Home" component={HomeScreen} />
       <Tabs.Screen name="User" component={UserScreen} />
@@ -59,31 +35,10 @@ function TabRoutes() {
 }
 
 function NutrientModuleTabs() {
-  const { palette } = useContext(UIThemeContext);
   return (
     <ModuleTabs.Navigator
       initialRouteName="Scan"
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: palette.card,
-          position: 'absolute',
-          marginHorizontal: 14,
-          marginBottom: 10,
-          borderRadius: 20,
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 8,
-          borderTopWidth: 0,
-          elevation: 8,
-        },
-        tabBarActiveTintColor: palette.primary,
-        tabBarInactiveTintColor: palette.muted,
-        tabBarIcon: ({ color, size }) => {
-          const map = { Home: 'home', Scan: 'camera', History: 'history', Stats: 'chart-bar', User: 'account-circle' };
-          return <MaterialCommunityIcons name={map[route.name]} size={size} color={color} />;
-        },
-      })}
+      screenOptions={tabOptions({ Home: 'home', Scan: 'camera', History: 'history', Stats: 'chart-bar', User: 'account-circle' })}
     >
       <ModuleTabs.Screen
         name="Home"
@@ -99,31 +54,10 @@ function NutrientModuleTabs() {
 }
 
 function FruitModuleTabs() {
-  const { palette } = useContext(UIThemeContext);
   return (
     <ModuleTabs.Navigator
       initialRouteName="FruitScan"
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: palette.card,
-          position: 'absolute',
-          marginHorizontal: 14,
-          marginBottom: 10,
-          borderRadius: 20,
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 8,
-          borderTopWidth: 0,
-          elevation: 8,
-        },
-        tabBarActiveTintColor: palette.primary,
-        tabBarInactiveTintColor: palette.muted,
-        tabBarIcon: ({ color, size }) => {
-          const map = { Home: 'home', FruitScan: 'food-apple', History: 'history', Stats: 'chart-bar', User: 'account-circle' };
-          return <MaterialCommunityIcons name={map[route.name]} size={size} color={color} />;
-        },
-      })}
+      screenOptions={tabOptions({ Home: 'home', FruitScan: 'food-apple', History: 'history', Stats: 'chart-bar', User: 'account-circle' })}
     >
       <ModuleTabs.Screen
         name="Home"
@@ -143,31 +77,10 @@ function FruitModuleTabs() {
 }
 
 function DiseaseModuleTabs() {
-  const { palette } = useContext(UIThemeContext);
   return (
     <ModuleTabs.Navigator
       initialRouteName="DiseaseScan"
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: palette.card,
-          position: 'absolute',
-          marginHorizontal: 14,
-          marginBottom: 10,
-          borderRadius: 20,
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 8,
-          borderTopWidth: 0,
-          elevation: 8,
-        },
-        tabBarActiveTintColor: palette.primary,
-        tabBarInactiveTintColor: palette.muted,
-        tabBarIcon: ({ color, size }) => {
-          const map = { Home: 'home', DiseaseScan: 'virus', DiseaseHistory: 'history', User: 'account-circle' };
-          return <MaterialCommunityIcons name={map[route.name]} size={size} color={color} />;
-        },
-      })}
+      screenOptions={tabOptions({ Home: 'home', DiseaseScan: 'virus', DiseaseHistory: 'history', User: 'account-circle' })}
     >
       <ModuleTabs.Screen
         name="Home"
@@ -191,7 +104,7 @@ function DiseaseModuleTabs() {
 
 export default function AppNavigator() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={stackHeaderOptions}>
       <Stack.Screen
         name="MainTabs"
         component={TabRoutes}

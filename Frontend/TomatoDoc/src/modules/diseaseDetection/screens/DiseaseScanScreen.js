@@ -18,25 +18,26 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { predictDisease } from '../api/scan';
 import { UIThemeContext } from '../../../context/UIThemeContext';
 import LoadingOverlay from '../../../components/LoadingOverlay';
+import ScreenHeader, { HeaderBadge } from '../../../components/ScreenHeader';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { palette as P, radius, shadow } from '../../../theme';
 
-// ── Tokens -- agricultural theme: warm cream background, tomato red as the
-// primary action color, leaf green as the supporting/secondary color. Same
-// structure/screen flow as before; this is a visual-only relight. ───────────
+// ── Tokens: shared TomatoDoc theme (see src/theme) ──────────────────────────────
 const C = {
-  bg:           '#F8F7F2',
-  card:         '#FFFFFF',
-  cardBorder:   'rgba(36,53,42,0.08)',
-  tomato:       '#E34A3B',
+  bg:           P.bg,
+  card:         P.surface,
+  cardBorder:   P.border,
+  tomato:       P.tomato,
   tomatoDark:   '#C9362C',
-  tomatoDim:    'rgba(227,74,59,0.08)',
-  tomatoBorder: 'rgba(227,74,59,0.28)',
-  leaf:         '#3F7D45',
-  leafDim:      'rgba(63,125,69,0.08)',
-  leafBorder:   'rgba(63,125,69,0.30)',
-  softGreen:    '#E8F3E7',
-  text:         '#24352A',
-  muted:        '#68756B',
-  border:       'rgba(36,53,42,0.10)',
+  tomatoDim:    P.tomatoDim,
+  tomatoBorder: '#F5C5BF',
+  leaf:         P.forestMid,
+  leafDim:      P.surfaceTint,
+  leafBorder:   '#CFE3B8',
+  softGreen:    P.surface2,
+  text:         P.text,
+  muted:        P.muted,
+  border:       P.border,
 };
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
@@ -114,100 +115,112 @@ export default function DiseaseScanScreen({ navigation }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 40 }]}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* ── Back row ── */}
-        <View style={styles.backRow}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-            <Text style={styles.backArrow}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.screenTitle}>Disease Scanner</Text>
-          <View style={{ flex: 1 }} />
+      <StatusBar barStyle="light-content" backgroundColor={P.forest} />
+
+      <ScreenHeader
+        title="Disease Scanner"
+        subtitle="Leaf disease and pest detection"
+        eyebrow="Disease module"
+        onBack={() => navigation.goBack()}
+        right={
           <TouchableOpacity
             style={styles.settingsBtn}
             onPress={() => navigation.navigate('DiseaseSettings')}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={styles.settingsIcon}>⚙</Text>
+            <MaterialCommunityIcons name="cog-outline" size={18} color={P.onDarkSoft} />
           </TouchableOpacity>
-        </View>
+        }
+      />
 
-        {/* ── Hero card ── */}
-        <Animated.View style={[styles.heroCard, { opacity: heroOp, transform: [{ translateY: heroY }] }]}>
-          <View style={styles.heroIconCircle}>
-            <Text style={{ fontSize: 20 }}>🍅</Text>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingTop: 18, paddingBottom: insets.bottom + 110 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        <Animated.View style={{ opacity: heroOp, transform: [{ translateY: heroY }] }}>
+          {/* ── Module strip ── */}
+          <View style={styles.moduleStrip}>
+            <View style={styles.moduleIcon}>
+              <MaterialCommunityIcons name="virus-outline" size={22} color={P.tomato} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.moduleTitle, presentationMode && { fontSize: 18 }]}>Leaf disease and pest scan</Text>
+              <Text style={styles.moduleSub}>
+                Take a clear photo of a tomato leaf to check for Early Blight, Late Blight, Leaf Miner,
+                or a Healthy leaf, with treatment advice.
+              </Text>
+            </View>
           </View>
-          <Text style={[styles.heroTitle, presentationMode && { fontSize: 26 }]}>
-            {'Leaf Disease\n'}<Text style={styles.heroTitleAccent}>& Pest Scan</Text>
-          </Text>
-          <Text style={styles.heroHelper}>
-            Take a clear photo of a tomato leaf to check for Early Blight, Late Blight, Leaf Miner,
-            or a Healthy leaf — with treatment advice.
-          </Text>
-        </Animated.View>
 
-        {/* ── Upload area ── */}
-        <View style={[styles.uploadArea, image && styles.uploadAreaFilled]}>
-          {image ? (
-            <>
-              <Image source={{ uri: image.uri }} style={styles.uploadedImage} />
-              <View style={styles.imageBadge}>
-                <Text style={styles.imageBadgeTxt}>✓ Leaf photo selected</Text>
+          {/* ── Scan card ── */}
+          <View style={styles.scanCard}>
+            <View style={[styles.uploadArea, image && styles.uploadAreaFilled]}>
+              {image ? (
+                <>
+                  <Image source={{ uri: image.uri }} style={styles.uploadedImage} />
+                  <View style={styles.imageBadge}>
+                    <MaterialCommunityIcons name="check-circle" size={13} color="#FFFFFF" />
+                    <Text style={styles.imageBadgeTxt}>Leaf photo selected</Text>
+                  </View>
+                </>
+              ) : (
+                <View style={styles.uploadPlaceholder}>
+                  <View style={styles.uploadIconCircle}>
+                    <MaterialCommunityIcons name="camera-outline" size={30} color={C.muted} />
+                  </View>
+                  <Text style={styles.uploadPlaceholderTitle}>Upload or capture a leaf image</Text>
+                  <Text style={styles.uploadPlaceholderSub}>A clear, well-lit photo of a single tomato leaf works best</Text>
+                </View>
+              )}
+
+              <View style={styles.sourceBar}>
+                <TouchableOpacity style={styles.sourceBtn} onPress={() => pickImage(false)} activeOpacity={0.8}>
+                  <MaterialCommunityIcons name="image-outline" size={18} color={C.text} />
+                  <Text style={styles.sourceBtnText}>Gallery</Text>
+                </TouchableOpacity>
+                <View style={styles.sourceDivider} />
+                <TouchableOpacity style={[styles.sourceBtn, styles.sourceBtnPrimary]} onPress={() => pickImage(true)} activeOpacity={0.8}>
+                  <MaterialCommunityIcons name="camera-outline" size={18} color={P.onDark} />
+                  <Text style={styles.sourceBtnTextLight}>Camera</Text>
+                </TouchableOpacity>
               </View>
-            </>
-          ) : (
-            <View style={styles.uploadPlaceholder}>
-              <View style={styles.uploadIconCircle}>
-                <Text style={{ fontSize: 26 }}>📷</Text>
-              </View>
-              <Text style={styles.uploadPlaceholderTitle}>Upload or capture a leaf image</Text>
-              <Text style={styles.uploadPlaceholderSub}>A clear, well-lit photo of a single tomato leaf works best</Text>
-            </View>
-          )}
-          {loading && (
-            <View style={styles.uploadLoadingOverlay}>
-              <LoadingOverlay text={'Analyzing leaf…'} />
-            </View>
-          )}
-        </View>
 
-        {/* ── Image source buttons ── */}
-        <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.actionBtn} onPress={() => pickImage(false)} activeOpacity={0.8}>
-            <Text style={styles.actionBtnIcon}>🖼</Text>
-            <Text style={styles.actionBtnTxt}>Gallery</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn} onPress={() => pickImage(true)} activeOpacity={0.8}>
-            <Text style={styles.actionBtnIcon}>📷</Text>
-            <Text style={styles.actionBtnTxt}>Camera</Text>
-          </TouchableOpacity>
-        </View>
+              {loading && (
+                <View style={styles.uploadLoadingOverlay}>
+                  <LoadingOverlay text={'Analyzing leaf…'} />
+                </View>
+              )}
+            </View>
+          </View>
 
-        {/* ── Analyze CTA ── */}
-        <Animated.View style={{ transform: [{ scale: btnScale }] }}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.analyzeBtn,
-              !image && styles.analyzeBtnDisabled,
-              pressed && !!image && styles.analyzeBtnPressed,
-            ]}
-            onPressIn={onPressIn}
-            onPressOut={onPressOut}
-            onPress={analyze}
-            disabled={!image || loading}
-          >
-            <Text style={styles.analyzeBtnIcon}>🔬</Text>
-            <Text style={styles.analyzeBtnTxt}>{loading ? 'Analyzing…' : 'Analyze Leaf'}</Text>
-          </Pressable>
+          {/* ── Analyze CTA ── */}
+          <Animated.View style={{ transform: [{ scale: btnScale }] }}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.analyzeBtn,
+                !image && styles.analyzeBtnDisabled,
+                pressed && !!image && styles.analyzeBtnPressed,
+              ]}
+              onPressIn={onPressIn}
+              onPressOut={onPressOut}
+              onPress={analyze}
+              disabled={!image || loading}
+            >
+              <MaterialCommunityIcons name="magnify-scan" size={20} color={image ? P.onDark : C.muted} />
+              <Text style={[styles.analyzeBtnTxt, !image && styles.analyzeBtnTxtDisabled]}>
+                {loading ? 'Analyzing…' : 'Analyze Leaf'}
+              </Text>
+            </Pressable>
+          </Animated.View>
+
+          <View style={styles.hintBox}>
+            <MaterialCommunityIcons name="information-outline" size={16} color={C.leaf} />
+            <Text style={styles.analyzeHint}>
+              {image ? 'Image ready. Tap Analyze Leaf to continue.' : 'Select or capture an image to begin.'}
+            </Text>
+          </View>
         </Animated.View>
-
-        <Text style={styles.analyzeHint}>
-          {image ? 'Image ready · tap to analyze' : 'Select or capture an image to begin'}
-        </Text>
       </ScrollView>
     </View>
   );
@@ -217,72 +230,70 @@ export default function DiseaseScanScreen({ navigation }) {
 const styles = StyleSheet.create({
   root:    { flex: 1, backgroundColor: C.bg },
   scroll:  { flex: 1 },
-  content: { padding: 18, paddingBottom: 40 },
+  content: { paddingHorizontal: 18 },
 
-  backRow:  { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14, paddingTop: 4 },
-  backBtn:  { width: 32, height: 32, backgroundColor: C.card, borderWidth: 1, borderColor: C.border, borderRadius: 16,
-              alignItems: 'center', justifyContent: 'center',
-              shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
-  backArrow:{ fontSize: 16, color: C.text },
-  screenTitle: { fontSize: 18, fontWeight: '800', color: C.text },
-  // Deliberately small and low-contrast -- a dev/testing entry point, not
-  // meant to draw attention during a normal demo.
-  settingsBtn:  { width: 26, height: 26, alignItems: 'center', justifyContent: 'center' },
-  settingsIcon: { fontSize: 15, color: C.muted },
+  // Deliberately small and low-contrast: a dev/testing entry point, not meant
+  // to draw attention during a normal demo.
+  settingsBtn: { width: 34, height: 34, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.08)' },
 
-  heroCard: {
-    backgroundColor: C.card,
-    borderRadius: 22, borderWidth: 1, borderColor: C.cardBorder,
-    padding: 18, marginBottom: 14, overflow: 'hidden',
-    shadowColor: '#24352A', shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 2,
+  moduleStrip: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 14,
+    backgroundColor: C.card, borderWidth: 1, borderColor: C.cardBorder,
+    borderRadius: radius.lg, padding: 16, marginBottom: 16, ...shadow.card,
   },
-  heroIconCircle: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: C.tomatoDim, borderWidth: 1, borderColor: C.tomatoBorder,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 12,
-  },
-  heroTitle:  { fontSize: 22, fontWeight: '800', color: C.text, lineHeight: 28, marginBottom: 8 },
-  heroTitleAccent: { color: C.tomato },
-  heroHelper: { fontSize: 12.5, color: C.muted, lineHeight: 19 },
+  moduleIcon: { width: 46, height: 46, borderRadius: 14, backgroundColor: C.tomatoDim, alignItems: 'center', justifyContent: 'center' },
+  moduleTitle: { fontSize: 15, fontWeight: '800', color: C.text, marginBottom: 4, letterSpacing: -0.2 },
+  moduleSub: { fontSize: 13, color: P.textSoft, lineHeight: 19 },
 
+  scanCard: {
+    backgroundColor: C.card, borderWidth: 1, borderColor: C.cardBorder,
+    borderRadius: radius.lg, padding: 14, marginBottom: 16, ...shadow.card,
+  },
   uploadArea: {
-    width: '100%', minHeight: 200,
+    width: '100%', height: 280,
     backgroundColor: C.softGreen,
-    borderRadius: 18, borderWidth: 1.5, borderColor: C.leafBorder, borderStyle: 'dashed',
-    overflow: 'hidden', marginBottom: 14,
+    borderRadius: 14, borderWidth: 1.5, borderColor: C.leafBorder, borderStyle: 'dashed',
+    overflow: 'hidden',
     alignItems: 'center', justifyContent: 'center',
   },
-  // Once an image is selected, the image itself should be the focus --
-  // plain white container, no dashed border competing for attention.
+  // Once an image is selected, the image itself is the focus.
   uploadAreaFilled: { backgroundColor: C.card, borderStyle: 'solid', borderColor: C.cardBorder, borderWidth: 1 },
-  uploadPlaceholder:    { alignItems: 'center', gap: 6, paddingVertical: 30, paddingHorizontal: 24 },
-  uploadIconCircle:     { width: 60, height: 60, borderRadius: 30, backgroundColor: C.card, borderWidth: 1, borderColor: C.leafBorder,
+  uploadPlaceholder:    { alignItems: 'center', gap: 6, paddingHorizontal: 24, paddingBottom: 56 },
+  uploadIconCircle:     { width: 64, height: 64, borderRadius: 32, backgroundColor: C.card, borderWidth: 1, borderColor: C.border,
                           alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
-  uploadPlaceholderTitle:{ fontSize: 14, fontWeight: '700', color: C.text, textAlign: 'center' },
-  uploadPlaceholderSub:  { fontSize: 11.5, color: C.muted, textAlign: 'center', lineHeight: 16, maxWidth: 220 },
-  // 'contain' (not 'cover') -- cover was cropping the top/bottom off
-  // portrait leaf photos to fill this fixed-height box; contain always
-  // shows the full uploaded image, just letterboxed if the aspect ratio
-  // doesn't match.
-  uploadedImage:        { width: '100%', height: 220, resizeMode: 'contain' },
-  imageBadge:           { position: 'absolute', bottom: 10, alignSelf: 'center',
-                          backgroundColor: 'rgba(63,125,69,0.92)', borderRadius: 100,
-                          paddingHorizontal: 12, paddingVertical: 5 },
+  uploadPlaceholderTitle:{ fontSize: 15, fontWeight: '700', color: C.text, textAlign: 'center' },
+  uploadPlaceholderSub:  { fontSize: 12, color: C.muted, textAlign: 'center', lineHeight: 17, maxWidth: 230 },
+  // 'contain' shows the full uploaded image, letterboxed if the ratio differs.
+  uploadedImage:        { width: '100%', height: '100%', resizeMode: 'contain' },
+  imageBadge:           { position: 'absolute', top: 12, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 5,
+                          backgroundColor: 'rgba(31,96,68,0.94)', borderRadius: 100,
+                          paddingHorizontal: 12, paddingVertical: 6 },
   imageBadgeTxt:        { fontSize: 11, fontWeight: '700', color: '#fff' },
-  uploadLoadingOverlay: { position: 'absolute', inset: 0, backgroundColor: 'rgba(248,247,242,0.9)', alignItems: 'center', justifyContent: 'center' },
+  uploadLoadingOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(251,250,245,0.94)', alignItems: 'center', justifyContent: 'center' },
 
-  actionRow:       { flexDirection: 'row', gap: 10, marginBottom: 12 },
-  actionBtn:       { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, borderRadius: 14,
-                     paddingVertical: 14, backgroundColor: C.card, borderWidth: 1.5, borderColor: C.leafBorder },
-  actionBtnIcon:   { fontSize: 16 },
-  actionBtnTxt:    { fontSize: 13, fontWeight: '700', color: C.leaf },
+  sourceBar: {
+    position: 'absolute', bottom: 12, left: 12, right: 12, flexDirection: 'row',
+    backgroundColor: 'rgba(255,255,255,0.96)', borderRadius: 14, borderWidth: 1, borderColor: C.border,
+    overflow: 'hidden', ...shadow.card,
+  },
+  sourceBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingVertical: 12 },
+  sourceBtnPrimary: { backgroundColor: C.leaf },
+  sourceDivider: { width: 1, backgroundColor: C.border },
+  sourceBtnText: { fontSize: 13, fontWeight: '700', color: C.text },
+  sourceBtnTextLight: { fontSize: 13, fontWeight: '700', color: P.onDark },
 
-  analyzeBtn:         { backgroundColor: C.tomato, borderRadius: 16, paddingVertical: 17,
-                        flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-                        shadowColor: C.tomatoDark, shadowOpacity: 0.28, shadowRadius: 10, shadowOffset: { width: 0, height: 5 }, elevation: 4 },
-  analyzeBtnPressed: { backgroundColor: C.tomatoDark },
-  analyzeBtnDisabled: { backgroundColor: '#d9a6a1', shadowOpacity: 0 },
-  analyzeBtnIcon:     { fontSize: 16 },
-  analyzeBtnTxt:      { fontSize: 15, fontWeight: '800', color: '#fff', letterSpacing: 0.3 },
-  analyzeHint:        { fontSize: 11, color: C.muted, textAlign: 'center', marginTop: 10 },
+  analyzeBtn: {
+    backgroundColor: C.leaf, borderRadius: radius.md, paddingVertical: 16, marginBottom: 14,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, ...shadow.raised,
+  },
+  analyzeBtnPressed: { backgroundColor: P.forest },
+  analyzeBtnDisabled: { backgroundColor: C.card, borderWidth: 1, borderColor: C.border, shadowOpacity: 0, elevation: 0, boxShadow: 'none' },
+  analyzeBtnTxt:      { fontSize: 15, fontWeight: '700', color: '#fff', letterSpacing: 0.2 },
+  analyzeBtnTxtDisabled: { color: C.muted },
+
+  hintBox: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 14,
+    borderRadius: radius.md, backgroundColor: P.surfaceTint, borderWidth: 1, borderColor: '#D5E7BD',
+  },
+  analyzeHint: { flex: 1, fontSize: 12, color: P.textSoft, lineHeight: 18 },
 });

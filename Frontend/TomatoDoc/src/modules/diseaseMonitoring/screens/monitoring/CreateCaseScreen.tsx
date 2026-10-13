@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   Pressable,
-  SafeAreaView,
   ScrollView,
   ActivityIndicator,
   Alert,
@@ -17,6 +16,7 @@ import { MODALITY } from "../../config/modality";
 import { useMonitoringPalette } from "../../theme/MonitoringThemeContext";
 import type { MonitoringPalette } from "../../theme/colors";
 
+import { ScreenFrame as SafeAreaView } from "../../components/ScreenFrame";
 type Props = {
   cropPart: CropPart;
   attachWeather: boolean;
@@ -147,13 +147,13 @@ function makeStyles(p: MonitoringPalette) {
     weatherRow: { flexDirection: "row", alignItems: "center", gap: 12, marginTop: 4 },
     warn: {
       marginTop: 14,
-      backgroundColor: "#2a2210",
+      backgroundColor: "#FBF1DA",
       borderRadius: 12,
       padding: 14,
       borderWidth: 1,
-      borderColor: "#FFB347",
+      borderColor: "#B7791F",
     },
-    warnTitle: { color: "#FFB347", fontWeight: "700" },
+    warnTitle: { color: "#B7791F", fontWeight: "700" },
     warnBody: { color: p.textMuted, marginTop: 6, lineHeight: 18 },
     primary: {
       marginTop: 20,

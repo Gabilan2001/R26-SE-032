@@ -193,15 +193,15 @@ function makeStyles(p: MonitoringPalette) {
       borderWidth: 1,
     },
     noticeOk: {
-      backgroundColor: "rgba(74,223,111,0.12)",
-      borderColor: "rgba(74,223,111,0.35)",
+      backgroundColor: "#E4F4E8",
+      borderColor: "#BFE3C8",
     },
     noticeWarn: {
-      backgroundColor: "rgba(255,179,71,0.12)",
-      borderColor: "rgba(255,179,71,0.4)",
+      backgroundColor: "#FBF1DA",
+      borderColor: "#EBD59B",
     },
-    noticeOkText: { color: "#7CFF9C", fontWeight: "700", fontSize: 13, lineHeight: 18 },
-    noticeWarnText: { color: "#FFB347", fontWeight: "700", fontSize: 13, lineHeight: 18 },
+    noticeOkText: { color: "#2F8F4E", fontWeight: "700", fontSize: 13, lineHeight: 18 },
+    noticeWarnText: { color: "#B7791F", fontWeight: "700", fontSize: 13, lineHeight: 18 },
     summaryBox: {
       marginTop: 12,
       padding: 12,
@@ -211,7 +211,7 @@ function makeStyles(p: MonitoringPalette) {
     summaryLabel: { color: p.textMuted, fontSize: 12, fontWeight: "600" },
     summaryValue: { color: p.textPrimary, marginTop: 4, fontWeight: "700" },
     summaryHint: { color: p.textMuted, fontSize: 12, marginTop: 4 },
-    missing: { color: "#FFB347", marginTop: 12, lineHeight: 18 },
+    missing: { color: "#B7791F", marginTop: 12, lineHeight: 18 },
     actions: { flexDirection: "row", gap: 10, marginTop: 14 },
     button: {
       flex: 1,
@@ -235,7 +235,7 @@ function makeStyles(p: MonitoringPalette) {
     skipText: { color: p.infoText, fontWeight: "600" },
     modalBackdrop: {
       flex: 1,
-      backgroundColor: "rgba(0,0,0,0.55)",
+      backgroundColor: "rgba(14,51,38,0.5)",
       justifyContent: "flex-end",
     },
     modalCard: {

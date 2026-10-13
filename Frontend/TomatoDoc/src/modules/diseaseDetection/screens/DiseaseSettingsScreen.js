@@ -9,14 +9,16 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getSkipBgRemoval, setSkipBgRemoval } from '../config/devSettings';
+import ScreenHeader from '../../../components/ScreenHeader';
+import { palette as P, radius, shadow } from '../../../theme';
 
 const C = {
-  bg:           '#F8F7F2',
-  card:         '#FFFFFF',
-  text:         '#24352A',
-  muted:        '#68756B',
-  border:       'rgba(36,53,42,0.10)',
-  leaf:         '#3F7D45',
+  bg:           P.bg,
+  card:         P.surface,
+  text:         P.text,
+  muted:        P.muted,
+  border:       P.border,
+  leaf:         P.forestMid,
 };
 
 // Not linked from any tab -- reached only via the small gear icon on
@@ -35,14 +37,14 @@ export default function DiseaseSettingsScreen({ navigation }) {
   };
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + 18 }]}>
-      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
-      <View style={styles.backRow}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.screenTitle}>Scan Settings</Text>
-      </View>
+    <View style={[styles.root, { paddingBottom: insets.bottom + 18 }]}>
+      <StatusBar barStyle="light-content" backgroundColor={P.forest} />
+      <ScreenHeader
+        title="Scan Settings"
+        subtitle="Testing options for the disease scanner"
+        eyebrow="Disease module"
+        onBack={() => navigation.goBack()}
+      />
 
       <View style={styles.row}>
         <View style={{ flex: 1 }}>
@@ -70,20 +72,15 @@ export default function DiseaseSettingsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root:    { flex: 1, backgroundColor: C.bg, padding: 18 },
-  backRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20, paddingTop: 4 },
-  backBtn: { width: 32, height: 32, backgroundColor: C.card, borderWidth: 1, borderColor: C.border, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  backArrow: { fontSize: 15, color: C.text },
-  screenTitle: { fontSize: 18, fontWeight: '800', color: C.text },
+  root:    { flex: 1, backgroundColor: C.bg },
 
   row: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
     backgroundColor: C.card, borderWidth: 1, borderColor: C.border,
-    borderRadius: 16, padding: 16,
-    shadowColor: '#24352A', shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 2,
+    borderRadius: radius.lg, padding: 16, margin: 18, ...shadow.card,
   },
-  rowTitle: { fontSize: 14, fontWeight: '700', color: C.text, marginBottom: 4 },
-  rowSub:   { fontSize: 11.5, color: C.muted, lineHeight: 16 },
+  rowTitle: { fontSize: 14, fontWeight: '800', color: C.text, marginBottom: 4 },
+  rowSub:   { fontSize: 12, color: C.muted, lineHeight: 17 },
 
-  activeNote: { fontSize: 11.5, color: C.leaf, marginTop: 12, lineHeight: 16 },
+  activeNote: { fontSize: 12, color: C.leaf, marginHorizontal: 22, lineHeight: 17 },
 });

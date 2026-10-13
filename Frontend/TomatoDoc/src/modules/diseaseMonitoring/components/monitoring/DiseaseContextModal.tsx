@@ -79,7 +79,7 @@ function makeStyles(p: MonitoringPalette) {
   return StyleSheet.create({
     backdrop: {
       flex: 1,
-      backgroundColor: "rgba(0,0,0,0.65)",
+      backgroundColor: "rgba(14,51,38,0.55)",
       justifyContent: "center",
       padding: 20,
     },
@@ -103,16 +103,16 @@ function makeStyles(p: MonitoringPalette) {
       borderWidth: 1,
     },
     locationOk: {
-      backgroundColor: "rgba(74,223,111,0.1)",
-      borderColor: "rgba(74,223,111,0.35)",
+      backgroundColor: "#E4F4E8",
+      borderColor: "#BFE3C8",
     },
     locationMissing: {
-      backgroundColor: "rgba(255,179,71,0.1)",
-      borderColor: "rgba(255,179,71,0.35)",
+      backgroundColor: "#FBF1DA",
+      borderColor: "#EBD59B",
     },
     locationLabel: { color: p.textMuted, fontSize: 12, fontWeight: "700" },
-    locationTextOk: { color: "#7CFF9C", marginTop: 6, lineHeight: 18, fontWeight: "600" },
-    locationTextMissing: { color: "#FFB347", marginTop: 6, lineHeight: 18, fontWeight: "600" },
+    locationTextOk: { color: "#2F8F4E", marginTop: 6, lineHeight: 18, fontWeight: "600" },
+    locationTextMissing: { color: "#B7791F", marginTop: 6, lineHeight: 18, fontWeight: "600" },
     note: { color: p.textMuted, marginTop: 14, fontSize: 12, lineHeight: 18 },
     primary: {
       marginTop: 18,

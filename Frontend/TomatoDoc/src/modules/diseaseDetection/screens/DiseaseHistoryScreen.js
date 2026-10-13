@@ -11,19 +11,21 @@ import {
 import { getDiseaseHistory, getDiseaseStats } from '../api/history';
 import { formatDateTime } from '../../../utils/formatters';
 import DiseaseChip from '../components/DiseaseChip';
+import ScreenHeader from '../../../components/ScreenHeader';
+import { palette as P, radius, shadow } from '../../../theme';
 
-// ── Tokens (matches DiseaseScanScreen/DiseaseResultScreen's amber theme) ──────
+// ── Tokens: shared TomatoDoc theme (see src/theme) ──────────────────────────────
 const C = {
-  bg:           '#0f0f0f',
-  surface:      '#1a1a1a',
-  surface2:     '#222222',
-  accent:       '#c8f135',
-  text:         '#f0f0f0',
-  muted:        '#666666',
-  border:       'rgba(255,255,255,0.07)',
-  amber:        '#f5a623',
-  amberDim:     'rgba(245,166,35,0.10)',
-  amberBorder:  'rgba(245,166,35,0.22)',
+  bg:           P.bg,
+  surface:      P.surface,
+  surface2:     P.surface2,
+  accent:       P.forestMid,
+  text:         P.text,
+  muted:        P.muted,
+  border:       P.border,
+  amber:        P.forestMid,
+  amberDim:     P.surfaceTint,
+  amberBorder:  '#CFE3B8',
 };
 
 function StatBox({ num, label }) {
@@ -105,7 +107,12 @@ export default function DiseaseHistoryScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="light-content" backgroundColor={P.forest} />
+      <ScreenHeader
+        title="Scan History"
+        subtitle="Past leaf scans and treatment advice for this app"
+        eyebrow="Disease module"
+      />
       <FlatList
         style={styles.list}
         contentContainerStyle={styles.content}
@@ -114,9 +121,6 @@ export default function DiseaseHistoryScreen() {
         refreshControl={<RefreshControl tintColor={C.amber} refreshing={refreshing} onRefresh={onRefresh} />}
         ListHeaderComponent={
           <View>
-            <Text style={styles.screenTitle}>Scan History</Text>
-            <Text style={styles.screenSub}>Past leaf scans and treatment advice for this app</Text>
-
             {stats && (
               <View style={styles.statsRow}>
                 <StatBox num={stats.total_scans ?? 0} label="Total Scans" />
@@ -154,7 +158,7 @@ export default function DiseaseHistoryScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   list: { flex: 1 },
-  content: { padding: 18, paddingBottom: 130 },
+  content: { padding: 18, paddingTop: 18, paddingBottom: 130 },
 
   screenTitle: { fontSize: 20, fontWeight: '800', color: C.text, marginTop: 4, marginBottom: 2 },
   screenSub:   { fontSize: 12, color: C.muted, marginBottom: 16 },
@@ -162,9 +166,9 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 10, marginBottom: 18 },
   statBox: {
     flex: 1, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border,
-    borderRadius: 16, padding: 12, alignItems: 'center',
+    borderRadius: radius.md, padding: 14, alignItems: 'center', ...shadow.card,
   },
-  statNum:   { fontSize: 17, fontWeight: '800', color: C.amber, marginBottom: 2 },
+  statNum:   { fontSize: 18, fontWeight: '800', color: C.accent, marginBottom: 2 },
   statLabel: { fontSize: 9.5, color: C.muted, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4, textAlign: 'center' },
 
   emptyBox: { alignItems: 'center', paddingVertical: 50 },
@@ -174,14 +178,14 @@ const styles = StyleSheet.create({
 
   itemCard: {
     backgroundColor: C.surface, borderWidth: 1, borderColor: C.border,
-    borderRadius: 16, padding: 14, marginBottom: 10,
+    borderRadius: radius.md, padding: 14, marginBottom: 10, ...shadow.card,
   },
   itemHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   itemDate: { fontSize: 11, color: C.muted, fontWeight: '600' },
-  itemCoOcc: { fontSize: 10, color: '#ff5c5c', fontWeight: '700' },
+  itemCoOcc: { fontSize: 10, color: P.danger, fontWeight: '700' },
 
   chipRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginBottom: 8 },
 
-  itemPreview: { fontSize: 11.5, color: 'rgba(255,255,255,0.65)', lineHeight: 17 },
+  itemPreview: { fontSize: 11.5, color: P.textSoft, lineHeight: 17 },
   itemToggle:  { fontSize: 10, color: C.amber, fontWeight: '700', marginTop: 6 },
 });

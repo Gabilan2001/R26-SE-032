@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: '#F3F5EE',
     marginVertical: 8,
   },
   textSi: {
@@ -203,9 +203,9 @@ const styles = StyleSheet.create({
   },
   disclaimerCard: {
     marginTop: 8,
-    backgroundColor: 'rgba(245, 158, 11, 0.06)',
+    backgroundColor: '#FBF1DA',
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.20)',
+    borderColor: '#EBD59B',
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   },
   disclaimerDivider: {
     height: 1,
-    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    backgroundColor: '#FBF1DA',
     marginVertical: 6,
   },
   disclaimerSi: {

@@ -20,18 +20,20 @@ import { predictNutrient } from '../api/scanApi';
 import { AuthContext } from '../context/AuthContext';
 import LoadingOverlay from '../components/LoadingOverlay';
 
+import { palette as P, radius, shadow } from '../theme';
+import ScreenHeader, { HeaderBadge } from '../components/ScreenHeader';
 const C = {
-  bg: '#0f0f0f',
-  surface: '#1a1a1a',
-  surface2: '#222222',
-  accent: '#c8f135',
-  accentDim: 'rgba(200,241,53,0.10)',
-  accentBorder: 'rgba(200,241,53,0.22)',
-  text: '#f0f0f0',
-  muted: '#666666',
-  border: 'rgba(255,255,255,0.07)',
-  leaf: '#4adf6f',
-  leafDim: 'rgba(74,223,111,0.10)',
+  bg: P.bg,
+  surface: P.surface,
+  surface2: P.surface2,
+  accent: P.forestMid,
+  accentDim: P.surfaceTint,
+  accentBorder: '#CFE3B8',
+  text: P.text,
+  muted: P.muted,
+  border: P.border,
+  leaf: P.leaf,
+  leafDim: P.goodDim,
 };
 
 function ViewfinderFrame() {
@@ -158,31 +160,21 @@ export default function ScanScreen({ navigation }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+
+      <ScreenHeader
+        title="Leaf Scanner"
+        subtitle="Nutrient deficiency detection"
+        eyebrow="Nutrient module"
+        onBack={() => navigation.goBack()}
+        right={<HeaderBadge label="Ready" />}
+      />
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[
-          styles.content,
-          { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 100 },
-        ]}
+        contentContainerStyle={[styles.content, { paddingTop: 18, paddingBottom: insets.bottom + 110 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.75}>
-            <MaterialCommunityIcons name="arrow-left" size={20} color={C.text} />
-          </TouchableOpacity>
-          <View style={styles.headerText}>
-            <Text style={styles.screenTitle}>Leaf Scanner</Text>
-            <Text style={styles.screenSub}>Nutrient deficiency detection</Text>
-          </View>
-          <View style={styles.readyBadge}>
-            <View style={styles.readyDot} />
-            <Text style={styles.readyText}>Ready</Text>
-          </View>
-        </View>
-
         <Animated.View style={{ opacity: fadeIn, transform: [{ translateY: slideUp }] }}>
           {/* Module strip */}
           <View style={styles.moduleStrip}>
@@ -242,7 +234,7 @@ export default function ScanScreen({ navigation }) {
                   onPress={() => pickImage(true)}
                   activeOpacity={0.8}
                 >
-                  <MaterialCommunityIcons name="camera-outline" size={18} color="#0f0f0f" />
+                  <MaterialCommunityIcons name="camera-outline" size={18} color={P.onDark} />
                   <Text style={styles.sourceBtnTextDark}>Camera</Text>
                 </TouchableOpacity>
               </View>
@@ -292,7 +284,7 @@ export default function ScanScreen({ navigation }) {
               <MaterialCommunityIcons
                 name="magnify-scan"
                 size={20}
-                color={image ? '#0f0f0f' : C.muted}
+                color={image ? P.onDark : C.muted}
               />
               <Text style={[styles.analyzeBtnText, !image && styles.analyzeBtnTextIdle]}>
                 Run analysis
@@ -320,39 +312,6 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   content: { paddingHorizontal: 18 },
 
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 20,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerText: { flex: 1 },
-  screenTitle: { fontSize: 20, fontWeight: '700', color: C.text },
-  screenSub: { fontSize: 12, color: C.muted, marginTop: 2 },
-  readyBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: C.accentDim,
-    borderWidth: 1,
-    borderColor: C.accentBorder,
-    borderRadius: 100,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  readyDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.accent },
-  readyText: { fontSize: 11, fontWeight: '700', color: C.accent },
-
   moduleStrip: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -360,9 +319,10 @@ const styles = StyleSheet.create({
     backgroundColor: C.surface,
     borderWidth: 1,
     borderColor: C.border,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     padding: 16,
     marginBottom: 16,
+    ...shadow.card,
   },
   moduleIcon: {
     width: 44,
@@ -380,9 +340,10 @@ const styles = StyleSheet.create({
     backgroundColor: C.surface,
     borderWidth: 1,
     borderColor: C.border,
-    borderRadius: 18,
+    borderRadius: radius.lg,
     padding: 14,
     marginBottom: 16,
+    ...shadow.card,
   },
   viewfinder: {
     width: '100%',
@@ -427,8 +388,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(15,15,15,0.85)',
-    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderWidth: 1,
@@ -444,8 +405,9 @@ const styles = StyleSheet.create({
     left: 12,
     right: 12,
     flexDirection: 'row',
-    backgroundColor: 'rgba(15,15,15,0.90)',
-    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.96)',
+    borderRadius: 14,
+    ...shadow.card,
     borderWidth: 1,
     borderColor: C.border,
     overflow: 'hidden',
@@ -461,11 +423,11 @@ const styles = StyleSheet.create({
   sourceBtnPrimary: { backgroundColor: C.accent },
   sourceDivider: { width: 1, backgroundColor: C.border },
   sourceBtnText: { fontSize: 13, fontWeight: '600', color: C.text },
-  sourceBtnTextDark: { fontSize: 13, fontWeight: '700', color: '#0f0f0f' },
+  sourceBtnTextDark: { fontSize: 13, fontWeight: '700', color: P.onDark },
 
   vfLoading: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15,15,15,0.92)',
+    backgroundColor: 'rgba(251,250,245,0.94)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -513,17 +475,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    borderRadius: 14,
+    borderRadius: radius.md,
     paddingVertical: 16,
     marginBottom: 14,
   },
-  analyzeBtnActive: { backgroundColor: C.accent },
+  analyzeBtnActive: { backgroundColor: C.accent, ...shadow.raised },
   analyzeBtnIdle: {
     backgroundColor: C.surface,
     borderWidth: 1,
     borderColor: C.border,
   },
-  analyzeBtnText: { fontSize: 15, fontWeight: '700', color: '#0f0f0f' },
+  analyzeBtnText: { fontSize: 15, fontWeight: '700', color: P.onDark },
   analyzeBtnTextIdle: { color: C.muted },
 
   tipBox: {

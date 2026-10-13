@@ -24,23 +24,25 @@ import { exportScanReport } from '../utils/reportExport';
 import { AuthContext } from '../context/AuthContext';
 import { computeSeverity } from '../utils/severity';
 
+import { palette as P, radius, shadow } from '../theme';
+import ScreenHeader from '../components/ScreenHeader';
 const C = {
-  bg: '#0f0f0f',
-  surface: '#1a1a1a',
-  surface2: '#222222',
-  accent: '#c8f135',
-  accentDim: 'rgba(200,241,53,0.10)',
-  accentBorder: 'rgba(200,241,53,0.22)',
-  text: '#f0f0f0',
-  muted: '#666666',
-  border: 'rgba(255,255,255,0.07)',
-  tomato: '#ff5c5c',
-  tomatoDim: 'rgba(255,92,92,0.10)',
-  tomatoBorder: 'rgba(255,92,92,0.22)',
-  warn: '#f5a623',
-  warnDim: 'rgba(245,166,35,0.10)',
-  success: '#4adf6f',
-  successDim: 'rgba(74,223,111,0.10)',
+  bg: P.bg,
+  surface: P.surface,
+  surface2: P.surface2,
+  accent: P.forestMid,
+  accentDim: P.surfaceTint,
+  accentBorder: '#CFE3B8',
+  text: P.text,
+  muted: P.muted,
+  border: P.border,
+  tomato: P.tomato,
+  tomatoDim: P.tomatoDim,
+  tomatoBorder: P.dangerBorder,
+  warn: P.warn,
+  warnDim: P.warnDim,
+  success: P.good,
+  successDim: P.goodDim,
   successBorder: 'rgba(74,223,111,0.22)',
 };
 
@@ -64,7 +66,7 @@ function ShareModal({ visible, onClose, onShare, onExport }) {
         <Pressable onPress={(e) => e.stopPropagation()}>
           <View style={styles.modalContent}>
             <LinearGradient
-              colors={['rgba(255,255,255,0.03)', 'rgba(255,255,255,0.01)']}
+              colors={['rgba(214,239,117,0.10)', 'rgba(255,255,255,0)']}
               style={StyleSheet.absoluteFill}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
@@ -220,7 +222,7 @@ export default function FruitResultScreen({ route, navigation }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
 
       <ShareModal
         visible={showShareModal}
@@ -229,35 +231,26 @@ export default function FruitResultScreen({ route, navigation }) {
         onExport={onExport}
       />
 
+      <ScreenHeader
+        title="Analysis Result"
+        subtitle="Fruit Disease Report"
+        eyebrow="Fruit module"
+        onBack={() => navigation.goBack()}
+        right={
+          <TouchableOpacity style={styles.shareBtn} onPress={() => setShowShareModal(true)} activeOpacity={0.7}>
+            <MaterialCommunityIcons name="share-variant" size={20} color={P.lime} />
+          </TouchableOpacity>
+        }
+      />
+
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 60 },
+          { paddingTop: 18, paddingBottom: insets.bottom + 60 },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backBtn}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.7}
-          >
-            <MaterialCommunityIcons name="arrow-left" size={22} color={C.text} />
-          </TouchableOpacity>
-          <View style={styles.headerText}>
-            <Text style={styles.screenTitle}>Analysis Result</Text>
-            <Text style={styles.screenSub}>Fruit Disease Report</Text>
-          </View>
-          <TouchableOpacity
-            style={styles.shareBtn}
-            onPress={() => setShowShareModal(true)}
-            activeOpacity={0.7}
-          >
-            <MaterialCommunityIcons name="share-variant" size={20} color={C.accent} />
-          </TouchableOpacity>
-        </View>
-
         <Animated.View style={{ opacity: fadeIn, transform: [{ translateY: slideUp }] }}>
           <View style={[styles.statusAlert, healthy ? styles.statusAlertHealthy : styles.statusAlertDisease]}>
             <LinearGradient
@@ -296,7 +289,7 @@ export default function FruitResultScreen({ route, navigation }) {
 
           <Animated.View style={[styles.heroCard, { transform: [{ scale: cardScale }] }]}>
             <LinearGradient
-              colors={['rgba(255,255,255,0.04)', 'rgba(255,255,255,0.01)']}
+              colors={['rgba(214,239,117,0.10)', 'rgba(255,255,255,0)']}
               style={StyleSheet.absoluteFill}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
@@ -306,11 +299,11 @@ export default function FruitResultScreen({ route, navigation }) {
                 <Image source={{ uri: imageUri }} style={styles.heroImage} />
               ) : (
                 <View style={[styles.heroImage, styles.heroPlaceholder]}>
-                  <MaterialCommunityIcons name="food-apple" size={60} color="rgba(255,255,255,0.05)" />
+                  <MaterialCommunityIcons name="food-apple" size={60} color={P.border} />
                 </View>
               )}
               <LinearGradient
-                colors={['transparent', 'rgba(15,15,15,0.9)']}
+                colors={['transparent', 'rgba(14,51,38,0.92)']}
                 style={styles.imageGradient}
                 start={{ x: 0, y: 0.3 }}
                 end={{ x: 0, y: 1 }}
@@ -329,7 +322,7 @@ export default function FruitResultScreen({ route, navigation }) {
             </View>
           </Animated.View>
 
-          <TreatmentAdviceCard predictedClass={result.class} variant="dark" />
+          <TreatmentAdviceCard predictedClass={result.class} variant="light" />
 
           {!healthy && (
             <View style={styles.warningBox}>
@@ -379,7 +372,7 @@ export default function FruitResultScreen({ route, navigation }) {
             onPress={() => navigation.navigate('FruitModule', { screen: 'FruitScan' })}
             activeOpacity={0.7}
           >
-            <MaterialCommunityIcons name="camera-retake-outline" size={16} color={C.accent} />
+            <MaterialCommunityIcons name="camera-retake-outline" size={18} color={P.onDark} />
             <Text style={styles.footerBtnTxt}>Scan Another Fruit</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -393,41 +386,22 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   content: { paddingHorizontal: 18 },
 
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    marginBottom: 20,
-  },
-  backBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   shareBtn: {
-    width: 44,
-    height: 44,
+    width: 42,
+    height: 42,
     borderRadius: 14,
-    backgroundColor: C.accentDim,
+    backgroundColor: 'rgba(214,239,117,0.14)',
     borderWidth: 1,
-    borderColor: C.accentBorder,
+    borderColor: 'rgba(214,239,117,0.35)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerText: { flex: 1 },
-  screenTitle: { fontSize: 20, fontWeight: '800', color: C.text },
-  screenSub: { fontSize: 12, color: C.muted, marginTop: 2 },
 
   statusAlert: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     borderWidth: 1,
     padding: 14,
     marginBottom: 16,
@@ -470,9 +444,10 @@ const styles = StyleSheet.create({
     backgroundColor: C.surface,
     borderWidth: 1,
     borderColor: C.border,
-    borderRadius: 20,
+    borderRadius: radius.xl,
     overflow: 'hidden',
     marginBottom: 16,
+    ...shadow.card,
   },
   heroImageWrap: {
     width: '100%',
@@ -506,7 +481,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(15,15,15,0.85)',
+    backgroundColor: 'rgba(255,255,255,0.94)',
     borderWidth: 1,
     borderColor: C.tomatoBorder,
     borderRadius: 100,
@@ -533,9 +508,10 @@ const styles = StyleSheet.create({
     bottom: 16,
   },
   heroName: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '800',
-    color: C.text,
+    letterSpacing: -0.5,
+    color: '#FFFFFF',
   },
 
   warningBox: {
@@ -596,17 +572,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 16,
+    paddingVertical: 15,
+    borderRadius: radius.md,
+    backgroundColor: C.accent,
+    ...shadow.card,
   },
   footerBtnTxt: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: C.accent,
+    fontSize: 14,
+    fontWeight: '700',
+    color: P.onDark,
   },
 
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(14,51,38,0.55)',
     justifyContent: 'flex-end',
   },
   modalContent: {

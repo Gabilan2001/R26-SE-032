@@ -3,6 +3,7 @@ import {
   Animated,
   Dimensions,
   Easing,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -17,26 +18,28 @@ import { getFruitStats } from '../api/fruitHistoryApi';
 import { AuthContext } from '../context/AuthContext';
 import { UIThemeContext } from '../context/UIThemeContext';
 
+import { palette as P, radius, shadow } from '../theme';
+import ScreenHeader from '../components/ScreenHeader';
 // ── Tokens ────────────────────────────────────────────────────────────────────
 const C = {
-  bg:           '#0f0f0f',
-  surface:      '#1a1a1a',
-  surface2:     '#222222',
-  accent:       '#c8f135',
-  accentDim:    'rgba(200,241,53,0.10)',
-  accentBorder: 'rgba(200,241,53,0.22)',
-  text:         '#f0f0f0',
-  muted:        '#666666',
-  border:       'rgba(255,255,255,0.07)',
-  danger:       '#ff5c5c',
-  dangerDim:    'rgba(255,92,92,0.10)',
-  warn:         '#f5a623',
-  warnDim:      'rgba(245,166,35,0.12)',
-  success:      '#4adf6f',
-  successDim:   'rgba(74,223,111,0.12)',
+  bg: P.bg,
+  surface: P.surface,
+  surface2: P.surface2,
+  accent: P.forestMid,
+  accentDim: P.surfaceTint,
+  accentBorder: '#CFE3B8',
+  text: P.text,
+  muted: P.muted,
+  border: P.border,
+  danger: P.danger,
+  dangerDim: P.dangerDim,
+  warn: P.warn,
+  warnDim: P.warnDim,
+  success: P.good,
+  successDim: P.goodDim,
 };
 
-const CHART_PALETTE = [C.accent, C.success, C.warn, C.danger, '#7dd3fc'];
+const CHART_PALETTE = [C.accent, P.leaf, P.warn, P.danger, P.info];
 
 const SCREEN_W  = Dimensions.get('window').width;
 const CHART_W   = SCREEN_W - 32;
@@ -48,8 +51,16 @@ const chartConfig = {
   backgroundGradientFromOpacity: 1,
   backgroundGradientToOpacity:   1,
   decimalPlaces: 0,
-  color:      (o = 1) => `rgba(200,241,53,${o})`,
+  color:      (o = 1) => `rgba(31,96,68,${o})`,
   labelColor: ()      => C.muted,
+  fillShadowGradient: P.forestMid,
+  fillShadowGradientOpacity: 1,
+  fillShadowGradientFrom: P.forestMid,
+  fillShadowGradientFromOpacity: 1,
+  fillShadowGradientTo: P.forestSoft,
+  fillShadowGradientToOpacity: 0.85,
+  barPercentage: 0.6,
+  propsForLabels: { fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif' : undefined },
   propsForBackgroundLines: { stroke: C.border },
   propsForDots: { r: '4', strokeWidth: '2', stroke: C.accent },
 };
@@ -73,9 +84,9 @@ function KpiCard({ num, label, sub, accent = false, delay = 0 }) {
   }, [num]);
   return (
     <Animated.View style={[styles.kpiCard, accent && styles.kpiCardAccent, { opacity: op, transform: [{ translateY: y }] }]}>
-      <Text style={[styles.kpiNum, accent && { color: '#0f0f0f' }]}>{num}</Text>
-      <Text style={[styles.kpiLabel, accent && { color: 'rgba(0,0,0,0.45)' }]}>{label}</Text>
-      {sub ? <Text style={[styles.kpiSub, accent && { color: 'rgba(0,0,0,0.45)' }]} numberOfLines={1}>{sub}</Text> : null}
+      <Text style={[styles.kpiNum, accent && { color: P.lime }]}>{num}</Text>
+      <Text style={[styles.kpiLabel, accent && { color: 'rgba(255,255,255,0.78)' }]}>{label}</Text>
+      {sub ? <Text style={[styles.kpiSub, accent && { color: 'rgba(255,255,255,0.78)' }]} numberOfLines={1}>{sub}</Text> : null}
     </Animated.View>
   );
 }
@@ -204,17 +215,15 @@ export default function StatsScreen({ route }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+
+      <ScreenHeader title="Scan Statistics" subtitle="Your scans at a glance" eyebrow="Insights" />
 
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Header ── */}
-        <View style={styles.header}>
-          <Text style={[styles.title, presentationMode && { fontSize: 28 }]}>Scan Statistics</Text>
-        </View>
 
         {/* ── Mode toggle ── */}
         <View style={styles.modeRow}>
@@ -320,7 +329,7 @@ export default function StatsScreen({ route }) {
 const styles = StyleSheet.create({
   root:    { flex: 1, backgroundColor: C.bg },
   scroll:  { flex: 1 },
-  content: { padding: 16, gap: 14, paddingBottom: 40 },
+  content: { padding: 16, paddingTop: 18, gap: 14, paddingBottom: 120 },
 
   // Header
   header:      { paddingTop: 8, paddingBottom: 4 },
@@ -338,8 +347,8 @@ const styles = StyleSheet.create({
 
   // KPI
   kpiRow:       { flexDirection: 'row', gap: 10 },
-  kpiCard:      { flex: 1, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, padding: 14 },
-  kpiCardAccent:{ backgroundColor: C.accent, borderColor: C.accent },
+  kpiCard:      { flex: 1, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: radius.lg, padding: 16, ...shadow.card },
+  kpiCardAccent:{ backgroundColor: P.forest, borderColor: P.forest },
   kpiNum:       { fontSize: 28, fontWeight: '800', color: C.accent, lineHeight: 32 },
   kpiLabel:     { fontSize: 9, color: C.muted, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 4 },
   kpiSub:       { fontSize: 11, color: C.muted, marginTop: 5 },

@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -20,6 +19,7 @@ import { useMonitoringPalette } from "../../theme/MonitoringThemeContext";
 import type { MonitoringPalette } from "../../theme/colors";
 import type { ObservationLocationSelection } from "../../utils/locationCapture";
 
+import { ScreenFrame as SafeAreaView } from "../../components/ScreenFrame";
 type Props = {
   caseId: string;
   observationNumber: number;
@@ -130,13 +130,13 @@ function makeStyles(p: MonitoringPalette) {
     content: { padding: 18, paddingBottom: 40 },
     guideBox: {
       marginTop: 12,
-      backgroundColor: "#2a1012",
+      backgroundColor: "#FDECEA",
       borderRadius: 14,
       padding: 14,
       borderWidth: 1,
-      borderColor: "#FF6B6B",
+      borderColor: "#D64545",
     },
-    guideTitle: { color: "#FF6B6B", fontWeight: "700" },
+    guideTitle: { color: "#D64545", fontWeight: "700" },
     guideHint: { color: p.textMuted, marginTop: 4, fontSize: 12 },
     guideItem: { color: p.textPrimary, marginTop: 6, lineHeight: 18 },
     nextCard: {

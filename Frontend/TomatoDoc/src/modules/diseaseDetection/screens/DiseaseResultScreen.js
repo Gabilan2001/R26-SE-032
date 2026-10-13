@@ -17,23 +17,25 @@ import { UIThemeContext } from '../../../context/UIThemeContext';
 import DiseaseChip from '../components/DiseaseChip';
 import { CLASS_COLORS } from '../constants/classColors';
 import { getTreatment } from '../api/scan';
+import ScreenHeader from '../../../components/ScreenHeader';
+import { palette as P, radius, shadow } from '../../../theme';
 
-// ── Tokens -- agricultural theme, matches DiseaseScanScreen ──────────────────
+// ── Tokens: shared TomatoDoc theme (see src/theme) ──────────────────────────────
 const C = {
-  bg:           '#F8F7F2',
-  card:         '#FFFFFF',
-  cardBorder:   'rgba(36,53,42,0.08)',
-  tomato:       '#E34A3B',
+  bg:           P.bg,
+  card:         P.surface,
+  cardBorder:   P.border,
+  tomato:       P.tomato,
   tomatoDark:   '#C9362C',
-  tomatoDim:    'rgba(227,74,59,0.08)',
-  tomatoBorder: 'rgba(227,74,59,0.28)',
-  leaf:         '#3F7D45',
-  leafDim:      'rgba(63,125,69,0.08)',
-  leafBorder:   'rgba(63,125,69,0.30)',
-  softGreen:    '#E8F3E7',
-  text:         '#24352A',
-  muted:        '#68756B',
-  border:       'rgba(36,53,42,0.10)',
+  tomatoDim:    P.tomatoDim,
+  tomatoBorder: '#F5C5BF',
+  leaf:         P.forestMid,
+  leafDim:      P.surfaceTint,
+  leafBorder:   '#CFE3B8',
+  softGreen:    P.surface2,
+  text:         P.text,
+  muted:        P.muted,
+  border:       P.border,
 };
 
 // ── Lightweight renderer for the Gemini treatment text ────────────────────────
@@ -169,19 +171,18 @@ export default function DiseaseResultScreen({ route, navigation }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="light-content" backgroundColor={P.forest} />
+      <ScreenHeader
+        title="Disease Result"
+        subtitle="Leaf disease and pest report"
+        eyebrow="Disease module"
+        onBack={() => navigation.goBack()}
+      />
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 40 }]}
+        contentContainerStyle={[styles.content, { paddingTop: 18, paddingBottom: insets.bottom + 40 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Back row ── */}
-        <View style={styles.backRow}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-            <Text style={styles.backArrow}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.screenTitle}>Disease Result</Text>
-        </View>
 
         {/* ── Banner ── */}
         <Animated.View
@@ -325,18 +326,10 @@ const styles = StyleSheet.create({
   scroll:  { flex: 1 },
   content: { padding: 18, paddingBottom: 40 },
 
-  backRow:   { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14, paddingTop: 4 },
-  backBtn:   { width: 32, height: 32, backgroundColor: C.card, borderWidth: 1, borderColor: C.border, borderRadius: 16,
-               alignItems: 'center', justifyContent: 'center',
-               shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
-  backArrow: { fontSize: 15, color: C.text },
-  screenTitle: { fontSize: 18, fontWeight: '800', color: C.text },
-
   banner: {
     backgroundColor: C.card,
     borderWidth: 1, borderColor: C.cardBorder,
-    borderRadius: 20, padding: 16, marginBottom: 14,
-    shadowColor: '#24352A', shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 2,
+    borderRadius: radius.lg, padding: 16, marginBottom: 14, ...shadow.card,
   },
   bannerHealthy:   { backgroundColor: C.softGreen, borderColor: C.leafBorder },
   bannerAttention: { backgroundColor: C.tomatoDim, borderColor: C.tomatoBorder },
@@ -345,9 +338,8 @@ const styles = StyleSheet.create({
 
   chipRow: { flexDirection: 'row', gap: 7, flexWrap: 'wrap' },
 
-  resultCard: { backgroundColor: C.card, borderWidth: 1, borderColor: C.cardBorder, borderRadius: 20,
-                overflow: 'hidden', marginBottom: 6, padding: 16,
-                shadowColor: '#24352A', shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
+  resultCard: { backgroundColor: C.card, borderWidth: 1, borderColor: C.cardBorder, borderRadius: radius.lg,
+                overflow: 'hidden', marginBottom: 6, padding: 16, ...shadow.card },
   resultCardTitle: { fontSize: 15, fontWeight: '800', color: C.text, marginBottom: 2 },
   resultCardSub:   { fontSize: 11.5, color: C.muted, marginBottom: 12 },
   resultImageWrap: { width: '100%', height: 260, backgroundColor: C.softGreen, borderRadius: 14, overflow: 'hidden',
@@ -369,9 +361,8 @@ const styles = StyleSheet.create({
   warningIcon: { fontSize: 13, color: C.tomatoDark, marginTop: 1 },
   warningTxt:  { flex: 1, fontSize: 11, color: C.tomatoDark, lineHeight: 17 },
 
-  treatCard: { backgroundColor: C.card, borderWidth: 1, borderColor: C.cardBorder, borderRadius: 20, padding: 16,
-               marginTop: 14, marginBottom: 16,
-               shadowColor: '#24352A', shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 2 },
+  treatCard: { backgroundColor: C.card, borderWidth: 1, borderColor: C.cardBorder, borderRadius: radius.lg, padding: 16,
+               marginTop: 14, marginBottom: 16, ...shadow.card },
   treatCardTitle: { fontSize: 15, fontWeight: '800', color: C.text, marginBottom: 12 },
   treatLoadingRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 4 },
   treatLoadingTxt: { flex: 1, fontSize: 12, color: C.muted, lineHeight: 17 },
@@ -389,12 +380,11 @@ const styles = StyleSheet.create({
   // Secondary action -- same visual language as the primary Analyze button
   // on the scan screen, but clearly distinct: leaf-green border on white
   // rather than a solid tomato-red fill.
-  btnSecondary:        { backgroundColor: C.card, borderRadius: 14, paddingVertical: 15,
-                          borderWidth: 1.5, borderColor: C.leafBorder,
-                          flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
-  btnSecondaryPressed: { backgroundColor: C.leafDim },
-  btnSecondaryIcon:    { fontSize: 15, color: C.leaf },
-  btnSecondaryTxt:     { fontSize: 14, fontWeight: '800', color: C.leaf, letterSpacing: 0.3 },
+  btnSecondary:        { backgroundColor: C.leaf, borderRadius: radius.md, paddingVertical: 15,
+                          flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, ...shadow.card },
+  btnSecondaryPressed: { backgroundColor: P.forest },
+  btnSecondaryIcon:    { fontSize: 15, color: '#FFFFFF' },
+  btnSecondaryTxt:     { fontSize: 14, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.3 },
 
   // Full-screen viewer -- plain tap-to-inspect (no pinch/pan yet, see note
   // in the component above).

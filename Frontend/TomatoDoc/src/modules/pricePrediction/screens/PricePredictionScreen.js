@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -13,6 +12,7 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C } from '../constants/priceTheme';
+import ScreenHeader from '../../../components/ScreenHeader';
 import { fetchMarketNews, fetchPricePrediction } from '../api/priceClient';
 import MarketSelector from '../components/MarketSelector';
 import ForecastTab from '../components/ForecastTab';
@@ -70,39 +70,30 @@ export default function PricePredictionScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+    <View style={styles.root}>
+      <StatusBar barStyle="light-content" backgroundColor="#12382B" />
 
       {/* Top Header */}
-      <View style={[styles.header, { paddingTop: insets.top > 0 ? 6 : 14 }]}>
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => navigation.goBack()}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          activeOpacity={0.7}
-        >
-          <MaterialCommunityIcons name="arrow-left" size={22} color={C.text} />
-        </TouchableOpacity>
-        <View style={styles.headerTitles}>
-          <View style={styles.badgeRow}>
-            <View style={styles.liveDot} />
-            <Text style={styles.headerBadge}>Agro Intelligence · AI Advisor</Text>
-          </View>
-          <Text style={styles.headerTitle}>Tomato Price Advisor</Text>
-        </View>
-        <TouchableOpacity
-          style={styles.reloadBtn}
-          onPress={() => loadData(true)}
-          disabled={loading || refreshing}
-          activeOpacity={0.7}
-        >
-          <MaterialCommunityIcons
-            name="refresh"
-            size={20}
-            color={loading || refreshing ? C.muted : C.amber}
-          />
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader
+        title="Tomato Price Advisor"
+        subtitle="Agro Intelligence · AI Advisor"
+        eyebrow="Price module"
+        onBack={() => navigation.goBack()}
+        right={
+          <TouchableOpacity
+            style={styles.reloadBtn}
+            onPress={() => loadData(true)}
+            disabled={loading || refreshing}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons
+              name="refresh"
+              size={20}
+              color={loading || refreshing ? 'rgba(255,255,255,0.4)' : '#D6EF75'}
+            />
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -216,7 +207,7 @@ export default function PricePredictionScreen({ navigation }) {
           </>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -225,66 +216,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: C.bg,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitles: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: C.emerald,
-  },
-  headerBadge: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: C.amber,
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: C.text,
-    marginTop: 1,
-  },
   reloadBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: C.surface,
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.10)',
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: 'rgba(255,255,255,0.18)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   scrollContent: {
-    paddingTop: 12,
-    paddingBottom: 32,
+    paddingTop: 16,
+    paddingBottom: 40,
   },
   tabBar: {
     flexDirection: 'row',
