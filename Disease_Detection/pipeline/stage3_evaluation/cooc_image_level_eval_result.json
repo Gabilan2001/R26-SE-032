@@ -1,0 +1,29 @@
+{
+ "conf": null,
+ "0.25": {
+  "conf": 0.25,
+  "test_images": 241,
+  "multi_class_images": 2,
+  "all_gt_classes_detected": 0,
+  "rate_all_detected": 0.0,
+  "exact_class_set_match": 0,
+  "multi_disease_images_excl_healthy": 2,
+  "multi_disease_all_detected": 0,
+  "combos": {
+   "Early_Blight + Leaf_Miner": 2
+  }
+ },
+ "0.3": {
+  "conf": 0.3,
+  "test_images": 241,
+  "multi_class_images": 2,
+  "all_gt_classes_detected": 0,
+  "rate_all_detected": 0.0,
+  "exact_class_set_match": 0,
+  "multi_disease_images_excl_healthy": 2,
+  "multi_disease_all_detected": 0,
+  "combos": {
+   "Early_Blight + Leaf_Miner": 2
+  }
+ }
+}
