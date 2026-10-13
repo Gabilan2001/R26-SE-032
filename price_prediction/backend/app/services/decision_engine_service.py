@@ -16,12 +16,12 @@ from __future__ import annotations
 import logging
 import pickle
 import sys
+import threading
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-from tensorflow.keras.models import load_model
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 if str(BASE_DIR) not in sys.path:
@@ -40,6 +40,43 @@ MODEL_DIR = BASE_DIR / "ml_models"
 DATASET_DIR = BASE_DIR / "datasets"
 PRICE_CSV_PATH = DATASET_DIR / "tomato_prices_vegetablesSriLanka.csv"
 WEATHER_CSV_PATH = DATASET_DIR / "historical_weather_sri_lanka.csv"
+
+# Thread-safe lazy in-memory cache for production BiLSTM models & MinMaxScaler objects
+_lstm_models_cache: Dict[str, Any] = {}
+_scalers_cache: Dict[str, Any] = {}
+_model_cache_lock = threading.Lock()
+
+
+def get_cached_lstm_and_scaler(market: str, series_type: str) -> Tuple[Any, Any]:
+    """
+    Lazily load and cache the Keras LSTM model and MinMaxScaler per series with thread safety.
+    Guarantees that each series model/scaler is loaded from disk at most once per process.
+    TensorFlow is imported lazily on first call to keep startup memory lightweight.
+    """
+    series_label = f"{market}-{series_type}"
+    file_suffix = f"{market.lower()}_{series_type.lower()}"
+    lstm_path = MODEL_DIR / f"lstm_{file_suffix}.h5"
+    scaler_path = MODEL_DIR / f"scaler_{file_suffix}.pkl"
+
+    if not lstm_path.is_file() or not scaler_path.is_file():
+        raise FileNotFoundError(f"Model or scaler missing for {series_label} at {lstm_path}")
+
+    # Fast-path lockless check
+    if series_label in _lstm_models_cache and series_label in _scalers_cache:
+        return _lstm_models_cache[series_label], _scalers_cache[series_label]
+
+    with _model_cache_lock:
+        # Double-checked locking
+        if series_label not in _lstm_models_cache or series_label not in _scalers_cache:
+            logger.info("Loading production LSTM model and scaler into memory cache for %s", series_label)
+            from tensorflow.keras.models import load_model
+            model = load_model(lstm_path, compile=False)
+            with open(scaler_path, "rb") as f:
+                scaler = pickle.load(f)
+            _lstm_models_cache[series_label] = model
+            _scalers_cache[series_label] = scaler
+
+    return _lstm_models_cache[series_label], _scalers_cache[series_label]
 
 # Calibrated Series Slopes (beta_1: LKR price change per mm of 30-day rainfall change at 14-day lag)
 SLOPES: Dict[str, float] = {
@@ -152,17 +189,8 @@ def run_decision_engine(
     if series_label not in SLOPES:
         raise ValueError(f"Unsupported series combination: {series_label}. Supported: {list(SLOPES.keys())}")
 
-    file_suffix = f"{market.lower()}_{series_type.lower()}"
-    lstm_path = MODEL_DIR / f"lstm_{file_suffix}.h5"
-    scaler_path = MODEL_DIR / f"scaler_{file_suffix}.pkl"
-
-    if not lstm_path.is_file() or not scaler_path.is_file():
-        raise FileNotFoundError(f"Model or scaler missing for {series_label} at {lstm_path}")
-
-    # 1. Base LSTM Forecast
-    lstm_model = load_model(lstm_path, compile=False)
-    with open(scaler_path, "rb") as f:
-        scaler = pickle.load(f)
+    # 1. Base LSTM Forecast (Lazy Thread-Safe In-Memory Cache)
+    lstm_model, scaler = get_cached_lstm_and_scaler(market, series_type)
 
     raw_window, last_price_date, max_dataset_date, dataset_coverage = get_recent_price_window(
         market, series_type, target_date_str, window_size=10, price_csv=price_csv_path
