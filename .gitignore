@@ -1,6 +1,6 @@
 # ─── Model Weights (large binaries — use Git LFS if needed) ───
 *.pt
-*.pth
+
 *.onnx
 *.engine
 *.pkl
