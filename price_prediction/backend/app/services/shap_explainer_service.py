@@ -6,6 +6,7 @@ to each input timestep in the 10-day lookback window.
 
 from __future__ import annotations
 
+from collections import OrderedDict
 import logging
 import os
 import pickle
@@ -15,8 +16,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-import shap
-from tensorflow.keras.models import load_model
 
 logger = logging.getLogger(__name__)
 
@@ -25,33 +24,23 @@ MODEL_DIR = BASE_DIR / "ml_models"
 DATA_PATH = BASE_DIR / "datasets" / "tomato_prices_vegetablesSriLanka.csv"
 
 # Global In-Memory Caches
-# 1. Background Datasets per series (cached across server lifecycle)
-_BG_CACHE: Dict[str, Tuple[np.ndarray, Any, Any]] = {}
+# 1. Background Datasets per series (stores ONLY background_2d array, size ~4KB)
+_BG_CACHE: Dict[str, np.ndarray] = {}
 
-# 2. SHAP Result Cache per (series_label, target_date) with 1-hour TTL
-_SHAP_CACHE: Dict[str, Tuple[float, Dict[str, Any]]] = {}
+# 2. Bounded SHAP Result Cache with 1-hour TTL and maximum size = 30 entries (LRU eviction)
+MAX_SHAP_CACHE_SIZE = 30
+_SHAP_CACHE: OrderedDict[str, Tuple[float, Dict[str, Any]]] = OrderedDict()
 CACHE_TTL_SECONDS = 3600  # 1 hour
 
 
-def _get_series_artifacts(market: str, series_type: str) -> Tuple[np.ndarray, Any, Any]:
+def _get_background_dataset(market: str, series_type: str, scaler: Any) -> np.ndarray:
     """
-    Load Keras LSTM model, MinMaxScaler, and background dataset (50 historical 10-day windows).
-    Caches model & background data in memory to avoid redundant IO.
+    Extract and cache 50 historical 10-day lookback windows for SHAP KernelExplainer baseline.
+    Does NOT load or duplicate the LSTM model.
     """
     series_label = f"{market}-{series_type}"
     if series_label in _BG_CACHE:
         return _BG_CACHE[series_label]
-
-    file_suffix = f"{market.lower()}_{series_type.lower()}"
-    lstm_path = MODEL_DIR / f"lstm_{file_suffix}.h5"
-    scaler_path = MODEL_DIR / f"scaler_{file_suffix}.pkl"
-
-    if not lstm_path.exists() or not scaler_path.exists():
-        raise FileNotFoundError(f"Missing LSTM model or scaler for series {series_label}")
-
-    model = load_model(lstm_path, compile=False)
-    with open(scaler_path, "rb") as f:
-        scaler = pickle.load(f)
 
     # Load dataset to extract historical background windows
     df = pd.read_csv(DATA_PATH)
@@ -76,10 +65,10 @@ def _get_series_artifacts(market: str, series_type: str) -> Tuple[np.ndarray, An
     np.random.seed(42)
     sample_count = min(50, len(X_train_scaled))
     bg_indices = np.random.choice(len(X_train_scaled), size=sample_count, replace=False)
-    background_2d = X_train_scaled[bg_indices] # shape: (50, 10)
+    background_2d = X_train_scaled[bg_indices]  # shape: (50, 10)
 
-    _BG_CACHE[series_label] = (background_2d, model, scaler)
-    return background_2d, model, scaler
+    _BG_CACHE[series_label] = background_2d
+    return background_2d
 
 
 def get_shap_explanation(
@@ -87,27 +76,41 @@ def get_shap_explanation(
     series_type: str = "Retail",
     target_date_str: str = "2026-03-10",
     lookback_prices_raw: Optional[List[float]] = None,
+    model: Optional[Any] = None,
+    scaler: Optional[Any] = None,
 ) -> Optional[Dict[str, Any]]:
     """
     Compute SHAP value attributions for Day-1 LSTM prediction.
     Attributes forecast output to each of the 10 lookback timesteps (t-10..t-1).
-    Returns ranked timesteps, contributions in LKR, and a plain-language summary.
+    Reuses the single cached LSTM model and scaler from the decision engine.
     """
     series_label = f"{market}-{series_type}"
     cache_key = f"{series_label}_{target_date_str}"
     now_ts = time.time()
 
-    # 1. Check SHAP result cache
+    # 1. Check bounded SHAP result cache
     if cache_key in _SHAP_CACHE:
         cached_time, cached_res = _SHAP_CACHE[cache_key]
         if (now_ts - cached_time) < CACHE_TTL_SECONDS:
+            _SHAP_CACHE.move_to_end(cache_key)
             return cached_res
+        else:
+            del _SHAP_CACHE[cache_key]
 
     try:
         t0 = time.time()
-        background_2d, model, scaler = _get_series_artifacts(market, series_type)
 
-        # 2. Extract recent 10-day lookback raw prices if not provided
+        # 2. Lazy SHAP import
+        import shap
+
+        # 3. Retrieve single shared model and scaler
+        if model is None or scaler is None:
+            from app.services.decision_engine_service import get_cached_lstm_and_scaler
+            model, scaler = get_cached_lstm_and_scaler(market, series_type)
+
+        background_2d = _get_background_dataset(market, series_type, scaler)
+
+        # 4. Extract recent 10-day lookback raw prices if not provided
         if lookback_prices_raw is None or len(lookback_prices_raw) < 10:
             df = pd.read_csv(DATA_PATH)
             sub_df = df[(df["Market"] == market) & (df["Type"] == series_type)].copy()
@@ -123,7 +126,7 @@ def get_shap_explanation(
         lookback_arr = np.array(lookback_prices_raw[-10:])
         live_scaled_2d = scaler.transform(lookback_arr.reshape(-1, 1)).reshape(1, 10)
 
-        # 3. Model Predictor Wrapper for 2D inputs (Attributing Day-1 prediction)
+        # 5. Model Predictor Wrapper for 2D inputs (Attributing Day-1 prediction)
         def predict_2d(x_2d: np.ndarray) -> np.ndarray:
             x_3d = np.reshape(x_2d, (x_2d.shape[0], 10, 1))
             preds_scaled = model.predict(x_3d, verbose=0)
@@ -134,13 +137,13 @@ def get_shap_explanation(
                 d1_scaled = preds_scaled
             return scaler.inverse_transform(d1_scaled).flatten()
 
-        # 4. Compute SHAP values via KernelExplainer
+        # 6. Compute SHAP values via KernelExplainer
         explainer = shap.KernelExplainer(predict_2d, background_2d)
         shap_vals = explainer.shap_values(live_scaled_2d, nsamples=80)
 
         sv = shap_vals[0] if isinstance(shap_vals, list) else shap_vals.flatten()
 
-        # 5. Format & Rank Timestep Contributions
+        # 7. Format & Rank Timestep Contributions
         timesteps_output: List[Dict[str, Any]] = []
         for idx in range(10):
             lag_days = 10 - idx
@@ -172,6 +175,9 @@ def get_shap_explanation(
             "computation_time_seconds": round(elapsed_sec, 3),
         }
 
+        # LRU eviction if cache exceeds max bound
+        if len(_SHAP_CACHE) >= MAX_SHAP_CACHE_SIZE:
+            _SHAP_CACHE.popitem(last=False)
         _SHAP_CACHE[cache_key] = (now_ts, result)
         return result
 

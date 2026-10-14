@@ -2,6 +2,20 @@
  * Tomato Price Advisor — farmer-friendly UI logic.
  */
 
+/**
+ * Backend API Base URL configuration.
+ * - When served by the backend (same origin, e.g. /ui on Render or localhost:8000), uses relative URLs ("").
+ * - When opened standalone (e.g. file:/// or separate frontend dev server), defaults to the hosted Render URL.
+ * - Allows manual override via window.PRICE_API_BASE for local development if needed.
+ */
+const API_BASE = (function () {
+  if (window.PRICE_API_BASE) return window.PRICE_API_BASE.replace(/\/+$/, "");
+  // Served by the backend under /ui (any host or port) -> same origin
+  if (window.location.protocol.startsWith("http") && window.location.pathname.startsWith("/ui")) return "";
+  // file://, Live Server, or any other standalone use -> hosted backend
+  return "https://r26-se-032.onrender.com";
+})();
+
 function $(id) {
   return document.getElementById(id);
 }
@@ -41,7 +55,8 @@ function friendlyError(kind) {
 }
 
 async function apiJson(path, options = {}) {
-  const res = await fetch(path, {
+  const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
+  const res = await fetch(url, {
     headers: { Accept: "application/json", ...(options.headers || {}) },
     ...options,
   });
@@ -609,8 +624,7 @@ async function onMarketChanged() {
   }).catch(() => null);
 
 
-  const newsP = fetch(`/news/market-analysis?location=${locEnc}`, { headers: { Accept: "application/json" } })
-    .then((r) => (r.ok ? r.json() : null))
+  const newsP = apiJson(`/news/market-analysis?location=${locEnc}`)
     .catch(() => null);
 
   const [pData, nData] = await Promise.all([predictP, newsP]);
