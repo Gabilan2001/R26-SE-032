@@ -31,10 +31,13 @@ from google.genai import types as genai_types
 BASE        = Path(__file__).parent
 CHROMA_PATH = BASE / "chroma_db"
 N_RESULTS   = 3      # number of chunks to retrieve
-GEMINI_MODEL = "gemini-3.6-flash"  # fast/cheap tier; check aistudio.google.com for current model names
 
 load_dotenv(BASE / ".env")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+# Flash-Lite: higher free-tier limits (15 requests/min, 500/day) and faster answers than
+# gemini-3.6-flash, and it passed the same 15-query audit. Override with the GEMINI_MODEL
+# environment variable (for example in Cloud Run) without rebuilding the image.
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
 
 # ── Load components (lazy — loaded once on first call) ────────────────────────
 _embedder   = None
