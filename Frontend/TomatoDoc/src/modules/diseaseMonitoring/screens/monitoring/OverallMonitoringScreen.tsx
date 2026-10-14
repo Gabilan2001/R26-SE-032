@@ -196,7 +196,7 @@ export function OverallMonitoringScreen({
 function makeStyles(p: MonitoringPalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: p.bg },
-    content: { padding: 18, paddingBottom: 40 },
+    content: { padding: 18, paddingBottom: 120 },
     title: { color: p.textPrimary, fontSize: 24, fontWeight: "800", marginBottom: 12 },
     summary: {
       backgroundColor: p.card,

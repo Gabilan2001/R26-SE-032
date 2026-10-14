@@ -361,7 +361,7 @@ export function ObservationUploadScreen({
 function makeStyles(p: MonitoringPalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: p.bg },
-    content: { padding: 18, paddingBottom: 40 },
+    content: { padding: 18, paddingBottom: 120 },
     title: { color: p.textPrimary, fontSize: 22, fontWeight: "800", marginBottom: 4 },
     meta: { color: p.textMuted, marginBottom: 4 },
     reuseCard: {

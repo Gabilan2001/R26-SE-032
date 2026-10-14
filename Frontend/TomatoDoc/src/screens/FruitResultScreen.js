@@ -247,7 +247,7 @@ export default function FruitResultScreen({ route, navigation }) {
         style={styles.scroll}
         contentContainerStyle={[
           styles.content,
-          { paddingTop: 18, paddingBottom: insets.bottom + 60 },
+          { paddingTop: 18, paddingBottom: insets.bottom + 120 },
         ]}
         showsVerticalScrollIndicator={false}
       >

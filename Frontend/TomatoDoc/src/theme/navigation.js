@@ -34,3 +34,9 @@ export const stackHeaderOptions = {
   headerShadowVisible: false,
   contentStyle: { backgroundColor: palette.bg },
 };
+
+/** Options for screens that live inside a tab navigator but must not appear as a tab. */
+export const hiddenTab = {
+  tabBarButton: () => null,
+  tabBarItemStyle: { display: 'none' },
+};
