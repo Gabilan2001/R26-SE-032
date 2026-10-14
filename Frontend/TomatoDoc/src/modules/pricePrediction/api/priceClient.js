@@ -1,14 +1,12 @@
 import axios from 'axios';
-import { Platform } from 'react-native';
 
-const PRICE_API_BASE_URL =
-  Platform.OS === 'web'
-    ? 'http://127.0.0.1:8008'
-    : process.env.EXPO_PUBLIC_PRICE_API_BASE_URL || 'http://10.0.2.2:8008';
+const DEFAULT_PRICE_API_URL = 'https://r26-se-032.onrender.com';
+const configuredUrl = process.env.EXPO_PUBLIC_PRICE_API_BASE_URL;
+const PRICE_API_BASE_URL = (configuredUrl && configuredUrl.trim() !== '' ? configuredUrl.trim() : DEFAULT_PRICE_API_URL).replace(/\/+$/, '');
 
 const priceClient = axios.create({
   baseURL: PRICE_API_BASE_URL,
-  timeout: 30000,
+  timeout: 90000,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
@@ -20,11 +18,11 @@ priceClient.interceptors.response.use(
   (error) => {
     let friendlyMessage = 'Unable to connect to Price Prediction server.';
     if (error.code === 'ECONNABORTED') {
-      friendlyMessage = 'Price Prediction server timed out. Check that the backend on port 8008 is running.';
+      friendlyMessage = 'Price Prediction server timed out. Check that the backend service is running.';
     } else if (error.response && error.response.data && error.response.data.detail) {
       friendlyMessage = String(error.response.data.detail);
     } else if (error.message === 'Network Error') {
-      friendlyMessage = `Cannot reach Price Prediction API at ${PRICE_API_BASE_URL}. Ensure the backend is running on port 8008.`;
+      friendlyMessage = `Cannot reach Price Prediction API at ${PRICE_API_BASE_URL}. Ensure the backend service is running and accessible.`;
     }
     error.friendlyMessage = friendlyMessage;
     return Promise.reject(error);
