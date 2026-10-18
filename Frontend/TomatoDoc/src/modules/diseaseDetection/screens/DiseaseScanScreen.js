@@ -3,6 +3,7 @@ import {
   Alert,
   Animated,
   Image,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -62,7 +63,31 @@ export default function DiseaseScanScreen({ navigation }) {
 
   const pickImage = async (fromCamera = false) => {
     const launcher = fromCamera ? ImagePicker.launchCameraAsync : ImagePicker.launchImageLibraryAsync;
-    const res = await launcher({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8 });
+    let res;
+    try {
+      if (fromCamera && Platform.OS !== 'web') {
+        // Ask explicitly so a refusal is explained instead of the button silently doing nothing.
+        const perm = await ImagePicker.requestCameraPermissionsAsync();
+        if (!perm.granted) {
+          Alert.alert(
+            'Camera permission needed',
+            'Allow camera access for TomatoDoc (or Expo Go) in your phone settings to take a leaf photo.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Open Settings', onPress: () => Linking.openSettings() },
+            ]
+          );
+          return;
+        }
+      }
+      res = await launcher({ mediaTypes: ['images'], quality: 0.8 });
+    } catch (error) {
+      Alert.alert(
+        fromCamera ? 'Camera unavailable' : 'Gallery unavailable',
+        error?.message || 'Could not open the picker on this device.'
+      );
+      return;
+    }
     if (res.canceled) return;
     const picked = res.assets[0];
     // Phone camera photos are often 3000-4000px / several MB -- quality:0.8
