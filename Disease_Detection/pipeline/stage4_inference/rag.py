@@ -19,6 +19,7 @@ Usage:
 """
 
 import os
+import time
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -34,10 +35,15 @@ N_RESULTS   = 3      # number of chunks to retrieve
 
 load_dotenv(BASE / ".env")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-# Flash-Lite: higher free-tier limits (15 requests/min, 500/day) and faster answers than
-# gemini-3.6-flash, and it passed the same 15-query audit. Override with the GEMINI_MODEL
-# environment variable (for example in Cloud Run) without rebuilding the image.
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
+# Primary model, plus a fallback tried when the primary keeps answering 429/503 (free-tier
+# quota or "high demand"). The Flash-Lite fallback has far higher free-tier limits (15/min,
+# 500/day vs 5/min, 20/day). Both can be overridden with environment variables (for example
+# in Cloud Run) without rebuilding the image.
+GEMINI_MODEL          = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+GEMINI_FALLBACK_MODEL = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-3.5-flash-lite")
+ATTEMPTS_PER_MODEL    = 2      # tries per model before moving to the next one
+RETRY_DELAY_SECONDS   = 2.0
+_RETRYABLE = ("429", "503", "UNAVAILABLE", "RESOURCE_EXHAUSTED", "DEADLINE")
 
 # ── Load components (lazy — loaded once on first call) ────────────────────────
 _embedder   = None
@@ -70,6 +76,34 @@ def _get_ai_client():
             raise ValueError("GEMINI_API_KEY not found in .env file")
         _client_ai = genai.Client(api_key=GEMINI_API_KEY)
     return _client_ai
+
+
+def _generate_with_fallback(ai_client, prompt, gen_config):
+    """Call Gemini, retrying a busy/over-quota model briefly, then falling back to the
+    secondary model. Errors that are not 429/503-style (bad key, bad request) are raised
+    straight away. The failure reason is always printed so it shows up in Cloud Run logs."""
+    models = [GEMINI_MODEL]
+    if GEMINI_FALLBACK_MODEL and GEMINI_FALLBACK_MODEL != GEMINI_MODEL:
+        models.append(GEMINI_FALLBACK_MODEL)
+
+    last_error = None
+    for model in models:
+        for attempt in range(1, ATTEMPTS_PER_MODEL + 1):
+            try:
+                response = ai_client.models.generate_content(
+                    model=model, contents=prompt, config=gen_config)
+                if model != GEMINI_MODEL:
+                    print(f"  Gemini answered with fallback model {model}", flush=True)
+                return response
+            except Exception as e:
+                last_error = e
+                msg = str(e)
+                print(f"  Gemini {model} attempt {attempt} failed: {msg[:200]}", flush=True)
+                if not any(code in msg for code in _RETRYABLE):
+                    raise
+                if attempt < ATTEMPTS_PER_MODEL:
+                    time.sleep(RETRY_DELAY_SECONDS)
+    raise last_error
 
 
 # ── System prompt — strictly constrains LLM to KB only ───────────────────────
@@ -229,23 +263,21 @@ Remember:
 - Be practical and actionable
 """
 
-    response = ai_client.models.generate_content(
-        model    = GEMINI_MODEL,
-        contents = prompt,
-        config   = genai_types.GenerateContentConfig(
-            system_instruction = SYSTEM_PROMPT,
-            temperature        = 0.1,
-            # 4096 headroom needed for 3-disease combo answers (separate full
-            # section per disease + combined-treatment note) -- 1024 truncated
-            # those mid-answer in testing even with thinking_level="low".
-            max_output_tokens  = 4096,
-            # gemini-3.6-flash "thinks" before answering by default, which can eat
-            # the whole token budget and/or add latency. 'low' keeps it fast while
-            # still giving a complete, non-truncated answer for this constrained
-            # RAG task (this model rejects thinking_budget=0 outright).
-            thinking_config    = genai_types.ThinkingConfig(thinking_level="low"),
-        ),
+    gen_config = genai_types.GenerateContentConfig(
+        system_instruction = SYSTEM_PROMPT,
+        temperature        = 0.1,
+        # 4096 headroom needed for 3-disease combo answers (separate full
+        # section per disease + combined-treatment note) -- 1024 truncated
+        # those mid-answer in testing even with thinking_level="low".
+        max_output_tokens  = 4096,
+        # gemini-3.6-flash "thinks" before answering by default, which can eat
+        # the whole token budget and/or add latency. 'low' keeps it fast while
+        # still giving a complete, non-truncated answer for this constrained
+        # RAG task (this model rejects thinking_budget=0 outright).
+        thinking_config    = genai_types.ThinkingConfig(thinking_level="low"),
     )
+
+    response = _generate_with_fallback(ai_client, prompt, gen_config)
 
     answer = response.text.strip()
 

@@ -204,6 +204,12 @@ def save_scan_history(detections, diseases_found, co_occurrence, treatment):
         print(f"  Firestore save failed: {e}")
 
 
+# The advice question depends only on WHICH diseases were found, so a successful answer is
+# kept in memory and reused. This saves free-tier Gemini quota and makes repeat scans instant.
+# Failures are never cached. The cache is per instance and resets when the instance restarts.
+_treatment_cache = {}
+
+
 def get_treatment(diseases_found):
     if not RAG_AVAILABLE or not diseases_found:
         return None
@@ -211,6 +217,9 @@ def get_treatment(diseases_found):
         treatable = [d for d in diseases_found if d != "Healthy"]
         if not treatable:
             return None
+        cache_key = tuple(sorted(set(treatable)))
+        if cache_key in _treatment_cache:
+            return _treatment_cache[cache_key]
         readable = [d.replace("_", " ") for d in treatable]
         if len(readable) == 1:
             query = (f"What treatment and dosage for {readable[0]} on tomato, "
@@ -222,9 +231,11 @@ def get_treatment(diseases_found):
                       f"for EACH one, then explain whether any of these can be treated together with "
                       f"fewer sprays or need to stay separate.")
         result = query_rag(query, diseases=treatable)
-        return {"answer": result["answer"], "sources": result["sources"]}
+        treatment = {"answer": result["answer"], "sources": result["sources"]}
+        _treatment_cache[cache_key] = treatment
+        return treatment
     except Exception as e:
-        print(f"  RAG query failed: {e}")
+        print(f"  RAG query failed: {e}", flush=True)
         return None
 
 

@@ -23,6 +23,15 @@ rembg==2.0.75
 python-dotenv==1.2.2
 chromadb==1.5.9
 sentence-transformers==5.5.0
+# Transitive deps pinned to the versions the live image runs. Unpinned, a fresh
+# build pulls a newer transformers that needs a newer torch than 2.5.1 and
+# `import sentence_transformers` fails.
+transformers==5.16.1
+tokenizers==0.23.1
+huggingface_hub==1.29.0
+safetensors==0.8.0
+scipy==1.17.1
+onnxruntime==1.29.0
 google-genai==2.2.0
 
 # Scan history/dashboard (independent DB, no Nutrient/Fruit auth dependency)
