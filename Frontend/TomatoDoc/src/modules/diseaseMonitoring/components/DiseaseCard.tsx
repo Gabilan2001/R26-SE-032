@@ -56,7 +56,7 @@ export function DiseaseCard({
           </Text>
         </View>
         <Text style={styles.monitoringHint}>
-          From weather context with relative severity (not treatment advice)
+          From weather context with relative severity
         </Text>
       </View>
 

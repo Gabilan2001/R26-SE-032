@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
+  Dimensions,
   Easing,
   Image,
   Platform,
@@ -12,65 +13,128 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Modal,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { predictFruitDisease } from '../api/fruitScanApi';
 import { UIThemeContext } from '../context/UIThemeContext';
 import LoadingOverlay from '../components/LoadingOverlay';
+import { LinearGradient } from 'expo-linear-gradient';
 
-// ── Tokens ────────────────────────────────────────────────────────────────────
+import { palette as P, radius, shadow } from '../theme';
+import ScreenHeader, { HeaderBadge } from '../components/ScreenHeader';
+const { width, height } = Dimensions.get('window');
+
 const C = {
-  bg:            '#0f0f0f',
-  surface:       '#1a1a1a',
-  surface2:      '#222222',
-  accent:        '#c8f135',
-  accentDim:     'rgba(200,241,53,0.10)',
-  accentBorder:  'rgba(200,241,53,0.22)',
-  text:          '#f0f0f0',
-  muted:         '#555555',
-  border:        'rgba(255,255,255,0.07)',
-  // Tomato-red accent (distinct from nutrient leaf-green)
-  tomato:        '#ff5c5c',
-  tomatoDim:     'rgba(255,92,92,0.08)',
-  tomatoBorder:  'rgba(255,92,92,0.20)',
-  success:       '#4adf6f',
-  successDim:    'rgba(74,223,111,0.08)',
+  bg: P.bg,
+  surface: P.surface,
+  surface2: P.surface2,
+  accent: P.forestMid,
+  gradient: [P.leaf, P.lime],
+  accentDim: P.surfaceTint,
+  accentBorder: '#CFE3B8',
+  text: P.text,
+  textSecondary: P.textSoft,
+  muted: P.muted,
+  border: P.border,
+  danger: P.danger,
+  dangerDim: P.dangerDim,
+  success: P.good,
 };
 
-// ── Sample thumbnails ─────────────────────────────────────────────────────────
-const SAMPLES = [
-  { key: 'a', src: require('../../assets/images/tomato5.jpeg') },
-  { key: 'b', src: require('../../assets/images/tomato8.jpeg') },
-  { key: 'c', src: require('../../assets/images/tomato10.jpeg') },
-];
+// ============= NEW COMPONENTS =============
 
-// ── Filter tags ───────────────────────────────────────────────────────────────
-const TAGS = [
-  { id: 'all',     label: 'All Types', emoji: null },
-  { id: 'disease', label: 'Disease',   emoji: '🦠'  },
-  { id: 'healthy', label: 'Healthy',   emoji: '✅'  },
-  { id: 'blight',  label: 'Blight',    emoji: '🍂'  },
-];
+function AnimatedProgressBar({ progress }) {
+  const widthAnim = useRef(new Animated.Value(0)).current;
 
-// ── Animated corner brackets (tomato-red) ─────────────────────────────────────
+  useEffect(() => {
+    Animated.timing(widthAnim, {
+      toValue: progress,
+      duration: 600,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  }, [progress]);
+
+  return (
+    <View style={styles.progressContainer}>
+      <View style={styles.progressTrack}>
+        <Animated.View
+          style={[
+            styles.progressFill,
+            { width: widthAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) },
+          ]}
+        >
+          <LinearGradient
+            colors={C.gradient}
+            style={StyleSheet.absoluteFill}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          />
+        </Animated.View>
+      </View>
+    </View>
+  );
+}
+
+function ImagePreviewModal({ visible, imageUri, onClose, onAnalyze }) {
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <TouchableOpacity style={styles.modalClose} onPress={onClose}>
+            <MaterialCommunityIcons name="close" size={24} color="#ffffff" />
+          </TouchableOpacity>
+          
+          <Image source={{ uri: imageUri }} style={styles.modalImage} />
+          
+          <View style={styles.modalActions}>
+            <TouchableOpacity style={styles.modalBtnSecondary} onPress={onClose}>
+              <Text style={styles.modalBtnText}>Retake</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.modalBtnPrimary} onPress={onAnalyze}>
+              <MaterialCommunityIcons name="microscope" size={20} color="#FFFFFF" />
+              <Text style={styles.modalBtnTextDark}>Analyze</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+// ============= EXISTING COMPONENTS (Enhanced) =============
+
 function ViewfinderFrame() {
-  const size = 22, t = 14;
+  const size = 28;
+  const t = 16;
   const corner = (pos) => ({
-    position: 'absolute', width: size, height: size,
-    borderColor: C.tomato, borderStyle: 'solid',
-    ...(pos.top    !== undefined && { top:    pos.top    }),
+    position: 'absolute',
+    width: size,
+    height: size,
+    borderColor: P.forestMid,
+    borderStyle: 'solid',
+    ...(pos.top !== undefined && { top: pos.top }),
     ...(pos.bottom !== undefined && { bottom: pos.bottom }),
-    ...(pos.left   !== undefined && { left:   pos.left   }),
-    ...(pos.right  !== undefined && { right:  pos.right  }),
-    borderTopWidth:          (pos.top    !== undefined) ? 2.5 : 0,
-    borderBottomWidth:       (pos.bottom !== undefined) ? 2.5 : 0,
-    borderLeftWidth:         (pos.left   !== undefined) ? 2.5 : 0,
-    borderRightWidth:        (pos.right  !== undefined) ? 2.5 : 0,
-    borderTopLeftRadius:     (pos.top    !== undefined && pos.left  !== undefined) ? 5 : 0,
-    borderTopRightRadius:    (pos.top    !== undefined && pos.right !== undefined) ? 5 : 0,
-    borderBottomLeftRadius:  (pos.bottom !== undefined && pos.left  !== undefined) ? 5 : 0,
-    borderBottomRightRadius: (pos.bottom !== undefined && pos.right !== undefined) ? 5 : 0,
+    ...(pos.left !== undefined && { left: pos.left }),
+    ...(pos.right !== undefined && { right: pos.right }),
+    borderTopWidth: pos.top !== undefined ? 3 : 0,
+    borderBottomWidth: pos.bottom !== undefined ? 3 : 0,
+    borderLeftWidth: pos.left !== undefined ? 3 : 0,
+    borderRightWidth: pos.right !== undefined ? 3 : 0,
+    borderTopLeftRadius: pos.top !== undefined && pos.left !== undefined ? 8 : 0,
+    borderTopRightRadius: pos.top !== undefined && pos.right !== undefined ? 8 : 0,
+    borderBottomLeftRadius: pos.bottom !== undefined && pos.left !== undefined ? 8 : 0,
+    borderBottomRightRadius: pos.bottom !== undefined && pos.right !== undefined ? 8 : 0,
   });
+
   return (
     <>
       <View style={corner({ top: t, left: t })} />
@@ -81,102 +145,74 @@ function ViewfinderFrame() {
   );
 }
 
-// ── Animated scan line (tomato-red) ───────────────────────────────────────────
 function ScanLine() {
   const anim = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(anim, { toValue: 1, duration: 2400, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(anim, { toValue: 0, duration: 2400, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 1, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 0, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
       ])
     ).start();
-  }, []);
-  const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [0, 146] });
+  }, [anim]);
+
+  const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [0, 130] });
+
   return (
     <Animated.View
       pointerEvents="none"
       style={[styles.scanLine, { transform: [{ translateY }] }]}
-    />
-  );
-}
-
-// ── Feature chip ──────────────────────────────────────────────────────────────
-function Chip({ emoji, label }) {
-  return (
-    <View style={styles.chip}>
-      <Text style={styles.chipEmoji}>{emoji}</Text>
-      <Text style={styles.chipTxt}>{label}</Text>
-    </View>
-  );
-}
-
-// ── Filter tag ────────────────────────────────────────────────────────────────
-function FilterTag({ tag, active, onPress }) {
-  const scale = useRef(new Animated.Value(1)).current;
-  const press = () => {
-    Animated.sequence([
-      Animated.timing(scale, { toValue: 0.93, duration: 80, useNativeDriver: true }),
-      Animated.spring(scale, { toValue: 1,    useNativeDriver: true }),
-    ]).start();
-    onPress(tag.id);
-  };
-  return (
-    <Animated.View style={{ transform: [{ scale }] }}>
-      <TouchableOpacity
-        style={[styles.filterTag, active && styles.filterTagActive]}
-        onPress={press}
-        activeOpacity={0.85}
-      >
-        {tag.emoji && <Text style={styles.filterTagEmoji}>{tag.emoji}</Text>}
-        <Text style={[styles.filterTagTxt, active && styles.filterTagTxtActive]}>
-          {tag.label}
-        </Text>
-      </TouchableOpacity>
+    >
+      <LinearGradient
+        colors={['transparent', P.leaf, P.lime, 'transparent']}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+      />
     </Animated.View>
   );
 }
 
-// ── Sample card ───────────────────────────────────────────────────────────────
-function SampleCard({ src, active, onPress }) {
-  return (
-    <TouchableOpacity
-      style={[styles.sampleCard, active && styles.sampleCardActive]}
-      onPress={onPress}
-      activeOpacity={0.8}
-    >
-      <Image source={src} style={styles.sampleImg} />
-      {active && (
-        <View style={styles.sampleCheck}>
-          <Text style={styles.sampleCheckTxt}>✓</Text>
-        </View>
-      )}
-    </TouchableOpacity>
-  );
-}
+// ============= MAIN SCREEN =============
 
-// ── Main Screen ───────────────────────────────────────────────────────────────
 export default function FruitScanScreen({ navigation }) {
   const { presentationMode } = useContext(UIThemeContext);
-  const [image,        setImage]        = useState(null);
-  const [loading,      setLoading]      = useState(false);
-  const [activeSample, setActiveSample] = useState(0);
-  const [activeTag,    setActiveTag]    = useState('all');
+  const insets = useSafeAreaInsets();
+  const [image, setImage] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [scanProgress, setScanProgress] = useState(0);
 
-  // Hero entrance
   const heroOp = useRef(new Animated.Value(0)).current;
-  const heroY  = useRef(new Animated.Value(24)).current;
+  const heroY = useRef(new Animated.Value(30)).current;
+  const btnScale = useRef(new Animated.Value(1)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const floatAnim = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(heroOp, { toValue: 1, duration: 420, useNativeDriver: true }),
-      Animated.spring(heroY,  { toValue: 0, useNativeDriver: true }),
+      Animated.timing(heroOp, { toValue: 1, duration: 500, useNativeDriver: true }),
+      Animated.spring(heroY, { toValue: 0, useNativeDriver: true }),
     ]).start();
-  }, []);
 
-  // Button scale
-  const btnScale = useRef(new Animated.Value(1)).current;
-  const onPressIn  = () => Animated.spring(btnScale, { toValue: 0.96, useNativeDriver: true }).start();
-  const onPressOut = () => Animated.spring(btnScale, { toValue: 1,    useNativeDriver: true }).start();
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.05, duration: 1500, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1500, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim, { toValue: 1, duration: 3000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(floatAnim, { toValue: 0, duration: 3000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    ).start();
+  }, [heroOp, heroY, pulseAnim, floatAnim]);
+
+  const onPressIn = () => Animated.spring(btnScale, { toValue: 0.95, useNativeDriver: true }).start();
+  const onPressOut = () => Animated.spring(btnScale, { toValue: 1, useNativeDriver: true }).start();
 
   const pickImage = async (fromCamera = false) => {
     const launcher = fromCamera
@@ -184,274 +220,394 @@ export default function FruitScanScreen({ navigation }) {
       : ImagePicker.launchImageLibraryAsync;
     const res = await launcher({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8,
+      quality: 0.85,
     });
-    if (!res.canceled) setImage(res.assets[0]);
+    if (!res.canceled) {
+      setImage(res.assets[0]);
+      setShowPreview(true);
+    }
   };
 
   const analyze = async () => {
     if (!image) return;
+    setShowPreview(false);
     setLoading(true);
+    setScanProgress(0);
+    
+    // Simulate progress
+    const progressInterval = setInterval(() => {
+      setScanProgress(prev => {
+        if (prev >= 0.9) {
+          clearInterval(progressInterval);
+          return 0.9;
+        }
+        return prev + 0.1;
+      });
+    }, 300);
+
     try {
       const formData = new FormData();
       if (Platform.OS === 'web') {
         const response = await fetch(image.uri);
-        const blob     = await response.blob();
-        const file     = new File([blob], 'tomato-fruit.jpg', { type: blob.type || 'image/jpeg' });
+        const blob = await response.blob();
+        const file = new File([blob], 'tomato-fruit.jpg', { type: blob.type || 'image/jpeg' });
         formData.append('image', file);
       } else {
         formData.append('image', {
-          uri:  image.uri,
+          uri: image.uri,
           name: image.fileName || `tomato-fruit-${Date.now()}.jpg`,
           type: image.mimeType || 'image/jpeg',
         });
       }
+      
       const res = await predictFruitDisease(formData);
-      navigation.navigate('FruitResult', { result: res.data, imageUri: image.uri });
+      setScanProgress(1);
+      setTimeout(() => {
+        navigation.navigate('FruitResult', { result: res.data, imageUri: image.uri });
+      }, 300);
     } catch (error) {
       Alert.alert(
         'Analysis Failed',
         error?.response?.data?.error || error?.message || 'Could not analyze this image.'
       );
     } finally {
-      setLoading(false);
+      clearInterval(progressInterval);
+      setTimeout(() => {
+        setLoading(false);
+        setScanProgress(0);
+      }, 500);
     }
   };
 
+  const floatY = floatAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -6] });
+
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="light-content" backgroundColor={P.forest} />
+
+      <ImagePreviewModal
+        visible={showPreview}
+        imageUri={image?.uri}
+        onClose={() => setShowPreview(false)}
+        onAnalyze={analyze}
+      />
+
+      <ScreenHeader
+        title="Fruit Scanner"
+        subtitle="Tomato fruit disease detection"
+        eyebrow="Fruit module"
+        onBack={() => navigation.goBack()}
+        right={<HeaderBadge label="Ready" />}
+      />
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingTop: 18, paddingBottom: insets.bottom + 110 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Back row ── */}
-        <View style={styles.backRow}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-            <Text style={styles.backArrow}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.screenTitle}>Fruit Scanner</Text>
-        </View>
-
-        {/* ── Hero card (tomato-red tint) ── */}
-        <Animated.View style={[styles.heroCard, { opacity: heroOp, transform: [{ translateY: heroY }] }]}>
-          <View style={styles.heroCornerIcon}>
-            <Text style={{ fontSize: 20 }}>🍅</Text>
+        <Animated.View style={{ opacity: heroOp, transform: [{ translateY: heroY }] }}>
+          {/* Module strip */}
+          <View style={styles.moduleStrip}>
+            <Animated.View style={[styles.moduleIcon, { transform: [{ translateY: floatY }] }]}>
+              <MaterialCommunityIcons name="food-apple" size={22} color={P.tomato} />
+            </Animated.View>
+            <View style={styles.moduleBody}>
+              <Text style={[styles.moduleTitle, presentationMode && { fontSize: 18 }]}>Detect tomato fruit diseases</Text>
+              <Text style={styles.moduleSub}>
+                Capture a photo or choose one from your gallery. We will identify the disease and suggest treatment.
+              </Text>
+            </View>
           </View>
 
-          <View style={styles.heroBadge}>
-            <View style={styles.badgeDot} />
-            <Text style={styles.badgeTxt}>Disease Classifier</Text>
+          {/* Scan card */}
+          <View style={styles.scanCard}>
+            <View style={styles.viewfinder}>
+              <ViewfinderFrame />
+              {!image && <ScanLine />}
+
+              {image ? (
+                <Image source={{ uri: image.uri }} style={styles.vfImage} />
+              ) : (
+                <View style={styles.vfPlaceholder}>
+                  <Animated.View style={[styles.vfIconWrap, { transform: [{ scale: pulseAnim }] }]}>
+                    <MaterialCommunityIcons name="camera-outline" size={32} color={C.muted} />
+                  </Animated.View>
+                  <Text style={styles.vfPlaceholderTitle}>No photo yet</Text>
+                  <Text style={styles.vfPlaceholderTxt}>Place the tomato fruit inside the frame</Text>
+                </View>
+              )}
+
+              <View style={styles.sourceBar}>
+                <TouchableOpacity style={styles.sourceBtn} onPress={() => pickImage(false)} activeOpacity={0.8}>
+                  <MaterialCommunityIcons name="image-outline" size={18} color={C.text} />
+                  <Text style={styles.sourceBtnText}>Gallery</Text>
+                </TouchableOpacity>
+                <View style={styles.sourceDivider} />
+                <TouchableOpacity
+                  style={[styles.sourceBtn, styles.sourceBtnPrimary]}
+                  onPress={() => pickImage(true)}
+                  activeOpacity={0.8}
+                >
+                  <MaterialCommunityIcons name="camera-outline" size={18} color={P.onDark} />
+                  <Text style={styles.sourceBtnTextLight}>Camera</Text>
+                </TouchableOpacity>
+              </View>
+
+              {loading && (
+                <View style={styles.vfLoadingOverlay}>
+                  <LoadingOverlay text="Analyzing tomato fruit..." />
+                  <AnimatedProgressBar progress={scanProgress} />
+                </View>
+              )}
+            </View>
           </View>
 
-          <Text style={[styles.heroTitle, presentationMode && { fontSize: 24 }]}>
-            {'Tomato Fruit\n'}<Text style={styles.heroTitleAccent}>Disease Scan</Text>
-          </Text>
-          <Text style={styles.heroHelper}>
-            Take a clear photo of the affected fruit area for instant AI diagnosis.
-          </Text>
+          {/* Photo tips */}
+          <View style={styles.tipsSection}>
+            <Text style={styles.tipsSectionLabel}>For best results</Text>
+            <View style={styles.tipsRow}>
+              <View style={styles.tipItem}>
+                <View style={styles.tipIconWrap}>
+                  <MaterialCommunityIcons name="white-balance-sunny" size={18} color={C.accent} />
+                </View>
+                <Text style={styles.tipItemText}>Natural{'\n'}light</Text>
+              </View>
+              <View style={styles.tipItem}>
+                <View style={styles.tipIconWrap}>
+                  <MaterialCommunityIcons name="crop-free" size={18} color={C.accent} />
+                </View>
+                <Text style={styles.tipItemText}>Fill the{'\n'}frame</Text>
+              </View>
+              <View style={styles.tipItem}>
+                <View style={[styles.tipIconWrap, { backgroundColor: P.tomatoDim }]}>
+                  <MaterialCommunityIcons name="food-apple" size={18} color={P.tomato} />
+                </View>
+                <Text style={styles.tipItemText}>One fruit{'\n'}only</Text>
+              </View>
+            </View>
+          </View>
 
-          <View style={styles.chipRow}>
-            <Chip emoji="🔬" label="Disease Classifier" />
-            <Chip emoji="💊" label="Treatment Guide"    />
-            <Chip emoji="📊" label="Stats Ready"        />
+          {/* Analyze */}
+          <Animated.View style={{ transform: [{ scale: btnScale }] }}>
+            <Pressable
+              style={[styles.analyzeBtn, image ? styles.analyzeBtnActive : styles.analyzeBtnIdle]}
+              onPressIn={onPressIn}
+              onPressOut={onPressOut}
+              onPress={analyze}
+              disabled={!image || loading}
+            >
+              <MaterialCommunityIcons name="microscope" size={20} color={image ? P.onDark : C.muted} />
+              <Text style={[styles.analyzeBtnTxt, !image && styles.analyzeBtnTxtDisabled]}>
+                {image ? 'Analyze Fruit' : 'Select an image first'}
+              </Text>
+            </Pressable>
+          </Animated.View>
+
+          {/* Hint */}
+          <View style={styles.hintBox}>
+            <MaterialCommunityIcons name="information-outline" size={16} color={C.accent} />
+            <Text style={styles.analyzeHint}>
+              {image ? 'Image ready. Tap Analyze Fruit to continue.' : 'Select or capture an image to begin.'}
+            </Text>
           </View>
         </Animated.View>
-
-        {/* ── Viewfinder ── */}
-        <View style={styles.viewfinder}>
-          <ViewfinderFrame />
-          <ScanLine />
-
-          {image ? (
-            <Image source={{ uri: image.uri }} style={styles.vfImage} />
-          ) : (
-            <View style={styles.vfPlaceholder}>
-              <Text style={{ fontSize: 48, opacity: 0.35 }}>🍅</Text>
-              <Text style={styles.vfPlaceholderTxt}>Place tomato fruit{'\n'}inside the frame</Text>
-            </View>
-          )}
-
-          {loading && (
-            <View style={styles.vfLoadingOverlay}>
-              <LoadingOverlay text="Analyzing tomato fruit…" />
-            </View>
-          )}
-        </View>
-
-        {/* ── Filter tags ── */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.tagStrip}
-          contentContainerStyle={{ gap: 7, paddingRight: 4 }}
-        >
-          {TAGS.map(tag => (
-            <FilterTag
-              key={tag.id}
-              tag={tag}
-              active={activeTag === tag.id}
-              onPress={setActiveTag}
-            />
-          ))}
-        </ScrollView>
-
-        {/* ── Reference samples ── */}
-        <Text style={styles.sectionLabel}>Reference Tomato Samples</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.sampleStrip}
-          contentContainerStyle={{ paddingRight: 4 }}
-        >
-          {SAMPLES.map((s, i) => (
-            <SampleCard
-              key={s.key}
-              src={s.src}
-              active={activeSample === i}
-              onPress={() => setActiveSample(i)}
-            />
-          ))}
-        </ScrollView>
-
-        {/* ── Action buttons ── */}
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.actionBtnGallery]}
-            onPress={() => pickImage(false)}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.actionBtnIcon}>🖼</Text>
-            <Text style={styles.actionBtnTxtLight}>Gallery</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.actionBtnCamera]}
-            onPress={() => pickImage(true)}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.actionBtnIcon}>📷</Text>
-            <Text style={styles.actionBtnTxt}>Camera</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* ── Analyze CTA ── */}
-        <Animated.View style={{ transform: [{ scale: btnScale }] }}>
-          <Pressable
-            style={[styles.analyzeBtn, !image && styles.analyzeBtnDisabled]}
-            onPressIn={onPressIn}
-            onPressOut={onPressOut}
-            onPress={analyze}
-            disabled={!image || loading}
-          >
-            <Text style={styles.analyzeBtnIcon}>🔬</Text>
-            <Text style={styles.analyzeBtnTxt}>Analyze Fruit</Text>
-          </Pressable>
-        </Animated.View>
-
-        <Text style={styles.analyzeHint}>
-          {image ? 'Image ready · tap to analyze' : 'Select or capture an image to begin'}
-        </Text>
       </ScrollView>
     </View>
   );
 }
 
-// ── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  root:    { flex: 1, backgroundColor: C.bg },
-  scroll:  { flex: 1 },
-  content: { padding: 18, paddingBottom: 40 },
+  root: { flex: 1, backgroundColor: C.bg },
+  scroll: { flex: 1 },
+  content: { paddingHorizontal: 18 },
 
-  // Back
-  backRow:     { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14, paddingTop: 4 },
-  backBtn:     { width: 32, height: 32, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  backArrow:   { fontSize: 16, color: C.text },
-  screenTitle: { fontSize: 18, fontWeight: '800', color: C.text },
-
-  // Hero — tomato dark red base
-  heroCard: {
-    backgroundColor: '#1a0500',
-    borderWidth: 1, borderColor: C.tomatoBorder,
-    borderRadius: 22, padding: 18, marginBottom: 14, overflow: 'hidden',
+  moduleStrip: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: radius.lg,
+    padding: 16,
+    marginBottom: 16,
+    ...shadow.card,
   },
-  heroCornerIcon: {
-    position: 'absolute', top: 14, right: 14,
-    width: 44, height: 44, borderRadius: 12,
-    backgroundColor: C.tomatoDim, borderWidth: 1, borderColor: C.tomatoBorder,
-    alignItems: 'center', justifyContent: 'center',
+  moduleIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    backgroundColor: P.tomatoDim,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  heroBadge:  { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start',
-                backgroundColor: 'rgba(255,92,92,0.12)', borderWidth: 1, borderColor: 'rgba(255,92,92,0.25)',
-                borderRadius: 100, paddingHorizontal: 10, paddingVertical: 3, marginBottom: 12 },
-  badgeDot:   { width: 5, height: 5, borderRadius: 3, backgroundColor: C.tomato },
-  badgeTxt:   { fontSize: 10, color: C.tomato, fontWeight: '700', letterSpacing: 0.4 },
-  heroTitle:  { fontSize: 22, fontWeight: '800', color: '#fff', lineHeight: 28, marginBottom: 8 },
-  heroTitleAccent: { color: C.tomato },
-  heroHelper: { fontSize: 12, color: 'rgba(255,255,255,0.45)', lineHeight: 18, marginBottom: 14 },
+  moduleBody: { flex: 1 },
+  moduleTitle: { fontSize: 15, fontWeight: '800', color: C.text, marginBottom: 4, letterSpacing: -0.2 },
+  moduleSub: { fontSize: 13, color: C.textSecondary, lineHeight: 19 },
 
-  // Chips
-  chipRow:   { flexDirection: 'row', gap: 7, flexWrap: 'wrap' },
-  chip:      { flexDirection: 'row', alignItems: 'center', gap: 5,
-               backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
-               borderRadius: 100, paddingHorizontal: 11, paddingVertical: 5 },
-  chipEmoji: { fontSize: 11 },
-  chipTxt:   { fontSize: 11, color: 'rgba(255,255,255,0.65)', fontWeight: '500' },
-
-  // Viewfinder — tomato-red tint
+  scanCard: {
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: radius.lg,
+    padding: 14,
+    marginBottom: 16,
+    ...shadow.card,
+  },
   viewfinder: {
-    width: '100%', height: 200,
-    backgroundColor: '#1a0500',
-    borderRadius: 18, borderWidth: 1.5, borderColor: C.tomatoBorder,
-    overflow: 'hidden', marginBottom: 14,
-    alignItems: 'center', justifyContent: 'center',
+    width: '100%',
+    height: 280,
+    backgroundColor: C.surface2,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: C.accentBorder,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  scanLine:        { position: 'absolute', left: 14, right: 14, height: 1.5, backgroundColor: C.tomato, opacity: 0.70 },
-  vfImage:         { position: 'absolute', width: '100%', height: '100%', resizeMode: 'cover' },
-  vfPlaceholder:   { alignItems: 'center', gap: 8 },
-  vfPlaceholderTxt:{ fontSize: 11, color: C.muted, textAlign: 'center', lineHeight: 16 },
-  vfLoadingOverlay:{ position: 'absolute', inset: 0, backgroundColor: 'rgba(26,5,0,0.88)', alignItems: 'center', justifyContent: 'center' },
+  scanLine: { position: 'absolute', left: 24, right: 24, top: 60, height: 2, opacity: 0.7 },
+  vfImage: { position: 'absolute', width: '100%', height: '100%', resizeMode: 'cover' },
+  vfPlaceholder: { alignItems: 'center', gap: 6, paddingHorizontal: 24, paddingBottom: 56 },
+  vfIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: C.bg,
+    borderWidth: 1,
+    borderColor: C.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  vfPlaceholderTitle: { fontSize: 15, fontWeight: '700', color: C.text },
+  vfPlaceholderTxt: { fontSize: 12, color: C.muted, textAlign: 'center' },
+  vfLoadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(251,250,245,0.94)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
-  // Filter tags
-  tagStrip: { marginBottom: 14 },
-  filterTag:       { flexDirection: 'row', alignItems: 'center', gap: 5,
-                     paddingHorizontal: 12, paddingVertical: 7,
-                     borderRadius: 100, borderWidth: 1, borderColor: C.border,
-                     backgroundColor: C.surface },
-  filterTagActive: { backgroundColor: 'rgba(255,92,92,0.08)', borderColor: 'rgba(255,92,92,0.28)' },
-  filterTagEmoji:  { fontSize: 11 },
-  filterTagTxt:    { fontSize: 11, color: C.muted, fontWeight: '600' },
-  filterTagTxtActive: { color: C.tomato },
+  sourceBar: {
+    position: 'absolute',
+    bottom: 12,
+    left: 12,
+    right: 12,
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255,255,255,0.96)',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: C.border,
+    overflow: 'hidden',
+    ...shadow.card,
+  },
+  sourceBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    paddingVertical: 12,
+  },
+  sourceBtnPrimary: { backgroundColor: C.accent },
+  sourceDivider: { width: 1, backgroundColor: C.border },
+  sourceBtnText: { fontSize: 13, fontWeight: '700', color: C.text },
+  sourceBtnTextLight: { fontSize: 13, fontWeight: '700', color: P.onDark },
 
-  // Section
-  sectionLabel: { fontSize: 10, fontWeight: '700', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10, marginLeft: 2 },
+  tipsSection: { marginBottom: 16 },
+  tipsSectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: C.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 10,
+  },
+  tipsRow: { flexDirection: 'row', gap: 10 },
+  tipItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: C.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: C.border,
+    paddingVertical: 14,
+    paddingHorizontal: 6,
+  },
+  tipIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: C.accentDim,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tipItemText: { fontSize: 11, fontWeight: '700', color: C.text, textAlign: 'center', lineHeight: 15 },
 
-  // Samples
-  sampleStrip:      { marginBottom: 16 },
-  sampleCard:       { width: 100, height: 72, borderRadius: 12, overflow: 'hidden',
-                      backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, marginRight: 9 },
-  sampleCardActive: { borderColor: C.tomato, borderWidth: 1.5 },
-  sampleImg:        { width: '100%', height: '100%', resizeMode: 'cover' },
-  sampleCheck:      { position: 'absolute', top: 5, right: 6, backgroundColor: C.tomato,
-                      borderRadius: 10, width: 16, height: 16, alignItems: 'center', justifyContent: 'center' },
-  sampleCheckTxt:   { fontSize: 9, color: '#fff', fontWeight: '800' },
+  analyzeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: radius.md,
+    paddingVertical: 16,
+    marginBottom: 14,
+  },
+  analyzeBtnActive: { backgroundColor: C.accent, ...shadow.raised },
+  analyzeBtnIdle: { backgroundColor: C.surface, borderWidth: 1, borderColor: C.border },
+  analyzeBtnTxt: { fontSize: 15, fontWeight: '700', color: P.onDark },
+  analyzeBtnTxtDisabled: { color: C.muted },
 
-  // Action buttons
-  actionRow:       { flexDirection: 'row', gap: 10, marginBottom: 12 },
-  actionBtn:       { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, borderRadius: 14, paddingVertical: 14 },
-  actionBtnGallery:{ backgroundColor: C.tomato },
-  actionBtnCamera: { backgroundColor: C.surface, borderWidth: 1.5, borderColor: C.border },
-  actionBtnIcon:   { fontSize: 16 },
-  actionBtnTxtLight:{ fontSize: 13, fontWeight: '700', color: '#fff' },
-  actionBtnTxt:    { fontSize: 13, fontWeight: '600', color: C.text },
+  hintBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    padding: 14,
+    borderRadius: radius.md,
+    backgroundColor: C.accentDim,
+    borderWidth: 1,
+    borderColor: C.accentBorder,
+  },
+  analyzeHint: { flex: 1, fontSize: 12, color: C.textSecondary, lineHeight: 18 },
 
-  // Analyze CTA
-  analyzeBtn:         { backgroundColor: C.accent, borderRadius: 16, paddingVertical: 16,
-                        flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  analyzeBtnDisabled: { opacity: 0.3 },
-  analyzeBtnIcon:     { fontSize: 16 },
-  analyzeBtnTxt:      { fontSize: 15, fontWeight: '800', color: '#0f0f0f', letterSpacing: 0.3 },
-  analyzeHint:        { fontSize: 11, color: C.muted, textAlign: 'center', marginTop: 10 },
+  progressContainer: { width: '80%', marginTop: 16 },
+  progressTrack: { height: 6, borderRadius: 3, backgroundColor: P.border, overflow: 'hidden' },
+  progressFill: { height: '100%', borderRadius: 3, overflow: 'hidden' },
+
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(14,51,38,0.88)', justifyContent: 'center', padding: 20 },
+  modalContent: { alignItems: 'center' },
+  modalClose: {
+    alignSelf: 'flex-end',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  modalImage: { width: '100%', height: 360, borderRadius: radius.lg, resizeMode: 'cover' },
+  modalActions: { flexDirection: 'row', gap: 12, marginTop: 18, width: '100%' },
+  modalBtnSecondary: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalBtnPrimary: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: radius.md,
+    backgroundColor: P.forestMid,
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
+  modalBtnTextDark: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
 });

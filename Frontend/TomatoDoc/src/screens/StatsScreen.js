@@ -1,8 +1,9 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
   Easing,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -10,32 +11,35 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { BarChart, LineChart, PieChart } from 'react-native-chart-kit';
 import { getStats } from '../api/historyApi';
 import { getFruitStats } from '../api/fruitHistoryApi';
 import { AuthContext } from '../context/AuthContext';
 import { UIThemeContext } from '../context/UIThemeContext';
 
+import { palette as P, radius, shadow } from '../theme';
+import ScreenHeader from '../components/ScreenHeader';
 // ── Tokens ────────────────────────────────────────────────────────────────────
 const C = {
-  bg:           '#0f0f0f',
-  surface:      '#1a1a1a',
-  surface2:     '#222222',
-  accent:       '#c8f135',
-  accentDim:    'rgba(200,241,53,0.10)',
-  accentBorder: 'rgba(200,241,53,0.22)',
-  text:         '#f0f0f0',
-  muted:        '#666666',
-  border:       'rgba(255,255,255,0.07)',
-  danger:       '#ff5c5c',
-  dangerDim:    'rgba(255,92,92,0.10)',
-  warn:         '#f5a623',
-  warnDim:      'rgba(245,166,35,0.12)',
-  success:      '#4adf6f',
-  successDim:   'rgba(74,223,111,0.12)',
+  bg: P.bg,
+  surface: P.surface,
+  surface2: P.surface2,
+  accent: P.forestMid,
+  accentDim: P.surfaceTint,
+  accentBorder: '#CFE3B8',
+  text: P.text,
+  muted: P.muted,
+  border: P.border,
+  danger: P.danger,
+  dangerDim: P.dangerDim,
+  warn: P.warn,
+  warnDim: P.warnDim,
+  success: P.good,
+  successDim: P.goodDim,
 };
 
-const CHART_PALETTE = [C.accent, C.success, C.warn, C.danger, '#7dd3fc'];
+const CHART_PALETTE = [C.accent, P.leaf, P.warn, P.danger, P.info];
 
 const SCREEN_W  = Dimensions.get('window').width;
 const CHART_W   = SCREEN_W - 32;
@@ -47,8 +51,16 @@ const chartConfig = {
   backgroundGradientFromOpacity: 1,
   backgroundGradientToOpacity:   1,
   decimalPlaces: 0,
-  color:      (o = 1) => `rgba(200,241,53,${o})`,
+  color:      (o = 1) => `rgba(31,96,68,${o})`,
   labelColor: ()      => C.muted,
+  fillShadowGradient: P.forestMid,
+  fillShadowGradientOpacity: 1,
+  fillShadowGradientFrom: P.forestMid,
+  fillShadowGradientFromOpacity: 1,
+  fillShadowGradientTo: P.forestSoft,
+  fillShadowGradientToOpacity: 0.85,
+  barPercentage: 0.6,
+  propsForLabels: { fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif' : undefined },
   propsForBackgroundLines: { stroke: C.border },
   propsForDots: { r: '4', strokeWidth: '2', stroke: C.accent },
 };
@@ -72,9 +84,9 @@ function KpiCard({ num, label, sub, accent = false, delay = 0 }) {
   }, [num]);
   return (
     <Animated.View style={[styles.kpiCard, accent && styles.kpiCardAccent, { opacity: op, transform: [{ translateY: y }] }]}>
-      <Text style={[styles.kpiNum, accent && { color: '#0f0f0f' }]}>{num}</Text>
-      <Text style={[styles.kpiLabel, accent && { color: 'rgba(0,0,0,0.45)' }]}>{label}</Text>
-      {sub ? <Text style={[styles.kpiSub, accent && { color: 'rgba(0,0,0,0.45)' }]} numberOfLines={1}>{sub}</Text> : null}
+      <Text style={[styles.kpiNum, accent && { color: P.lime }]}>{num}</Text>
+      <Text style={[styles.kpiLabel, accent && { color: 'rgba(255,255,255,0.78)' }]}>{label}</Text>
+      {sub ? <Text style={[styles.kpiSub, accent && { color: 'rgba(255,255,255,0.78)' }]} numberOfLines={1}>{sub}</Text> : null}
     </Animated.View>
   );
 }
@@ -129,16 +141,55 @@ export default function StatsScreen({ route }) {
     class_counts: {},
     scans_per_day: [],
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const modeRef = useRef(mode);
 
-  // Fetch on mode change
   useEffect(() => {
-    (async () => {
-      const res = mode === 'fruit'
+    modeRef.current = mode;
+  }, [mode]);
+
+  const fetchStats = useCallback(async () => {
+    if (!token) {
+      setStats({
+        total_scans: 0,
+        most_common_deficiency: 'N/A',
+        class_counts: {},
+        scans_per_day: [],
+      });
+      setError('Log in to view scan statistics.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    try {
+      const currentMode = modeRef.current;
+      const res = currentMode === 'fruit'
         ? await getFruitStats(token)
         : await getStats(token);
       setStats(res.data);
-    })();
-  }, [token, mode]);
+    } catch (e) {
+      setError(
+        e?.response?.data?.message ||
+        e?.response?.data?.msg ||
+        e?.message ||
+        'Could not load statistics.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchStats();
+    }, [fetchStats])
+  );
+
+  useEffect(() => {
+    fetchStats();
+  }, [mode, fetchStats]);
 
   const labels    = Object.keys(stats.class_counts);
   const values    = Object.values(stats.class_counts);
@@ -157,31 +208,22 @@ export default function StatsScreen({ route }) {
   };
 
   const switchMode = (m) => {
+    if (m === mode) return;
     animateChip(m === 'nutrient' ? nutrientScale : fruitScale);
     setMode(m);
   };
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+
+      <ScreenHeader title="Scan Statistics" subtitle="Your scans at a glance" eyebrow="Insights" />
 
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Header ── */}
-        <View style={styles.header}>
-          <Text style={[styles.title, presentationMode && { fontSize: 28 }]}>Scan Statistics</Text>
-          <View style={styles.headerIcons}>
-            <TouchableOpacity style={styles.iconBtn}>
-              <Text style={styles.iconBtnTxt}>⬇</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconBtn}>
-              <Text style={styles.iconBtnTxt}>📈</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
 
         {/* ── Mode toggle ── */}
         <View style={styles.modeRow}>
@@ -196,12 +238,19 @@ export default function StatsScreen({ route }) {
                 activeOpacity={0.85}
               >
                 <Text style={[styles.modeChipTxt, mode === m && styles.modeChipTxtActive]}>
-                  {m === 'nutrient' ? '🍃 Nutrient' : '🍅 Fruit Disease'}
+                  {m === 'nutrient' ? 'Nutrient' : 'Fruit Disease'}
                 </Text>
               </TouchableOpacity>
             </Animated.View>
           ))}
         </View>
+
+        {!!error && (
+          <Text style={styles.errorText}>{error}</Text>
+        )}
+        {loading && !error && (
+          <Text style={styles.loadingText}>Updating statistics…</Text>
+        )}
 
         {/* ── KPI row ── */}
         <View style={styles.kpiRow}>
@@ -211,12 +260,6 @@ export default function StatsScreen({ route }) {
             sub={`Most: ${stats.most_common_deficiency}`}
             accent
             delay={0}
-          />
-          <KpiCard
-            num="85%"
-            label="Avg Accuracy"
-            sub="Last 30 days"
-            delay={80}
           />
         </View>
 
@@ -286,15 +329,11 @@ export default function StatsScreen({ route }) {
 const styles = StyleSheet.create({
   root:    { flex: 1, backgroundColor: C.bg },
   scroll:  { flex: 1 },
-  content: { padding: 16, gap: 14, paddingBottom: 40 },
+  content: { padding: 16, paddingTop: 18, gap: 14, paddingBottom: 120 },
 
   // Header
-  header:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, paddingBottom: 4 },
+  header:      { paddingTop: 8, paddingBottom: 4 },
   title:       { fontSize: 24, fontWeight: '800', color: C.text },
-  headerIcons: { flexDirection: 'row', gap: 8 },
-  iconBtn:     { width: 32, height: 32, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border,
-                 borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  iconBtnTxt:  { fontSize: 14 },
 
   // Mode toggle
   modeRow:         { flexDirection: 'row', gap: 8 },
@@ -303,11 +342,13 @@ const styles = StyleSheet.create({
   modeChipActive:  { backgroundColor: C.accentDim, borderColor: C.accentBorder },
   modeChipTxt:     { fontSize: 12, fontWeight: '700', color: C.muted },
   modeChipTxtActive:{ color: C.accent },
+  errorText: { fontSize: 12, color: C.danger, lineHeight: 18 },
+  loadingText: { fontSize: 12, color: C.muted },
 
   // KPI
   kpiRow:       { flexDirection: 'row', gap: 10 },
-  kpiCard:      { flex: 1, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, padding: 14 },
-  kpiCardAccent:{ backgroundColor: C.accent, borderColor: C.accent },
+  kpiCard:      { flex: 1, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: radius.lg, padding: 16, ...shadow.card },
+  kpiCardAccent:{ backgroundColor: P.forest, borderColor: P.forest },
   kpiNum:       { fontSize: 28, fontWeight: '800', color: C.accent, lineHeight: 32 },
   kpiLabel:     { fontSize: 9, color: C.muted, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 4 },
   kpiSub:       { fontSize: 11, color: C.muted, marginTop: 5 },
@@ -319,7 +360,6 @@ const styles = StyleSheet.create({
 
   // Section
   sectionLabel: { fontSize: 10, fontWeight: '700', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.8, marginLeft: 2, marginBottom: -4 },
-
   // History
   histList:   { gap: 8 },
   histItem:   { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: C.surface2, borderRadius: 12, padding: 10 },

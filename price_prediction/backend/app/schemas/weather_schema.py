@@ -35,3 +35,20 @@ class WeatherResponse(BaseModel):
         "",
         description="Human-readable name tied to the coordinates used (may differ slightly from user text).",
     )
+    water_stress_level: Optional[str] = Field(
+        "NORMAL",
+        description="NORMAL | MODERATE_STRESS | SEVERE_DROUGHT | EXCESS_WATER",
+    )
+    heat_stress_level: Optional[str] = Field(
+        "NORMAL",
+        description="NORMAL | MODERATE_HEAT | EXTREME_HEAT",
+    )
+    agricultural_favourability: Optional[str] = Field(
+        "FAVOURABLE",
+        description="FAVOURABLE | MODERATE | WATER_STRESS | EXCESS_WATER",
+    )
+    agricultural_impact: Optional[dict] = Field(
+        None,
+        description="Structured agricultural assessment (water availability, time horizon, missing future data).",
+    )
+

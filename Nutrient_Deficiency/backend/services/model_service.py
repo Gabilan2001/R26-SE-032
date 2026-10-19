@@ -14,6 +14,10 @@ with open(CLASS_PATH, 'r', encoding='utf-8') as f:
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+# Render's free instance has a fraction of one CPU; PyTorch's default of one
+# thread per host core makes inference hang there. One thread is fastest.
+torch.set_num_threads(1)
+
 model = models.mobilenet_v2(weights=None)
 model.classifier[1] = nn.Linear(model.last_channel, len(class_names))
 model.load_state_dict(torch.load(MODEL_PATH, map_location=device, weights_only=False))

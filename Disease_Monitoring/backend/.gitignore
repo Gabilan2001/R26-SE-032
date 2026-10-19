@@ -15,9 +15,6 @@ pip-delete-this-directory.txt
 *.db
 *.sqlite3
 
-# Datasets & Large Files
-datasets/
-ml/models/*.pth
 
 # IDEs
 .vscode/

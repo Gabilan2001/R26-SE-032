@@ -17,7 +17,9 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parents[2]
-DEFAULT_DATA_PATH = BASE_DIR / "datasets" / "Vegetables_fruit_prices_with_climate_130000_2020_to_2025.csv"
+PRIMARY_DATA_PATH = BASE_DIR / "datasets" / "sri_lanka_crop_prices.csv"
+FALLBACK_DATA_PATH = BASE_DIR / "datasets" / "Vegetables_fruit_prices_with_climate_130000_2020_to_2025.csv"
+DEFAULT_DATA_PATH = PRIMARY_DATA_PATH if PRIMARY_DATA_PATH.is_file() else FALLBACK_DATA_PATH
 
 _df_cache: Optional[pd.DataFrame] = None
 _cache_path: Optional[Path] = None
@@ -25,10 +27,11 @@ _cache_mtime: Optional[float] = None
 
 
 def _read_prices_dataframe(csv_path: Path) -> pd.DataFrame:
-    """Read CSV with the same encoding and column cleanup as train_model.py."""
+    """Read CSV with appropriate encoding and date column resolution."""
     df = pd.read_csv(csv_path, encoding="latin1")
-    df.columns = [col.replace("", "").strip() for col in df.columns]
-    df["Date"] = pd.to_datetime(df["Date"])
+    df.columns = [col.strip() for col in df.columns]
+    date_col = "date" if "date" in df.columns else ("Date" if "Date" in df.columns else df.columns[0])
+    df["Date"] = pd.to_datetime(df[date_col])
     return df
 
 
@@ -49,11 +52,32 @@ def get_cached_dataframe(csv_path: Path = DEFAULT_DATA_PATH) -> pd.DataFrame:
 
 def _national_daily_series(df: pd.DataFrame) -> pd.Series:
     """Same filtering and aggregation as train_model.py."""
-    comm_col = [c for c in df.columns if "vegitable_Commodity" in c][0]
-    price_col = [c for c in df.columns if "vegitable_Price" in c][0]
-    df_tomato = df[df[comm_col].str.contains("Tomato", case=False, na=False)]
+    if "productname" in df.columns:
+        df_tomato = df[df["productname"].astype(str).str.contains("Tomato", case=False, na=False)].copy()
+        if not df_tomato.empty:
+            if "retailpricedambulla" in df_tomato.columns:
+                price_col = "retailpricedambulla"
+            elif "retailpricepettah" in df_tomato.columns:
+                price_col = "retailpricepettah"
+            elif "farmprice" in df_tomato.columns:
+                price_col = "farmprice"
+            else:
+                price_col = df_tomato.select_dtypes(include=["number"]).columns[0]
+            daily = df_tomato.groupby("Date", as_index=True)[price_col].mean().sort_index()
+            return daily
+
+    comm_cols = [c for c in df.columns if "vegitable_Commodity" in c or "commodity" in c.lower()]
+    price_cols = [c for c in df.columns if "vegitable_Price" in c or "price" in c.lower()]
+    
+    if comm_cols:
+        df_tomato = df[df[comm_cols[0]].astype(str).str.contains("Tomato", case=False, na=False)]
+    else:
+        df_tomato = pd.DataFrame()
+
     if df_tomato.empty:
         df_tomato = df
+
+    price_col = price_cols[0] if price_cols else df.columns[-1]
     daily = df_tomato.groupby("Date", as_index=True)[price_col].mean().sort_index()
     return daily
 

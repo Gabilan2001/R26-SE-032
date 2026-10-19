@@ -15,22 +15,27 @@ import { saveHistory } from '../api/historyApi';
 import { computeSeverity } from '../utils/severity';
 import { exportScanReport } from '../utils/reportExport';
 
+import { palette as P, radius, shadow } from '../theme';
+import ScreenHeader from '../components/ScreenHeader';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 // ── Tokens ────────────────────────────────────────────────────────────────────
 const C = {
-  bg:           '#0f0f0f',
-  surface:      '#1a1a1a',
-  surface2:     '#222222',
-  accent:       '#c8f135',
-  accentDim:    'rgba(200,241,53,0.10)',
-  accentBorder: 'rgba(200,241,53,0.22)',
-  text:         '#f0f0f0',
-  muted:        '#555555',
-  border:       'rgba(255,255,255,0.07)',
-  warn:         '#f5a623',
-  warnDim:      'rgba(245,166,35,0.10)',
+  bg: P.bg,
+  surface: P.surface,
+  surface2: P.surface2,
+  accent: P.forestMid,
+  accentDim: P.surfaceTint,
+  accentBorder: '#CFE3B8',
+  text: P.text,
+  muted: P.muted,
+  textSoft: P.textSoft,
+  border: P.border,
+  borderStrong: P.borderStrong,
+  warn: P.warn,
+  warnDim: P.warnDim,
   warnBorder:   'rgba(245,166,35,0.22)',
-  blue:         '#378add',
-  blueDim:      'rgba(55,138,221,0.10)',
+  blue: P.info,
+  blueDim: P.infoDim,
   blueBorder:   'rgba(55,138,221,0.20)',
 };
 
@@ -170,27 +175,25 @@ export default function DetailScreen({ route, navigation }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+
+      <ScreenHeader
+        title="Treatment Guide"
+        subtitle={detail.title}
+        eyebrow="Nutrient module"
+        onBack={() => navigation.goBack()}
+        right={
+          <TouchableOpacity style={styles.exportBtn} onPress={onExport} activeOpacity={0.75}>
+            <MaterialCommunityIcons name="export-variant" size={20} color={P.lime} />
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Back row ── */}
-        <View style={styles.backRow}>
-          <View style={styles.backLeft}>
-            <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-              <Text style={styles.backArrow}>←</Text>
-            </TouchableOpacity>
-            <Text style={styles.screenTitle}>Treatment Guide</Text>
-          </View>
-          {/* Export shortcut */}
-          <TouchableOpacity style={styles.backBtn} onPress={onExport}>
-            <Text style={styles.backArrow}>⬆</Text>
-          </TouchableOpacity>
-        </View>
-
         {/* ── Hero card ── */}
         <Animated.View style={[styles.heroCard, { opacity: heroOp, transform: [{ translateY: heroY }] }]}>
           <View style={styles.heroBlob} pointerEvents="none" />
@@ -286,65 +289,62 @@ export default function DetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   root:    { flex: 1, backgroundColor: C.bg },
   scroll:  { flex: 1 },
-  content: { padding: 18, paddingBottom: 40 },
+  content: { padding: 18, paddingTop: 18, paddingBottom: 120 },
 
-  // Back
-  backRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, paddingTop: 4 },
-  backLeft:    { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  backBtn:     { width: 32, height: 32, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  backArrow:   { fontSize: 15, color: C.text },
-  screenTitle: { fontSize: 17, fontWeight: '800', color: C.text },
+  exportBtn: {
+    width: 42, height: 42, borderRadius: 14,
+    backgroundColor: 'rgba(214,239,117,0.14)', borderWidth: 1, borderColor: 'rgba(214,239,117,0.35)',
+    alignItems: 'center', justifyContent: 'center',
+  },
 
   // Hero
   heroCard: {
-    backgroundColor: '#0f1a00',
-    borderWidth: 1, borderColor: C.accentBorder,
-    borderRadius: 22, padding: 18, marginBottom: 14, overflow: 'hidden',
+    backgroundColor: P.forestMid,
+    borderRadius: radius.xl, padding: 20, marginBottom: 14, overflow: 'hidden', ...shadow.card,
   },
-  heroBlob:  { position: 'absolute', top: -40, right: -40, width: 120, height: 120, borderRadius: 60, backgroundColor: C.accent, opacity: 0.06 },
+  heroBlob:  { position: 'absolute', top: -40, right: -40, width: 120, height: 120, borderRadius: 60, backgroundColor: P.lime, opacity: 0.14 },
   heroBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start',
-               backgroundColor: C.accentDim, borderWidth: 1, borderColor: C.accentBorder,
-               borderRadius: 100, paddingHorizontal: 10, paddingVertical: 3, marginBottom: 12 },
-  badgeDot:  { width: 5, height: 5, borderRadius: 3, backgroundColor: C.accent },
-  badgeTxt:  { fontSize: 10, color: C.accent, fontWeight: '700', letterSpacing: 0.4 },
-  heroTitle: { fontSize: 22, fontWeight: '800', color: '#fff', lineHeight: 27, marginBottom: 8 },
-  heroSub:   { fontSize: 12, color: 'rgba(255,255,255,0.45)', lineHeight: 18 },
+               backgroundColor: 'rgba(214,239,117,0.16)', borderWidth: 1, borderColor: 'rgba(214,239,117,0.35)',
+               borderRadius: 100, paddingHorizontal: 10, paddingVertical: 4, marginBottom: 12 },
+  badgeDot:  { width: 5, height: 5, borderRadius: 3, backgroundColor: P.lime },
+  badgeTxt:  { fontSize: 10, color: P.lime, fontWeight: '700', letterSpacing: 0.4 },
+  heroTitle: { fontSize: 24, fontWeight: '800', color: '#fff', lineHeight: 29, marginBottom: 8, letterSpacing: -0.5 },
+  heroSub:   { fontSize: 13, color: 'rgba(255,255,255,0.78)', lineHeight: 19 },
 
   // Quick stats
   quickStats: { flexDirection: 'row', gap: 10, marginBottom: 14 },
-  qstatCard:  { flex: 1, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 14, padding: 12 },
+  qstatCard:  { flex: 1, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: radius.md, padding: 14, ...shadow.card },
   qstatLabel: { fontSize: 9, color: C.muted, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
   qstatValue: { fontSize: 16, fontWeight: '800', color: C.text },
 
   // Section card
-  sectionCard:   { backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 18, padding: 16, marginBottom: 12 },
+  sectionCard:   { backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: radius.lg, padding: 16, marginBottom: 12, ...shadow.card },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 12 },
   sectionIcon:   { width: 30, height: 30, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   iconGreen:     { backgroundColor: C.accentDim, borderWidth: 1, borderColor: C.accentBorder },
   iconWarn:      { backgroundColor: C.warnDim,   borderWidth: 1, borderColor: C.warnBorder   },
   iconBlue:      { backgroundColor: C.blueDim,   borderWidth: 1, borderColor: C.blueBorder   },
   sectionTitle:  { fontSize: 14, fontWeight: '800', color: C.text },
-  sectionBody:   { fontSize: 12.5, color: 'rgba(255,255,255,0.6)', lineHeight: 20 },
+  sectionBody:   { fontSize: 12.5, color: C.textSoft, lineHeight: 20 },
 
   // Steps
   stepItem:     { flexDirection: 'row', gap: 10, alignItems: 'flex-start', marginBottom: 10 },
   stepBadge:    { width: 22, height: 22, borderRadius: 7, backgroundColor: C.accent, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
-  stepBadgeTxt: { fontSize: 10, fontWeight: '800', color: '#0f0f0f' },
-  stepTxt:      { flex: 1, fontSize: 12.5, color: 'rgba(255,255,255,0.65)', lineHeight: 19 },
+  stepBadgeTxt: { fontSize: 10, fontWeight: '800', color: P.onDark },
+  stepTxt:      { flex: 1, fontSize: 12.5, color: C.textSoft, lineHeight: 19 },
 
   // Dosage
   dosageCard:  { backgroundColor: C.accentDim, borderWidth: 1, borderColor: C.accentBorder, borderRadius: 12, padding: 12, gap: 7 },
   dosageRow:   { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   dosageDot:   { width: 6, height: 6, borderRadius: 3, backgroundColor: C.accent, marginTop: 6 },
-  dosageTxt:   { flex: 1, fontSize: 12, color: 'rgba(255,255,255,0.7)', lineHeight: 19 },
+  dosageTxt:   { flex: 1, fontSize: 12, color: C.textSoft, lineHeight: 19 },
 
   // Buttons
-  btnPrimary:    { backgroundColor: C.accent, borderRadius: 14, paddingVertical: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginBottom: 10 },
+  btnPrimary:    { backgroundColor: C.accent, borderRadius: radius.md, ...shadow.card, paddingVertical: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginBottom: 10 },
   btnPrimaryDisabled: { opacity: 0.65 },
   btnPrimaryIcon:{ fontSize: 15 },
-  btnPrimaryTxt: { fontSize: 14, fontWeight: '800', color: '#0f0f0f', letterSpacing: 0.3 },
-
-  btnOutline:    { backgroundColor: C.surface, borderWidth: 1.5, borderColor: C.border, borderRadius: 14, paddingVertical: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  btnPrimaryTxt: { fontSize: 14, fontWeight: '800', color: P.onDark, letterSpacing: 0.3 },
+  btnOutline:    { backgroundColor: C.surface, borderWidth: 1.5, borderColor: C.borderStrong, borderRadius: radius.md, paddingVertical: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
   btnOutlineIcon:{ fontSize: 14 },
-  btnOutlineTxt: { fontSize: 13, fontWeight: '600', color: C.muted },
+  btnOutlineTxt: { fontSize: 13, fontWeight: '700', color: C.text },
 });

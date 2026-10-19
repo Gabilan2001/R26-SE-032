@@ -59,7 +59,7 @@ export function SemicircularSeverityGauge({
       <Svg width={width} height={svgHeight} viewBox={`0 0 ${width} ${svgHeight}`}>
         <Path
           d={d}
-          stroke="#3a4f42"
+          stroke="#E3E8DF"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           fill="none"
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   sub: {
     marginTop: 2,
     fontSize: 13,
-    color: "#8a9d91",
+    color: "#5E6E64",
     fontWeight: "500",
   },
 });

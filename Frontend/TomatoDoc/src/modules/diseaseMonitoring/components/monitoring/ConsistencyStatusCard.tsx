@@ -11,6 +11,8 @@ import {
 type Props = {
   status: string;
   similarity?: number | null;
+  showSimilarity?: boolean;
+  compact?: boolean;
 };
 
 function tone(status: string, p: MonitoringPalette) {
@@ -34,10 +36,15 @@ function tone(status: string, p: MonitoringPalette) {
   return { border: p.cardBorder, bg: p.bgElevated, text: p.textMuted };
 }
 
-export function ConsistencyStatusCard({ status, similarity }: Props) {
+export function ConsistencyStatusCard({
+  status,
+  similarity,
+  showSimilarity = false,
+  compact = false,
+}: Props) {
   const p = useMonitoringPalette();
   const t = tone(status, p);
-  const styles = useMemo(() => makeStyles(p), [p]);
+  const styles = useMemo(() => makeStyles(p, compact), [p, compact]);
   const icon =
     status === "MATCH" || status === "BASELINE"
       ? "✓"
@@ -48,7 +55,14 @@ export function ConsistencyStatusCard({ status, similarity }: Props) {
           : "·";
 
   return (
-    <View style={[styles.card, { borderColor: t.border, backgroundColor: t.bg }]}>
+    <View
+      style={[
+        styles.card,
+        compact
+          ? styles.cardCompact
+          : { borderColor: t.border, backgroundColor: t.bg },
+      ]}
+    >
       <View style={styles.row}>
         <View style={[styles.icon, { borderColor: t.border }]}>
           <Text style={{ color: t.text, fontWeight: "800" }}>{icon}</Text>
@@ -57,7 +71,7 @@ export function ConsistencyStatusCard({ status, similarity }: Props) {
           <Text style={[styles.title, { color: t.text }]}>
             {consistencyFarmerTitle(status)}
           </Text>
-          {similarity != null ? (
+          {showSimilarity && similarity != null ? (
             <Text style={styles.meta}>Similarity score: {formatScore(similarity)}</Text>
           ) : null}
         </View>
@@ -67,13 +81,19 @@ export function ConsistencyStatusCard({ status, similarity }: Props) {
   );
 }
 
-function makeStyles(p: MonitoringPalette) {
+function makeStyles(p: MonitoringPalette, compact: boolean) {
   return StyleSheet.create({
     card: {
       borderRadius: 14,
       borderWidth: 1,
       padding: 14,
       marginTop: 12,
+    },
+    cardCompact: {
+      borderWidth: 0,
+      padding: 0,
+      marginTop: 8,
+      backgroundColor: "transparent",
     },
     row: { flexDirection: "row", gap: 10, alignItems: "center" },
     icon: {

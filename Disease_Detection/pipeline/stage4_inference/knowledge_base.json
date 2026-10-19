@@ -1,0 +1,515 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "last_updated": "2026-05",
+    "sources": [
+      {
+        "id": "DOA_SL_2020",
+        "name": "Department of Agriculture Sri Lanka - HORDI Tomato Crop Guide",
+        "url": "https://doa.gov.lk/hordi-crop-tomato/",
+        "type": "Government Publication",
+        "country": "Sri Lanka",
+        "year": 2020
+      },
+      {
+        "id": "DOA_SL_PEST_2019",
+        "name": "Pesticide Recommendation - Department of Agriculture Sri Lanka",
+        "url": "https://doa.gov.lk",
+        "type": "Government Publication",
+        "country": "Sri Lanka",
+        "year": 2019
+      },
+      {
+        "id": "NCBI_LB_2024",
+        "name": "Biocontrol Potential of Bacillus velezensis RS65 Against Phytophthora infestans",
+        "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11945266/",
+        "type": "Peer-reviewed Research",
+        "year": 2024
+      },
+      {
+        "id": "NCBI_EB_2024",
+        "name": "Bacillus velezensis YXDHD1-7 Prevents Early Blight Disease",
+        "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11124510/",
+        "type": "Peer-reviewed Research",
+        "year": 2024
+      },
+      {
+        "id": "CORNELL_2023",
+        "name": "Managing Tomato Diseases Successfully - Cornell University",
+        "url": "https://www.vegetables.cornell.edu/pest-management/disease-factsheets/managing-tomato-diseases-successfully/",
+        "type": "University Extension",
+        "year": 2023
+      },
+      {
+        "id": "GENERAL_IPM_UNVERIFIED",
+        "name": "General integrated pest management guidance for Liriomyza leaf miners (not yet verified against a Sri Lanka DOA-specific publication)",
+        "url": "",
+        "type": "General agricultural knowledge — needs local verification",
+        "year": 2026
+      }
+    ]
+  },
+
+  "diseases": {
+    "early_blight": {
+      "name": "Early Blight",
+      "scientific_name": "Alternaria solani",
+      "sinhala_name": "කල් ශාක දළඹුව",
+      "type": "Fungal Disease",
+      "severity": "Moderate to Severe",
+      "description": "Early Blight is caused by the soil-borne fungus Alternaria solani. It is one of the most common and economically significant tomato diseases in Sri Lanka and tropical regions. Despite its name, it can occur at any growth stage.",
+      "source": "DOA_SL_2020",
+
+      "symptoms": [
+        "Dark brown to black spots with concentric rings (bull's-eye pattern) on older lower leaves",
+        "Yellow halo surrounding the lesions",
+        "Spots enlarge and merge causing leaf yellowing and defoliation",
+        "Defoliation starts from the base of the plant and moves upwards",
+        "Dark sunken lesions can also appear on fruits and stems",
+        "Severely affected leaves drop prematurely reducing yield"
+      ],
+
+      "favorable_conditions": [
+        "High temperatures (24°C - 29°C)",
+        "High humidity and prolonged leaf wetness",
+        "Overcrowded plants with poor air circulation",
+        "Plants under stress (nutrient deficiency, drought)",
+        "Heavy dew and rainy conditions"
+      ],
+
+      "treatment": {
+        "chemical": [
+          {
+            "fungicide": "Mancozeb 80% WP",
+            "dosage": "32g per 16 litres of water (standard knapsack sprayer)",
+            "interval": "7-10 days",
+            "pre_harvest_interval": "14 days — do not harvest fruit within 14 days of the last spray",
+            "type": "Contact (Protectant)",
+            "source": "DOA_SL_PEST_2019",
+            "notes": "Official DOA Sri Lanka Pesticide Recommendations (2019), Fungicides section, Crop 14 (Potato and Tomato), Early Blight. Alternate with a systemic fungicide. Start spraying after first symptoms. Maximum 3 applications per season."
+          },
+          {
+            "fungicide": "Mancozeb 64% + Metalaxyl 8% WP",
+            "dosage": "40g per 16 litres of water (standard knapsack sprayer)",
+            "interval": "12-14 days",
+            "pre_harvest_interval": "14 days — do not harvest fruit within 14 days of the last spray",
+            "type": "Systemic + Contact",
+            "source": "DOA_SL_PEST_2019",
+            "notes": "Official DOA Sri Lanka Pesticide Recommendations (2019), Fungicides section, Crop 14 (Potato and Tomato), Early Blight. Corrected from an earlier version of this knowledge base which had the wrong dosage and litre-basis — verified directly against the source document."
+          },
+          {
+            "fungicide": "Metiram 55% + Pyraclostrobin 5% WG",
+            "dosage": "32g per 16 litres of water (standard knapsack sprayer)",
+            "interval": "10-12 days",
+            "pre_harvest_interval": "14 days — do not harvest fruit within 14 days of the last spray",
+            "type": "Contact + Systemic",
+            "source": "DOA_SL_PEST_2019",
+            "notes": "Official DOA Sri Lanka Pesticide Recommendations (2019), Fungicides section, Crop 14 (Potato and Tomato), Early Blight. This is a WG (water dispersible granule/powder) product, measured in grams, not millilitres — corrected from an earlier version of this knowledge base which incorrectly listed it in ml."
+          },
+          {
+            "fungicide": "Chlorothalonil",
+            "dosage": "Per label instructions",
+            "interval": "7-14 days",
+            "type": "Contact (Protectant)",
+            "source": "CORNELL_2023",
+            "notes": "Broad-spectrum protectant. Apply to upper and lower leaf surfaces. Reapply after rain."
+          },
+          {
+            "fungicide": "Difenoconazole",
+            "dosage": "Per label instructions",
+            "interval": "7-10 days",
+            "type": "Systemic",
+            "source": "NCBI_EB_2024",
+            "notes": "Highly effective systemic fungicide. Research shows up to 65% disease reduction over control."
+          }
+        ],
+        "biological": [
+          {
+            "agent": "Bacillus velezensis",
+            "type": "Biocontrol Agent",
+            "source": "NCBI_EB_2024",
+            "notes": "Research shows Bacillus velezensis promotes plant growth and enhances defense enzyme activities against Alternaria solani. Environmentally friendly alternative to chemical fungicides."
+          }
+        ],
+        "application_tips": [
+          "Apply fungicides at the INITIAL stage of disease development — do not wait until severe infection",
+          "Spray both upper AND lower leaf surfaces thoroughly",
+          "Apply to the point of runoff for complete coverage",
+          "Reapply after heavy rainfall",
+          "Alternate between different fungicide groups to prevent resistance development",
+          "Apply in early morning or late afternoon to avoid heat stress on plants"
+        ],
+        "application_volume": {
+          "ml_per_mature_plant": "150-200ml of mixed spray solution for one fully-grown plant, sprayed to the point of run-off (leaves visibly wet, droplets just starting to drip)",
+          "note": "Younger or smaller plants need less; large, bushy plants may need more. This is a coverage-based estimate, not a fixed dose — spray until the leaves are wet, not by a strict volume target.",
+          "minimum_practical_batch": "The DOA dosages above are given per 16-litre knapsack sprayer, the standard local sprayer size — mixing a full 16L batch for just 1-2 plants is wasteful and hard to measure down accurately. Prepare a minimum of 1 litre instead (1/16 of the listed dose, e.g. 2g Mancozeb 80% WP in 1L water), enough for roughly 5-6 mature plants at 150-200ml each. For a single plant, prepare this 1L batch and discard the unused portion rather than trying to measure a fraction of a gram.",
+          "source": "Per-plant coverage volume (150-200ml) is general agricultural extension guidance, not yet confirmed from a DOA Sri Lanka-specific source. The underlying per-16L product dosages themselves ARE DOA-sourced (DOA_SL_PEST_2019) — see the chemical treatment entries above, which also include the pre-harvest interval (PHI) for each product."
+        }
+      },
+
+      "prevention": [
+        {
+          "category": "Cultural Practices",
+          "practices": [
+            "Use disease-resistant or tolerant tomato varieties (e.g., DOA released varieties: Thilina, KWR, Ravi, Maheshi)",
+            "Practice crop rotation — do not plant tomatoes or other Solanaceae crops in the same field for at least 2-3 years",
+            "Remove and destroy infected plant debris immediately after harvest — do not compost",
+            "Remove infected leaves from the base of the plant as soon as symptoms appear",
+            "Avoid overhead irrigation — use drip or furrow irrigation to keep foliage dry",
+            "Water plants in the morning so foliage dries before nightfall",
+            "Maintain proper plant spacing (80cm x 50cm as recommended by DOA Sri Lanka) for good air circulation",
+            "Stake or trellis plants to keep foliage off the ground",
+            "Remove weeds regularly — weeds can harbor the pathogen and increase disease pressure"
+          ]
+        },
+        {
+          "category": "Soil and Nutrition Management",
+          "practices": [
+            "Apply well-decomposed organic matter (10 t/ha) to improve soil health",
+            "Maintain balanced fertilization — potassium and calcium strengthen plant cell walls reducing susceptibility",
+            "Avoid excessive nitrogen fertilization which promotes lush growth susceptible to disease",
+            "Maintain soil pH between 5.5-7.5 as recommended by DOA Sri Lanka",
+            "Ensure good soil drainage to reduce root stress"
+          ]
+        },
+        {
+          "category": "Nursery Management",
+          "practices": [
+            "Treat seeds with Captan or Thiram (2g per 125g of seeds) before sowing — DOA Sri Lanka recommendation",
+            "Use virgin lands or heat-sterilized soil for nursery beds",
+            "Start with healthy certified seedlings",
+            "Harden seedlings before transplanting"
+          ]
+        },
+        {
+          "category": "Monitoring",
+          "practices": [
+            "Inspect plants regularly (at least twice a week) especially during humid conditions",
+            "Begin preventive fungicide spray program before symptoms appear if conditions are favorable",
+            "Monitor weather — apply protective fungicide spray before expected rainy or humid periods"
+          ]
+        }
+      ]
+    },
+
+    "late_blight": {
+      "name": "Late Blight",
+      "scientific_name": "Phytophthora infestans",
+      "sinhala_name": "අග ශාක දළඹුව",
+      "type": "Oomycete Disease (Water Mold)",
+      "severity": "Very Severe — Can destroy entire crop rapidly",
+      "description": "Late Blight is caused by Phytophthora infestans, a highly destructive pathogen historically responsible for the Irish Potato Famine. In Sri Lanka and tropical regions, it can spread extremely rapidly under cool, wet conditions and destroy an entire tomato crop within days if not managed promptly.",
+      "source": "DOA_SL_2020",
+
+      "symptoms": [
+        "Irregular dark green to brown water-soaked spots on leaves, often surrounded by a pale yellow-green halo",
+        "White-grayish mold (sporulation) visible on the underside of leaves under high humidity",
+        "Spots rapidly enlarge and turn dark brown to black causing complete leaf death",
+        "Dark water-soaked lesions on stems — stem lesions can girdle and kill entire branches",
+        "Dark, firm, brown lesions on fruits — affected fruits quickly rot",
+        "Disease spreads extremely rapidly — entire field can be destroyed in 7-10 days under favorable conditions",
+        "Distinctive foul smell from rotting affected tissue"
+      ],
+
+      "favorable_conditions": [
+        "Cool temperatures (10°C - 20°C) with high relative humidity (>90%)",
+        "Prolonged wet or rainy weather",
+        "Overhead irrigation creating wet foliage",
+        "Poor air circulation in dense plantings",
+        "Cloudy weather with little sunlight",
+        "Night temperatures below 20°C with warm days"
+      ],
+
+      "treatment": {
+        "chemical": [
+          {
+            "fungicide": "Mancozeb 80% WP",
+            "dosage": "32g per 16 litres of water (standard knapsack sprayer)",
+            "interval": "7-10 days",
+            "pre_harvest_interval": "14 days — do not harvest fruit within 14 days of the last spray",
+            "type": "Contact (Protectant)",
+            "source": "DOA_SL_PEST_2019",
+            "notes": "Official DOA Sri Lanka Pesticide Recommendations (2019), Fungicides section, Crop 14 (Potato and Tomato), Late Blight. Must be applied PREVENTIVELY before disease onset — less effective once disease is established. Maximum 3 applications per season."
+          },
+          {
+            "fungicide": "Mancozeb 64% + Metalaxyl 8% WP",
+            "dosage": "50g per 16 litres of water (standard knapsack sprayer)",
+            "interval": "12-14 days",
+            "pre_harvest_interval": "14 days — do not harvest fruit within 14 days of the last spray",
+            "type": "Systemic + Contact",
+            "source": "DOA_SL_PEST_2019",
+            "notes": "Official DOA Sri Lanka Pesticide Recommendations (2019), Fungicides section, Crop 14 (Potato and Tomato), Late Blight. Contains a systemic component for better control than contact fungicides alone. Corrected from an earlier version of this knowledge base which had the wrong dosage and litre-basis."
+          },
+          {
+            "fungicide": "Metiram 55% + Pyraclostrobin 5% WG",
+            "dosage": "32g per 16 litres of water (standard knapsack sprayer)",
+            "interval": "10-12 days",
+            "pre_harvest_interval": "14 days — do not harvest fruit within 14 days of the last spray",
+            "type": "Contact + Systemic",
+            "source": "DOA_SL_PEST_2019",
+            "notes": "Official DOA Sri Lanka Pesticide Recommendations (2019), Fungicides section, Crop 14 (Potato and Tomato), Late Blight. This is a WG (water dispersible granule/powder) product, measured in grams, not millilitres — corrected from an earlier version of this knowledge base."
+          },
+          {
+            "fungicide": "Azoxystrobin 250 g/l SC",
+            "dosage": "16ml per 16 litres of water (standard knapsack sprayer)",
+            "interval": "10-12 days",
+            "pre_harvest_interval": "14 days — do not harvest fruit within 14 days of the last spray",
+            "type": "Systemic",
+            "source": "DOA_SL_PEST_2019",
+            "notes": "Official DOA Sri Lanka Pesticide Recommendations (2019), Fungicides section, Crop 14 (Potato and Tomato), Late Blight."
+          },
+          {
+            "fungicide": "Cymoxanil (Curzate/Tanos)",
+            "dosage": "Per label instructions",
+            "interval": "3-5 days after application another fungicide needed",
+            "type": "Systemic (Curative)",
+            "source": "CORNELL_2023",
+            "notes": "Good curative activity but short residual — must be tank-mixed with a protectant fungicide."
+          },
+          {
+            "fungicide": "Mandipropamid (Revus)",
+            "dosage": "Per label instructions",
+            "interval": "9 days",
+            "type": "Systemic (CAA inhibitor)",
+            "source": "NCBI_LB_2024",
+            "notes": "Research shows excellent control (≥75%) of late blight. Apply preventively."
+          }
+        ],
+        "biological": [
+          {
+            "agent": "Bacillus velezensis RS65",
+            "type": "Biocontrol Agent",
+            "source": "NCBI_LB_2024",
+            "notes": "Research (2024) shows RS65 treatment reduced late blight severity from 31.26% to 16.54%. Promising sustainable alternative. Not yet widely commercially available."
+          },
+          {
+            "agent": "Copper-based fungicides",
+            "type": "Organic/Biological",
+            "source": "CORNELL_2023",
+            "notes": "Copper provides some protective control especially in organic production. Apply preventively. Not effective once disease is established."
+          }
+        ],
+        "application_tips": [
+          "CRITICAL: Apply fungicides PREVENTIVELY — late blight is extremely difficult to control after detection",
+          "Increase spray frequency to every 5-7 days during cool wet weather",
+          "Apply systemic fungicides (Metalaxyl mixtures) for better penetration into plant tissue",
+          "Always tank-mix mobile/systemic fungicides with a protectant fungicide",
+          "Alternate fungicide groups to prevent resistance — P. infestans develops resistance rapidly",
+          "Remove and destroy severely infected plant material immediately",
+          "Do NOT compost infected material — destroy by burning",
+          "Spray equipment can spread spores — clean thoroughly between fields"
+        ],
+        "application_volume": {
+          "ml_per_mature_plant": "150-200ml of mixed spray solution for one fully-grown plant, sprayed to the point of run-off (leaves visibly wet, droplets just starting to drip)",
+          "note": "Younger or smaller plants need less; large, bushy plants may need more. This is a coverage-based estimate, not a fixed dose — spray until the leaves are wet, not by a strict volume target.",
+          "minimum_practical_batch": "The DOA dosages above are given per 16-litre knapsack sprayer, the standard local sprayer size — mixing a full 16L batch for just 1-2 plants is wasteful and hard to measure down accurately. Prepare a minimum of 1 litre instead (1/16 of the listed dose, e.g. 2g Mancozeb 80% WP in 1L water), enough for roughly 5-6 mature plants at 150-200ml each. For a single plant, prepare this 1L batch and discard the unused portion rather than trying to measure a fraction of a gram.",
+          "source": "Per-plant coverage volume (150-200ml) is general agricultural extension guidance, not yet confirmed from a DOA Sri Lanka-specific source. The underlying per-16L product dosages themselves ARE DOA-sourced (DOA_SL_PEST_2019) — see the chemical treatment entries above, which also include the pre-harvest interval (PHI) for each product."
+        }
+      },
+
+      "prevention": [
+        {
+          "category": "Cultural Practices",
+          "practices": [
+            "Use resistant tomato varieties when available — ask DOA Sri Lanka (HORDI, Gannoruwa) for currently recommended resistant varieties",
+            "Avoid planting in low-lying areas with poor air movement",
+            "Maintain proper plant spacing (80cm x 50cm) for good air circulation",
+            "Avoid overhead irrigation — use drip or furrow irrigation",
+            "Water plants in the morning only — allow foliage to dry during the day",
+            "Remove and destroy all infected plant debris immediately after harvest",
+            "Practice crop rotation — do not plant tomatoes or potatoes (same pathogen) in same field for 2-3 years",
+            "Do not bring infected transplants into a clean field",
+            "Remove volunteer tomato and potato plants which can harbor the pathogen"
+          ]
+        },
+        {
+          "category": "Monitoring and Early Action",
+          "practices": [
+            "Monitor weather forecasts — cool temperatures (10-20°C) with rain or high humidity signal high risk",
+            "Begin preventive fungicide applications before symptoms appear when weather favors disease",
+            "Inspect lower leaves and undersides of leaves for early symptoms",
+            "Act immediately at first sign of infection — do not delay treatment",
+            "Inform neighboring farmers if late blight is detected — spores spread by wind and can infect nearby fields"
+          ]
+        },
+        {
+          "category": "Field Sanitation",
+          "practices": [
+            "Remove all crop debris and destroy after harvest",
+            "Avoid working in infected fields when plants are wet — spores spread on clothing and equipment",
+            "Work in infected fields last — do not move from infected to healthy fields",
+            "Clean and disinfect equipment between fields",
+            "Do not store infected fruits or plant material near healthy plants"
+          ]
+        },
+        {
+          "category": "Soil and Nutrition",
+          "practices": [
+            "Ensure good soil drainage — waterlogged conditions favor P. infestans",
+            "Apply balanced fertilization — avoid excess nitrogen",
+            "Use well-decomposed organic matter to improve soil structure and drainage"
+          ]
+        }
+      ]
+    },
+
+    "leaf_miner": {
+      "name": "Leaf Miner",
+      "scientific_name": "Tuta absoluta (Sri Lanka DOA's official designation for tomato leaf miner damage, under Polytunnel Pests); visually similar serpentine mining can also be caused by Liriomyza spp. leaf-mining flies on other crops",
+      "sinhala_name": "පත්‍ර සිදුරු කෘමියා",
+      "type": "Insect Pest (Leaf-mining moth larvae, also bores fruit at later stages)",
+      "severity": "Mild to Moderate on leaves alone — mainly reduces photosynthesis and cosmetic quality; this pest can also bore into fruit, which is more economically damaging, so it should not be dismissed as purely cosmetic",
+      "description": "Leaf miner damage on Sri Lankan tomato is officially attributed by the DOA (Pesticide Recommendations 2019, Polytunnel Pests) to Tuta absoluta, whose larvae tunnel through leaf tissue creating winding pale/white trails, and can progress to boring fruit. Globally, visually similar serpentine leaf mines are also caused by Liriomyza leaf-mining flies on various crops.",
+      "source": "GENERAL_IPM_UNVERIFIED",
+
+      "symptoms": [
+        "Winding, serpentine white to pale tunnels (mines) visible on the leaf surface, following an irregular trail",
+        "Small white speckled puncture marks from adult feeding/egg-laying, often clustered near the trail",
+        "Tunnels widen progressively as the larva grows inside",
+        "Heavily mined leaves may yellow, dry out, and drop prematurely",
+        "Multiple overlapping mines can occur on a single leaf under heavy infestation",
+        "Unlike blight, damage does not spread as dark lesions — it stays confined to visible tunnel trails"
+      ],
+
+      "favorable_conditions": [
+        "Warm weather favors rapid leaf miner fly reproduction",
+        "Dense plantings with heavy foliage give more egg-laying sites",
+        "Overuse of broad-spectrum insecticides that kill the natural parasitoid wasps which normally keep leaf miner populations in check",
+        "Nearby host weeds or previous infested crops carrying over adult flies"
+      ],
+
+      "treatment": {
+        "chemical": [
+          {
+            "fungicide": "Emamectin benzoate 5% SG",
+            "dosage": "6g per 16 litres of water (standard knapsack sprayer)",
+            "interval": "minimum 7 days between applications, only if damage is seen",
+            "pre_harvest_interval": "10 days — do not harvest fruit within 10 days of the last spray",
+            "type": "Contact + ingestion (larvicide)",
+            "source": "DOA_SL_PEST_2019",
+            "notes": "Official DOA Sri Lanka Pesticide Recommendations (2019), Insecticides section, Crop 06 (Tomato — Polytunnel Pests), Leaf Miner/Fruit Borer (Tuta absoluta). Apply only for larvae control."
+          },
+          {
+            "fungicide": "Abamectin 18 g/l EC",
+            "dosage": "10ml per 16 litres of water (standard knapsack sprayer)",
+            "interval": "minimum 7 days between applications, only if damage is seen",
+            "pre_harvest_interval": "14 days — do not harvest fruit within 14 days of the last spray",
+            "type": "Contact + translaminar (moves short distance into leaf tissue)",
+            "source": "DOA_SL_PEST_2019",
+            "notes": "Official DOA Sri Lanka Pesticide Recommendations (2019), Insecticides section, Crop 06 (Tomato — Polytunnel Pests), Leaf Miner/Fruit Borer (Tuta absoluta). Apply only for larvae control."
+          },
+          {
+            "fungicide": "Indoxacarb 150 g/l EC",
+            "dosage": "6ml per 16 litres of water (standard knapsack sprayer)",
+            "interval": "minimum 7 days between applications, only if damage is seen",
+            "pre_harvest_interval": "14 days — do not harvest fruit within 14 days of the last spray",
+            "type": "Contact + ingestion (larvicide)",
+            "source": "DOA_SL_PEST_2019",
+            "notes": "Official DOA Sri Lanka Pesticide Recommendations (2019), Insecticides section, Crop 06 (Tomato — Polytunnel Pests), Leaf Miner/Fruit Borer (Tuta absoluta). Apply only for larvae control."
+          },
+          {
+            "fungicide": "Spinetoram 25% WG",
+            "dosage": "4g per 16 litres of water (standard knapsack sprayer)",
+            "interval": "minimum 7 days between applications, only if damage is seen",
+            "pre_harvest_interval": "14 days — do not harvest fruit within 14 days of the last spray",
+            "type": "Contact + ingestion, biological-derived",
+            "source": "DOA_SL_PEST_2019",
+            "notes": "Official DOA Sri Lanka Pesticide Recommendations (2019), Insecticides section, Crop 06 (Tomato — Polytunnel Pests), Leaf Miner/Fruit Borer (Tuta absoluta). Apply only for larvae control."
+          }
+        ],
+        "biological": [
+          {
+            "agent": "Parasitoid wasps (e.g. Diglyphus isaea, Opius spp.)",
+            "type": "Biocontrol Agent",
+            "source": "GENERAL_IPM_UNVERIFIED",
+            "notes": "Naturally occurring parasitoid wasps lay eggs inside leaf miner larvae and are often the single biggest control factor in the field. Avoid broad-spectrum insecticide sprays that kill these wasps, as doing so can make leaf miner infestations worse, not better. DOA Sri Lanka research has specifically evaluated Diglyphus isaea release rates for Liriomyza huidobrensis management in Sri Lanka's Up Country Wet Zone — consult DOA HORDI for current release-rate guidance."
+          }
+        ],
+        "application_tips": [
+          "IMPORTANT (DOA official notes): Apply insecticides ONLY for larvae control, not as a blanket preventive spray",
+          "Apply at a minimum of 7 days between sprays, only if damage is actually seen",
+          "This pest shows high resistance development — do NOT repeat the same insecticide in consecutive applications; rotate between different products and combine with IPM practices",
+          "Remove and destroy heavily mined leaves by hand — this directly removes larvae before they mature",
+          "Avoid broad-spectrum insecticides where possible — they kill the natural parasitoid wasps that usually keep leaf miner populations low",
+          "Use yellow sticky traps near plants to monitor and reduce adult fly/moth numbers",
+          "Always observe the pre-harvest interval (PHI) for the specific product used before harvesting fruit"
+        ],
+        "application_volume": {
+          "ml_per_mature_plant": "150-200ml of mixed spray solution for one fully-grown plant, sprayed to the point of run-off (leaves visibly wet, droplets just starting to drip)",
+          "note": "Same general coverage principle as fungicide sprays — younger/smaller plants need less. Since leaf miner larvae are protected inside the leaf tissue, thorough coverage matters more for controlling adults/eggs than for reaching the larvae directly.",
+          "minimum_practical_batch": "The DOA dosages above are already given per 16-litre knapsack sprayer, which is the standard local sprayer size. If treating only 1-2 plants, mixing a full 16L batch is wasteful and impractical to measure down; prepare a minimum of 1 litre instead (1/16 of the listed dose), enough for roughly 5-6 mature plants at 150-200ml each.",
+          "source": "Per-plant coverage volume is general agricultural extension guidance, not yet confirmed from a DOA Sri Lanka-specific source. The underlying per-16L product dosages themselves ARE DOA-sourced (DOA_SL_PEST_2019) — see the chemical treatment entries above."
+        }
+      },
+
+      "prevention": [
+        {
+          "category": "Cultural Practices",
+          "practices": [
+            "Inspect young leaves regularly — remove and destroy leaves with active mines before larvae mature into adults",
+            "Practice crop rotation and avoid planting near previously infested Solanaceae crops",
+            "Remove and destroy host weeds near the field that can harbor leaf miner flies",
+            "Avoid excessive nitrogen fertilization — lush, soft growth is more attractive to egg-laying females"
+          ]
+        },
+        {
+          "category": "Biological Conservation",
+          "practices": [
+            "Minimize broad-spectrum insecticide use to protect naturally occurring parasitoid wasps",
+            "Where possible, choose selective products (e.g. spinosad, neem-based) over broad-spectrum options to preserve natural enemies"
+          ]
+        },
+        {
+          "category": "Monitoring",
+          "practices": [
+            "Use yellow sticky traps to monitor adult fly activity and time interventions",
+            "Inspect plants at least twice a week, especially younger leaves, for early mine trails"
+          ]
+        }
+      ]
+    }
+  },
+
+  "co_occurrence_guidance": {
+    "title": "Treating multiple detected diseases/pests together",
+    "notes": [
+      {
+        "topic": "Early Blight + Late Blight (both fungal)",
+        "text": "If both Early Blight and Late Blight are detected on the same plant, you do NOT need two separate fungicide products. Per DOA Sri Lanka's official Pesticide Recommendations (2019), Mancozeb 80% WP, the Mancozeb 64% + Metalaxyl 8% WP combination, and Metiram 55% + Pyraclostrobin 5% WG are each officially listed for BOTH Early Blight and Late Blight — one spray of any of these products, at the dosage listed for that product, treats both diseases at once. Use whichever dosage/interval is listed for the disease present, and if the two overlap in interval, follow the shorter (more frequent) interval to be safe for both.",
+        "source": "DOA_SL_PEST_2019"
+      },
+      {
+        "topic": "Leaf Miner + either fungal blight (insect + fungus)",
+        "text": "Leaf Miner is an insect/moth pest, not a fungus — a fungicide (used for Early/Late Blight) cannot control it, and an insecticide cannot control a fungal disease. If Leaf Miner is detected together with Early Blight and/or Late Blight, you need BOTH a fungicide (for the blight) AND a separate insecticide (for the leaf miner) — there is no single product that treats both categories. To save time, the fungicide and insecticide sprays can often be tank-mixed and applied together in one spray trip on the same day, but only if the specific products are chemically compatible — always check the product labels for tank-mix compatibility, or test a small batch first, before combining. This knowledge base does not have a DOA-verified list of specific compatible tank-mix pairs, so when in doubt, apply them as separate sprays or consult DOA Sri Lanka (HORDI, Gannoruwa) for compatibility advice.",
+        "source": "GENERAL_IPM_UNVERIFIED"
+      },
+      {
+        "topic": "All three detected together (Early Blight + Late Blight + Leaf Miner)",
+        "text": "Use one fungicide product effective against both blights (see the Early+Late Blight guidance above) PLUS one insecticide for Leaf Miner (see the Leaf Miner treatment options) — this is two products/sprays total, not three, since one fungicide already covers both fungal diseases. These two sprays can potentially be tank-mixed into one application if compatible; otherwise apply as two separate sprays, prioritizing whichever problem looks more severe first if time/resources are limited.",
+        "source": "Derived from the two notes above (DOA_SL_PEST_2019 for the fungicide overlap; general IPM guidance for the tank-mix caveat)"
+      }
+    ]
+  },
+
+  "general_ipm": {
+    "title": "Integrated Pest Management for Tomato Diseases in Sri Lanka",
+    "source": "DOA_SL_2020",
+    "principles": [
+      "Use certified disease-free seeds and healthy transplants",
+      "Select DOA Sri Lanka released varieties suited to your agroclimatic zone",
+      "Follow recommended spacing and fertilization guidelines",
+      "Practice regular field monitoring — early detection is key",
+      "Use fungicides as a last resort and follow DOA pesticide recommendations",
+      "Always follow pesticide label instructions for dosage and safety",
+      "Wear protective equipment when applying fungicides",
+      "Observe pre-harvest intervals strictly before consuming or selling produce"
+    ],
+    "contact": {
+      "institution": "Horticultural Crops Research and Development Institute (HORDI)",
+      "department": "Department of Agriculture Sri Lanka",
+      "address": "P.O. Box 11, Gannoruwa Road, Peradeniya, Sri Lanka",
+      "phone": "(+94) 081-2388011",
+      "website": "https://doa.gov.lk/hordi-crop-tomato/"
+    }
+  }
+}

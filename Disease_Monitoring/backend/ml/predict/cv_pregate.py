@@ -21,13 +21,13 @@ import numpy as np
 from PIL import Image
 
 REJECT_MESSAGE = (
-    "Invalid image. Please upload a clear tomato leaf or tomato fruit image."
+    "Please upload a valid tomato leaf or tomato fruit image."
 )
 REJECT_MESSAGE_LEAF = (
-    "Invalid image. Please upload a clear tomato leaf image."
+    "Please upload a valid tomato leaf image."
 )
 REJECT_MESSAGE_FRUIT = (
-    "Invalid image. Please upload a clear tomato fruit image."
+    "Please upload a valid tomato fruit image."
 )
 
 
@@ -618,6 +618,42 @@ def validate_crop_image(
     }
 
     if crop == "LEAF":
+        citrus = signals.get("citrus", 0.0)
+        apple_like = signals.get("apple_like", 0.0)
+        veg_circ = veg_shape.get("circularity", 0.0)
+        fruit_circ = fruit_shape.get("circularity", 0.0)
+        veg_uni = signals.get("veg_uniformity", 0.0)
+        red = signals.get("red_ratio", 0.0)
+        blob_circ = max(veg_circ, fruit_circ)
+        blob_aspect = min(veg_shape.get("aspect", 9.0), fruit_shape.get("aspect", 9.0))
+
+        # Citrus/orange sphere — not a tomato leaf
+        hard_citrus = citrus >= 0.28 and blob_circ >= 0.72
+        # Smooth round non-leaf object (apple, orange, ball) with little red tomato hue
+        hard_sphere = (
+            blob_circ >= 0.78
+            and blob_aspect <= 1.35
+            and veg_uni >= 0.55
+            and leaf_s < 0.62
+            and red < 0.12
+        )
+        hard_apple = apple_like >= 0.45
+        # Strong round-fruit cues beating leaf score (wrong modality)
+        hard_fruit_modality = (
+            fruit_s >= 0.34
+            and leaf_s <= fruit_s + 0.12
+            and blob_circ >= 0.72
+            and citrus >= 0.22
+        )
+
+        if hard_citrus or hard_sphere or hard_apple or hard_fruit_modality:
+            return PregateResult(
+                False,
+                round(max(0.0, 1.0 - leaf_s), 4),
+                reject_msg,
+                details,
+            )
+
         ok = leaf_s >= leaf_threshold and leaf_s >= fruit_s - 0.08
         conf = leaf_s if ok else max(0.0, 1.0 - leaf_s)
         return PregateResult(

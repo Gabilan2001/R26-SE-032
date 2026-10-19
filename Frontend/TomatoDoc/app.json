@@ -12,7 +12,16 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": { "supportsTablet": true },
-    "android": { "package": "com.tomatodoc.app" },
+    "android": { "package": "com.tomatodoc.app", "permissions": ["CAMERA"] },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "TomatoDoc needs access to your photos so you can pick a leaf or fruit picture to scan.",
+          "cameraPermission": "TomatoDoc needs the camera so you can take a photo of a leaf or fruit to scan."
+        }
+      ]
+    ],
     "web": { "bundler": "metro" }
   }
 }

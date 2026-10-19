@@ -31,16 +31,8 @@ def check_consistency(
         return CONSISTENCY_MATCH, True, None
 
     if similarity_score >= POSSIBLE_MATCH_THRESHOLD:
-        if confirm_same_case:
-            return CONSISTENCY_POSSIBLE_MATCH, True, None
-        return (
-            CONSISTENCY_POSSIBLE_MATCH,
-            False,
-            (
-                "Possible visual match. Confirm this image belongs to the same "
-                "monitoring case (confirm_same_case=true) to continue."
-            ),
-        )
+        # Soft match — accept without a farmer confirm popup.
+        return CONSISTENCY_POSSIBLE_MATCH, True, None
 
     if confirm_same_case:
         return CONSISTENCY_MISMATCH, True, None

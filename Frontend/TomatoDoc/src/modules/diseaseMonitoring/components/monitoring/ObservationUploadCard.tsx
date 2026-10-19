@@ -198,7 +198,7 @@ function makeStyles(p: MonitoringPalette) {
       marginTop: 14,
       height: 220,
       borderRadius: 18,
-      backgroundColor: "#0a1400",
+      backgroundColor: "#EDF6DF",
       borderWidth: 1.5,
       borderColor: p.accentBorder,
       overflow: "hidden",
@@ -206,7 +206,7 @@ function makeStyles(p: MonitoringPalette) {
       justifyContent: "center",
     },
     viewfinderFruit: {
-      backgroundColor: "#1a0a0a",
+      backgroundColor: "#FDECEA",
     },
     preview: {
       ...StyleSheet.absoluteFillObject,

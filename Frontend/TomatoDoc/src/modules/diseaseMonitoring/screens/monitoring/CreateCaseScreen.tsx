@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   Pressable,
-  SafeAreaView,
   ScrollView,
   ActivityIndicator,
   Alert,
@@ -13,10 +12,11 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { createCase, type CropPart, type MonitoringCase } from "../../api/observations";
 import { LeafScanAppHeader } from "../../components/LeafScanAppHeader";
-import { DEMO_WEATHER_COORDS, MODALITY } from "../../config/modality";
+import { MODALITY } from "../../config/modality";
 import { useMonitoringPalette } from "../../theme/MonitoringThemeContext";
 import type { MonitoringPalette } from "../../theme/colors";
 
+import { ScreenFrame as SafeAreaView } from "../../components/ScreenFrame";
 type Props = {
   cropPart: CropPart;
   attachWeather: boolean;
@@ -70,12 +70,12 @@ export function CreateCaseScreen({
           <Row label="Selected type" value={cfg.shortLabel} styles={styles} />
           <Row label="Case ID" value="Created when you start" styles={styles} />
           <Row label="Start date / time" value={startedAt} styles={styles} />
-          <Row label="Location" value={DEMO_WEATHER_COORDS.label} styles={styles} />
+          <Row label="Location" value="Set once on Observation 1 (reused later)" styles={styles} />
           <View style={styles.weatherRow}>
             <View style={{ flex: 1 }}>
               <Text style={styles.rowLabel}>Weather context</Text>
               <Text style={styles.rowHint}>
-                Attach OpenWeather context on each upload using demo coordinates.
+                When enabled, local weather uses the location you set on the first observation.
               </Text>
             </View>
             <Switch
@@ -130,7 +130,7 @@ function Row({
 function makeStyles(p: MonitoringPalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: p.bg },
-    content: { padding: 18, paddingBottom: 40 },
+    content: { padding: 18, paddingBottom: 120 },
     title: { color: p.textPrimary, fontSize: 24, fontWeight: "800" },
     subtitle: { color: p.textMuted, marginTop: 6, marginBottom: 16 },
     card: {
@@ -147,13 +147,13 @@ function makeStyles(p: MonitoringPalette) {
     weatherRow: { flexDirection: "row", alignItems: "center", gap: 12, marginTop: 4 },
     warn: {
       marginTop: 14,
-      backgroundColor: "#2a2210",
+      backgroundColor: "#FBF1DA",
       borderRadius: 12,
       padding: 14,
       borderWidth: 1,
-      borderColor: "#FFB347",
+      borderColor: "#B7791F",
     },
-    warnTitle: { color: "#FFB347", fontWeight: "700" },
+    warnTitle: { color: "#B7791F", fontWeight: "700" },
     warnBody: { color: p.textMuted, marginTop: 6, lineHeight: 18 },
     primary: {
       marginTop: 20,
