@@ -1,0 +1,5 @@
+# Disease Detection model weights (YOLO runs, leaf validators, ~550 MB) are not tracked.
+# The Cloud Run image is built locally with Docker and gets its two model files from
+# this folder at build time, so GitHub does not need them. Other components track
+# their own model folders (for Render); this rule only covers Disease_Detection/models.
+models/
