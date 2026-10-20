@@ -8,11 +8,18 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#F0F0F0"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": { "supportsTablet": true },
-    "android": { "package": "com.tomatodoc.app", "permissions": ["CAMERA"] },
+    "android": {
+      "package": "com.tomatodoc.app",
+      "permissions": ["CAMERA"],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#F0F0F0"
+      }
+    },
     "plugins": [
       [
         "expo-image-picker",
