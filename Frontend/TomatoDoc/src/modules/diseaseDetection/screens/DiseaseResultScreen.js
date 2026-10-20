@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -13,7 +13,6 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { UIThemeContext } from '../../../context/UIThemeContext';
 import DiseaseChip from '../components/DiseaseChip';
 import { CLASS_COLORS } from '../constants/classColors';
 import { getTreatment } from '../api/scan';
@@ -99,7 +98,6 @@ function TreatmentText({ text }) {
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 export default function DiseaseResultScreen({ route, navigation }) {
-  const { presentationMode } = useContext(UIThemeContext);
   const insets = useSafeAreaInsets();
   const { result, imageUri } = route.params;
 
@@ -193,7 +191,7 @@ export default function DiseaseResultScreen({ route, navigation }) {
             { opacity: bannerOp, transform: [{ translateY: bannerY }] },
           ]}
         >
-          <Text style={[styles.bannerTitle, presentationMode && { fontSize: 17 }]}>
+          <Text style={styles.bannerTitle}>
             {isInvalid ? '⚠️ Could Not Analyze' : onlyHealthy ? '✅ Leaf looks healthy' : hasProblem ? '🦠 Issue(s) Detected' : 'Scan Complete'}
           </Text>
           <Text style={styles.bannerText}>

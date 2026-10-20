@@ -33,17 +33,14 @@ export const UIThemeContext = createContext(null);
 
 export function UIThemeProvider({ children }) {
   const [isDark, setIsDark] = useState(false);
-  const [presentationMode, setPresentationMode] = useState(false);
 
   const value = useMemo(
     () => ({
       isDark,
-      presentationMode,
       palette: isDark ? darkPalette : lightPalette,
       toggleTheme: () => setIsDark((prev) => !prev),
-      togglePresentationMode: () => setPresentationMode((prev) => !prev),
     }),
-    [isDark, presentationMode],
+    [isDark],
   );
 
   return <UIThemeContext.Provider value={value}>{children}</UIThemeContext.Provider>;

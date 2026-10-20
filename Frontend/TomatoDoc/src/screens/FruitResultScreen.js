@@ -222,7 +222,7 @@ export default function FruitResultScreen({ route, navigation }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       <ShareModal
         visible={showShareModal}

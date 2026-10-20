@@ -3,14 +3,19 @@ import { Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { palette, shadow } from './index';
 
-/** Floating forest-green tab bar with a lime active state. Used by every tab navigator. */
-export const tabOptions = (iconMap) => ({ route }) => ({
+/**
+ * Floating forest-green tab bar with a lime active state. Used by every tab navigator.
+ * `insets` (from useSafeAreaInsets) lifts the bar above the phone's own navigation buttons or
+ * gesture bar; the scene gets the same bottom padding so screen content still clears the bar.
+ */
+export const tabOptions = (iconMap, insets = { bottom: 0 }) => ({ route }) => ({
   headerShown: false,
+  sceneStyle: { backgroundColor: palette.bg, paddingBottom: insets.bottom },
   tabBarStyle: {
     backgroundColor: palette.forest,
     position: 'absolute',
     marginHorizontal: 16,
-    marginBottom: Platform.OS === 'ios' ? 14 : 12,
+    marginBottom: (Platform.OS === 'ios' ? 14 : 12) + insets.bottom,
     borderRadius: 26,
     height: 70,
     paddingBottom: 11,

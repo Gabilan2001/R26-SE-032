@@ -4,7 +4,7 @@ import { Card, Chip, ProgressBar, Surface, Text } from 'react-native-paper';
 import { colors } from '../constants/colors';
 import { computeSeverity } from '../utils/severity';
 
-export default function FruitResultCard({ result, presentationMode = false }) {
+export default function FruitResultCard({ result }) {
   const isHealthy = result.class === 'Healthy_Tomato';
   const progress = Math.min((result.confidence || 0) / 100, 1);
   const confidence = Number(result.confidence || 0);
@@ -21,7 +21,7 @@ export default function FruitResultCard({ result, presentationMode = false }) {
       <Card style={[styles.card, { borderColor: isHealthy ? colors.healthy : colors.danger }]}>
         <Card.Content>
         <View style={styles.headerRow}>
-          <Text style={[styles.title, presentationMode && { fontSize: 28 }]}>{result.class}</Text>
+          <Text style={styles.title}>{result.class}</Text>
           <Chip compact style={isHealthy ? styles.goodChip : styles.alertChip}>
             {isHealthy ? 'Healthy' : 'Disease'}
           </Chip>
@@ -34,12 +34,12 @@ export default function FruitResultCard({ result, presentationMode = false }) {
         <View style={styles.kpiRow}>
           <Surface style={styles.kpiCard} elevation={0}>
             <Text style={styles.kpiLabel}>Severity</Text>
-            <Text style={[styles.kpiValue, presentationMode && { fontSize: 20 }]}>{severity.score}/100</Text>
+            <Text style={styles.kpiValue}>{severity.score}/100</Text>
             <Text style={styles.kpiSub}>{severity.level}</Text>
           </Surface>
           <Surface style={styles.kpiCard} elevation={0}>
             <Text style={styles.kpiLabel}>Confidence</Text>
-            <Text style={[styles.kpiValue, presentationMode && { fontSize: 20 }]}>{result.confidence}%</Text>
+            <Text style={styles.kpiValue}>{result.confidence}%</Text>
             <Text style={styles.kpiSub}>{confidenceBand}</Text>
           </Surface>
         </View>

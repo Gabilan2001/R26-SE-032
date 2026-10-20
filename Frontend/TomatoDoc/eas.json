@@ -12,12 +12,19 @@
       "env": {
         "EXPO_PUBLIC_API_BASE_URL": "https://tomatodoc-nutrient.onrender.com",
         "EXPO_PUBLIC_FRUIT_API_BASE_URL": "https://tomatodoc-fruit.onrender.com",
-        "EXPO_PUBLIC_PRICE_API_BASE_URL": "https://r26-se-032.onrender.com"
+        "EXPO_PUBLIC_PRICE_API_BASE_URL": "https://r26-se-032.onrender.com",
+        "EXPO_PUBLIC_MONITORING_API_BASE_URL": "https://disease-monitoring-api.onrender.com"
       }
     },
     "production": {
       "android": {
         "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://tomatodoc-nutrient.onrender.com",
+        "EXPO_PUBLIC_FRUIT_API_BASE_URL": "https://tomatodoc-fruit.onrender.com",
+        "EXPO_PUBLIC_PRICE_API_BASE_URL": "https://r26-se-032.onrender.com",
+        "EXPO_PUBLIC_MONITORING_API_BASE_URL": "https://disease-monitoring-api.onrender.com"
       }
     }
   }

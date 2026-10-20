@@ -1,10 +1,10 @@
 import React, { useContext } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { AuthContext } from '../context/AuthContext';
-import { UIThemeContext } from '../context/UIThemeContext';
 import ScreenHeader from '../components/ScreenHeader';
 import { palette as P, radius, shadow, type } from '../theme';
+import appConfig from '../../app.json';
 
 const C = {
   bg: P.bg,
@@ -15,29 +15,26 @@ const C = {
   accent: P.forestMid,
 };
 
-function SettingRow({ icon, label, value, onPress }) {
+function InfoRow({ icon, label, value, last }) {
   return (
-    <TouchableOpacity style={styles.item} onPress={onPress} activeOpacity={0.8}>
-      <View style={styles.itemIcon}>
-        <MaterialCommunityIcons name={icon} size={20} color={P.forestMid} />
-      </View>
-      <Text style={styles.itemText}>{label}</Text>
-      <View style={styles.valuePill}>
-        <Text style={styles.valueText}>{value}</Text>
-      </View>
-    </TouchableOpacity>
+    <View style={[styles.infoRow, !last && styles.infoRowDivider]}>
+      <MaterialCommunityIcons name={icon} size={18} color={P.sprout} />
+      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={styles.infoValue} numberOfLines={1} selectable>{value}</Text>
+    </View>
   );
 }
 
 export default function UserScreen() {
   const { user, logout } = useContext(AuthContext);
-  const { isDark, toggleTheme, presentationMode, togglePresentationMode } = useContext(UIThemeContext);
   const username = user?.name || 'TomatoDoc User';
   const email = user?.email || 'No email available';
+  const userId = user?.id ? `#${String(user.id).slice(-8).toUpperCase()}` : 'Not available';
 
   return (
     <View style={styles.root}>
-      <ScreenHeader title="Profile" subtitle="Manage app preferences and your account session." eyebrow="Account" />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <ScreenHeader title="Profile" subtitle="Your account details and session." eyebrow="Account" />
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.profileCard}>
@@ -50,20 +47,14 @@ export default function UserScreen() {
           </View>
         </View>
 
-        <Text style={[type.eyebrow, styles.sectionLabel]}>Preferences</Text>
-
-        <SettingRow
-          icon="theme-light-dark"
-          label="Theme"
-          value={isDark ? 'Dark' : 'Light'}
-          onPress={toggleTheme}
-        />
-        <SettingRow
-          icon="presentation"
-          label="Presentation mode"
-          value={presentationMode ? 'On' : 'Off'}
-          onPress={togglePresentationMode}
-        />
+        <Text style={[type.eyebrow, styles.sectionLabel]}>Account information</Text>
+        <View style={styles.infoCard}>
+          <InfoRow icon="account-outline" label="Full name" value={username} />
+          <InfoRow icon="email-outline" label="Email" value={email} />
+          <InfoRow icon="identifier" label="User ID" value={userId} />
+          <InfoRow icon="shield-check-outline" label="Sign-in method" value="Email and password" />
+          <InfoRow icon="cellphone-information" label="App version" value={appConfig.expo.version} last />
+        </View>
 
         <TouchableOpacity style={styles.logoutBtn} onPress={logout} activeOpacity={0.85}>
           <MaterialCommunityIcons name="logout" size={18} color={P.danger} />
@@ -96,22 +87,19 @@ const styles = StyleSheet.create({
   email: { color: C.muted, marginTop: 2, fontSize: 13 },
 
   sectionLabel: { marginBottom: 10 },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+  infoCard: {
     backgroundColor: C.surface,
     borderWidth: 1,
     borderColor: C.border,
-    borderRadius: radius.md,
-    padding: 14,
-    marginBottom: 10,
+    borderRadius: radius.lg,
+    paddingHorizontal: 16,
+    marginBottom: 22,
+    ...shadow.card,
   },
-  itemIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: P.surfaceTint, alignItems: 'center', justifyContent: 'center' },
-  itemText: { flex: 1, color: C.text, fontWeight: '700', fontSize: 14 },
-  valuePill: { backgroundColor: P.surface2, borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 5 },
-  valueText: { fontSize: 12, fontWeight: '700', color: C.muted },
-
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 13 },
+  infoRowDivider: { borderBottomWidth: 1, borderBottomColor: C.border },
+  infoLabel: { color: C.muted, fontSize: 13, fontWeight: '600' },
+  infoValue: { flex: 1, textAlign: 'right', color: C.text, fontSize: 13, fontWeight: '700' },
   logoutBtn: {
     marginTop: 14,
     flexDirection: 'row',

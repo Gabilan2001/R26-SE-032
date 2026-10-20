@@ -59,9 +59,7 @@ runs/
 # ─── Data (entire folder) ───
 data/
 
-# ─── Models (weights & checkpoints) ───
-models/
-Disease_Detection/models/
+
 
 # ─── YOLO training runs ───
 runs/
