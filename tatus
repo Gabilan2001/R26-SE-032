@@ -1,0 +1,10 @@
+[33mc6736af[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfix/deploy[m[33m, [m[1;32mmain[m[33m)[m chore: add UNet model for severity detection
+[33mf094623[m chore: update .gitignore to remove model directories; add new model files for gate fruit and gate leaf
+[33mbb402d5[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge pull request #33 from Gabilan2001/monitor/deploy
+[33m6cf75e0[m[33m ([m[1;31morigin/monitor/deploy[m[33m, [m[1;32mmonitor/deploy[m[33m)[m chore: update .gitignore to remove datasets and model files; add new CNN models for severity detection feat: add monitoring API URL to eas.json for both preview and production environments
+[33mb600568[m Merge pull request #31 from Gabilan2001/gemini-3-1-flash-lite
+[33m1a70d37[m[33m ([m[1;31morigin/gemini-3-1-flash-lite[m[33m)[m Disease scan: camera permission handling and Android CAMERA declaration
+[33m101a4ef[m Disease backend: Gemini retry + fallback, advice cache, pinned ML deps
+[33ma0db2a6[m Use gemini-3.1-flash-lite for treatment advice (configurable via GEMINI_MODEL)
+[33m33ce495[m fix(price-module): use hosted price API on all platforms, longer timeout for cold starts
+[33m4caeceb[m apk
