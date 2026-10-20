@@ -2,21 +2,24 @@
 # When this file exists EAS ignores .gitignore, so secrets and build output are listed here too.
 # Only the mobile app (Frontend/TomatoDoc) is needed to build the APK; the backends, models and
 # datasets stay out of the upload.
+#
+# No trailing "/" on folder rules: EAS checks folder paths without one ("Frontend", not
+# "Frontend/"), so a rule like "!/Frontend/" would never match and the app would be left out.
 
 # Everything at the top level except the Frontend folder
 /*
 !/.easignore
-!/Frontend/
+!/Frontend
 /Frontend/*
-!/Frontend/TomatoDoc/
+!/Frontend/TomatoDoc
 
 # Inside the app: dependencies and generated output are installed/created on the build server
-/Frontend/TomatoDoc/node_modules/
-/Frontend/TomatoDoc/.expo/
-/Frontend/TomatoDoc/dist/
-/Frontend/TomatoDoc/web-build/
-/Frontend/TomatoDoc/android/
-/Frontend/TomatoDoc/ios/
+/Frontend/TomatoDoc/node_modules
+/Frontend/TomatoDoc/.expo
+/Frontend/TomatoDoc/dist
+/Frontend/TomatoDoc/web-build
+/Frontend/TomatoDoc/android
+/Frontend/TomatoDoc/ios
 
 # Secrets and OS clutter (backend URLs come from eas.json "env")
 **/.env
