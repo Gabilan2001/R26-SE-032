@@ -271,7 +271,7 @@ def predict():
         print(f"  Leaf REJECTED ❌ predicted={leaf_class} tomato_conf={leaf_conf:.2f} (threshold={VALIDATOR_THRESHOLD})")
         msg = LEAF_VALIDATOR_MESSAGES.get(leaf_class, "Not a tomato leaf image.")
         return jsonify({
-            "error": f"{msg} (confidence: {leaf_conf:.0%})",
+            "error": msg,
             "valid": False, "leaf_class": leaf_class, "leaf_conf": leaf_conf,
             "detections": [], "diseases_found": [],
             "co_occurrence": False, "total_boxes": 0,
@@ -308,7 +308,7 @@ def predict():
 
     if len(detections) == 0:
         return jsonify({
-            "error": "No disease detected — ensure image shows a tomato leaf with visible symptoms",
+            "error": "No disease symptoms were detected on this tomato leaf. If the leaf looks unhealthy, please retake a closer, well-lit photo.",
             "valid": False, "detections": [], "diseases_found": [],
             "co_occurrence": False, "total_boxes": 0,
             "annotated_image": encode_image(original_img),
