@@ -1,6 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import HomeScreen from '../screens/HomeScreen';
 import UserScreen from '../screens/UserScreen';
 import ScanScreen from '../screens/ScanScreen';
@@ -29,9 +30,10 @@ const ModuleTabs = createBottomTabNavigator();
 // user came from (for example Result -> Scan, or Result -> History).
 
 function TabRoutes() {
+  const insets = useSafeAreaInsets();
   return (
     <Tabs.Navigator
-      screenOptions={tabOptions({ Home: 'home', User: 'account-circle' })}
+      screenOptions={tabOptions({ Home: 'home', User: 'account-circle' }, insets)}
     >
       <Tabs.Screen name="Home" component={HomeScreen} />
       <Tabs.Screen name="User" component={UserScreen} />
@@ -40,11 +42,12 @@ function TabRoutes() {
 }
 
 function NutrientModuleTabs() {
+  const insets = useSafeAreaInsets();
   return (
     <ModuleTabs.Navigator
       initialRouteName="Scan"
       backBehavior="history"
-      screenOptions={tabOptions({ Home: 'home', Scan: 'camera', History: 'history', Stats: 'chart-bar', User: 'account-circle' })}
+      screenOptions={tabOptions({ Home: 'home', Scan: 'camera', History: 'history', Stats: 'chart-bar', User: 'account-circle' }, insets)}
     >
       <ModuleTabs.Screen
         name="Home"
@@ -66,11 +69,12 @@ function NutrientModuleTabs() {
 }
 
 function FruitModuleTabs() {
+  const insets = useSafeAreaInsets();
   return (
     <ModuleTabs.Navigator
       initialRouteName="FruitScan"
       backBehavior="history"
-      screenOptions={tabOptions({ Home: 'home', FruitScan: 'food-apple', History: 'history', Stats: 'chart-bar', User: 'account-circle' })}
+      screenOptions={tabOptions({ Home: 'home', FruitScan: 'food-apple', History: 'history', Stats: 'chart-bar', User: 'account-circle' }, insets)}
     >
       <ModuleTabs.Screen
         name="Home"
@@ -96,11 +100,12 @@ function FruitModuleTabs() {
 }
 
 function DiseaseModuleTabs() {
+  const insets = useSafeAreaInsets();
   return (
     <ModuleTabs.Navigator
       initialRouteName="DiseaseScan"
       backBehavior="history"
-      screenOptions={tabOptions({ Home: 'home', DiseaseScan: 'virus', DiseaseHistory: 'history', User: 'account-circle' })}
+      screenOptions={tabOptions({ Home: 'home', DiseaseScan: 'virus', DiseaseHistory: 'history', User: 'account-circle' }, insets)}
     >
       <ModuleTabs.Screen
         name="Home"
@@ -127,11 +132,12 @@ function DiseaseModuleTabs() {
 }
 
 function MonitoringModuleTabs() {
+  const insets = useSafeAreaInsets();
   return (
     <ModuleTabs.Navigator
       initialRouteName="Monitor"
       backBehavior="history"
-      screenOptions={tabOptions({ Home: 'home', Monitor: 'chart-timeline-variant', User: 'account-circle' })}
+      screenOptions={tabOptions({ Home: 'home', Monitor: 'chart-timeline-variant', User: 'account-circle' }, insets)}
     >
       <ModuleTabs.Screen
         name="Home"
@@ -149,11 +155,12 @@ function MonitoringModuleTabs() {
 }
 
 function PriceModuleTabs() {
+  const insets = useSafeAreaInsets();
   return (
     <ModuleTabs.Navigator
       initialRouteName="Price"
       backBehavior="history"
-      screenOptions={tabOptions({ Home: 'home', Price: 'chart-line', User: 'account-circle' })}
+      screenOptions={tabOptions({ Home: 'home', Price: 'chart-line', User: 'account-circle' }, insets)}
     >
       <ModuleTabs.Screen
         name="Home"

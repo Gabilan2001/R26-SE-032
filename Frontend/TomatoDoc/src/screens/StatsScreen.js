@@ -16,7 +16,6 @@ import { BarChart, LineChart, PieChart } from 'react-native-chart-kit';
 import { getStats } from '../api/historyApi';
 import { getFruitStats } from '../api/fruitHistoryApi';
 import { AuthContext } from '../context/AuthContext';
-import { UIThemeContext } from '../context/UIThemeContext';
 
 import { palette as P, radius, shadow } from '../theme';
 import ScreenHeader from '../components/ScreenHeader';
@@ -132,7 +131,6 @@ function buildPieData(classCounts) {
 // ── Main Screen ───────────────────────────────────────────────────────────────
 export default function StatsScreen({ route }) {
   const { token }            = useContext(AuthContext);
-  const { presentationMode } = useContext(UIThemeContext);
 
   const [mode, setMode]   = useState(route?.params?.initialMode === 'fruit' ? 'fruit' : 'nutrient');
   const [stats, setStats] = useState({
@@ -215,7 +213,7 @@ export default function StatsScreen({ route }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       <ScreenHeader title="Scan Statistics" subtitle="Your scans at a glance" eyebrow="Insights" />
 

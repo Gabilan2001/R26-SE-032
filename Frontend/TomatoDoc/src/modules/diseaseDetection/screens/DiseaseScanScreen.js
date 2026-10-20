@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -17,7 +17,6 @@ import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { predictDisease } from '../api/scan';
-import { UIThemeContext } from '../../../context/UIThemeContext';
 import LoadingOverlay from '../../../components/LoadingOverlay';
 import ScreenHeader, { HeaderBadge } from '../../../components/ScreenHeader';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -43,7 +42,6 @@ const C = {
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 export default function DiseaseScanScreen({ navigation }) {
-  const { presentationMode } = useContext(UIThemeContext);
   const insets = useSafeAreaInsets();
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -170,7 +168,7 @@ export default function DiseaseScanScreen({ navigation }) {
               <MaterialCommunityIcons name="virus-outline" size={22} color={P.tomato} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.moduleTitle, presentationMode && { fontSize: 18 }]}>Leaf disease and pest scan</Text>
+              <Text style={styles.moduleTitle}>Leaf disease and pest scan</Text>
               <Text style={styles.moduleSub}>
                 Take a clear photo of a tomato leaf to check for Early Blight, Late Blight, Leaf Miner,
                 or a Healthy leaf, with treatment advice.

@@ -175,7 +175,7 @@ export default function DetailScreen({ route, navigation }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       <ScreenHeader
         title="Treatment Guide"

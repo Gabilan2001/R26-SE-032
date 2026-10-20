@@ -14,7 +14,6 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AuthContext } from '../context/AuthContext';
-import { UIThemeContext } from '../context/UIThemeContext';
 import { getHistory } from '../api/historyApi';
 import { getFruitHistory } from '../api/fruitHistoryApi';
 import { formatDateTime } from '../utils/formatters';
@@ -195,7 +194,6 @@ function EmptyState({ query }) {
 
 export default function HistoryScreen({ navigation, route }) {
   const { token }            = useContext(AuthContext);
-  const { presentationMode } = useContext(UIThemeContext);
 
   const [history, setHistory] = useState([]);
   const [mode,    setMode]    = useState(route?.params?.initialMode === 'fruit' ? 'fruit' : 'nutrient');
@@ -312,7 +310,7 @@ export default function HistoryScreen({ navigation, route }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       <Animated.View style={{ opacity: headerOp }}>
         <ScreenHeader title="History" subtitle={`${filtered.length} records`} eyebrow="Scan history" />

@@ -2,7 +2,7 @@
   "expo": {
     "name": "TomatoDoc",
     "slug": "tomatodoc",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -10,11 +10,19 @@
       "resizeMode": "contain",
       "backgroundColor": "#F0F0F0"
     },
-    "assetBundlePatterns": ["**/*"],
-    "ios": { "supportsTablet": true },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
     "android": {
       "package": "com.tomatodoc.app",
-      "permissions": ["CAMERA"],
+      "versionCode": 2,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#F0F0F0"
@@ -29,6 +37,13 @@
         }
       ]
     ],
-    "web": { "bundler": "metro" }
+    "web": {
+      "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a69e0b86-585f-4439-a76a-3755f4dd2ce4"
+      }
+    }
   }
 }

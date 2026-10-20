@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -19,7 +19,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { predictFruitDisease } from '../api/fruitScanApi';
-import { UIThemeContext } from '../context/UIThemeContext';
 import LoadingOverlay from '../components/LoadingOverlay';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -177,7 +176,6 @@ function ScanLine() {
 // ============= MAIN SCREEN =============
 
 export default function FruitScanScreen({ navigation }) {
-  const { presentationMode } = useContext(UIThemeContext);
   const insets = useSafeAreaInsets();
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -312,7 +310,7 @@ export default function FruitScanScreen({ navigation }) {
               <MaterialCommunityIcons name="food-apple" size={22} color={P.tomato} />
             </Animated.View>
             <View style={styles.moduleBody}>
-              <Text style={[styles.moduleTitle, presentationMode && { fontSize: 18 }]}>Detect tomato fruit diseases</Text>
+              <Text style={styles.moduleTitle}>Detect tomato fruit diseases</Text>
               <Text style={styles.moduleSub}>
                 Capture a photo or choose one from your gallery. We will identify the disease and suggest treatment.
               </Text>
