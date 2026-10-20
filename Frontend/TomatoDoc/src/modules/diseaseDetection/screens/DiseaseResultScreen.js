@@ -107,6 +107,10 @@ export default function DiseaseResultScreen({ route, navigation }) {
   // Covers blank-image / not-a-leaf / no-detection -- backend sets
   // valid: false and a human-readable `error` string for all of these.
   const isInvalid = result.valid === false;
+  // The leaf passed validation but the detector found no symptom: the backend sends this
+  // plain message. It is not a failure, so it gets its own title instead of "Could Not Analyze".
+  const noSymptoms = isInvalid && typeof result.error === 'string'
+    && result.error.startsWith('No disease symptoms were detected');
 
   // Full-screen tap-to-inspect viewer for the annotated detection image.
   // Note: this is a plain full-screen view (centered image, dark backdrop,
@@ -187,12 +191,12 @@ export default function DiseaseResultScreen({ route, navigation }) {
           style={[
             styles.banner,
             onlyHealthy && styles.bannerHealthy,
-            (hasProblem || isInvalid) && styles.bannerAttention,
+            (hasProblem || (isInvalid && !noSymptoms)) && styles.bannerAttention,
             { opacity: bannerOp, transform: [{ translateY: bannerY }] },
           ]}
         >
           <Text style={styles.bannerTitle}>
-            {isInvalid ? '⚠️ Could Not Analyze' : onlyHealthy ? '✅ Leaf looks healthy' : hasProblem ? '🦠 Issue(s) Detected' : 'Scan Complete'}
+            {isInvalid ? (noSymptoms ? '🔍 No Disease Symptoms Found' : '⚠️ Could Not Analyze') : onlyHealthy ? '✅ Leaf looks healthy' : hasProblem ? '🦠 Issue(s) Detected' : 'Scan Complete'}
           </Text>
           <Text style={styles.bannerText}>
             {isInvalid
