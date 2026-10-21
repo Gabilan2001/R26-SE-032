@@ -115,7 +115,6 @@ export default function FruitResultScreen({ route, navigation }) {
   const severity = computeSeverity(result, 'fruit');
   const healthy = isHealthy(result.class);
   const sevMeta = SEVERITY_MAP[severity] ?? SEVERITY_MAP.medium;
-  const confidencePct = Math.round(Number(result.confidence || 0));
   const displayName = formatLabel(result.class);
   const statusColor = healthy ? C.success : C.tomato;
 
@@ -205,7 +204,6 @@ export default function FruitResultScreen({ route, navigation }) {
       const shareMessage =
         `Fruit Disease Report\n\n` +
         `Disease: ${displayName}\n` +
-        `Confidence: ${confidencePct}%\n` +
         `Severity: ${sevMeta.label}\n` +
         `Status: ${healthy ? 'Healthy' : 'Disease Detected'}\n\n` +
         `Analyzed by TomatoDoc Fruit Scanner`;

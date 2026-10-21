@@ -36,7 +36,6 @@ export default function FruitDetailScreen({ route, navigation }) {
             </Chip>
           </View>
           <Text style={styles.desc}>{result?.description || 'No description available.'}</Text>
-          <Text style={styles.conf}>Confidence: {Math.round(Number(result?.confidence || 0))}%</Text>
         </Card.Content>
       </Card>
 
@@ -65,7 +64,6 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { color: '#FFFFFF', fontSize: 24, fontWeight: '800', letterSpacing: -0.5, flex: 1, marginRight: 10 },
   desc: { color: 'rgba(255,255,255,0.8)', marginTop: 8, lineHeight: 20 },
-  conf: { color: P.lime, fontWeight: '800', marginTop: 10 },
   sectionCard: { borderRadius: radius.lg, backgroundColor: P.surface, borderWidth: 1, borderColor: P.border, ...shadow.card },
   sectionTitle: { color: P.text, fontWeight: '800', fontSize: 15, marginBottom: 10 },
   bullet: { color: P.textSoft, marginBottom: 8, lineHeight: 21 },

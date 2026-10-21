@@ -212,7 +212,6 @@ export default function ResultScreen({ route, navigation }) {
       const shareMessage =
         `Nutrient Deficiency Report\n\n` +
         `Result: ${displayName}\n` +
-        `Confidence: ${confidencePct}%\n` +
         `Status: ${healthy ? 'Healthy' : 'Deficiency Detected'}\n\n` +
         `Analyzed by TomatoDoc Leaf Scanner`;
 
@@ -324,7 +323,6 @@ export default function ResultScreen({ route, navigation }) {
 
               <View style={styles.heroOverlay}>
                 <Text style={styles.heroName}>{displayName}</Text>
-                <Text style={styles.heroConfidence}>{confidencePct}% confidence</Text>
               </View>
             </View>
           </Animated.View>
@@ -529,11 +527,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
     color: '#FFFFFF',
     marginBottom: 4,
-  },
-  heroConfidence: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: P.lime,
   },
 
   recsCard: {

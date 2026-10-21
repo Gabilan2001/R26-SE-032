@@ -13,7 +13,6 @@ export async function exportScanReport({ moduleName, result, imageUri, severity 
     `Module: ${moduleName}`,
     '',
     `Class: ${result.class}`,
-    `Confidence: ${result.confidence}%`,
     `Severity Score: ${severity.score}/100 (${severity.level})`,
     `Description: ${result.description || '-'}`,
     `Symptoms: ${result.symptoms || '-'}`,

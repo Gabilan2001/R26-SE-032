@@ -154,10 +154,6 @@ function HistoryItem({ item, mode, onPress, index }) {
         <View style={styles.histBody}>
           <Text style={styles.histName} numberOfLines={1}>{item.class_name}</Text>
           <View style={styles.histMetaRow}>
-            <View style={styles.histConfidence}>
-              <View style={[styles.histConfDot, { backgroundColor: meta.color }]} />
-              <Text style={styles.histConf}>{item.confidence}%</Text>
-            </View>
             <Text style={styles.histDate}>{formatDateTime(item.created_at)}</Text>
           </View>
         </View>
@@ -644,21 +640,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-  },
-  histConfidence: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  histConfDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-  },
-  histConf: {
-    fontSize: 11,
-    color: C.muted,
-    fontWeight: '600',
   },
   histDate: {
     fontSize: 10,
