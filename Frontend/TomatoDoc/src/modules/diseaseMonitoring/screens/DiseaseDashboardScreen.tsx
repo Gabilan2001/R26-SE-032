@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Alert,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Switch,
@@ -28,6 +27,7 @@ import { LeafScanAppHeader } from "../components/LeafScanAppHeader";
 import { SemicircularSeverityGauge } from "../components/SemicircularSeverityGauge";
 import { API_BASE_URL } from "../config/env";
 import { palette, severityColors } from "../theme/colors";
+import { formatGateRejection } from "../utils/gateMessages";
 import {
   consistencyFarmerHint,
   consistencyFarmerTitle,
@@ -36,6 +36,7 @@ import {
   trendFarmerLabel,
 } from "../utils/observationLabels";
 
+import { ScreenFrame as SafeAreaView } from "../components/ScreenFrame";
 /** Demo weather coordinates (Colombo) — contextual only, not treatment advice. */
 const DEMO_WEATHER_COORDS = { latitude: 6.9271, longitude: 79.8612 };
 
@@ -128,9 +129,7 @@ export default function DiseaseDashboardScreen() {
         if (result.image_valid === false) {
           setPendingUri(null);
           setPendingMeta(null);
-          setMessage(
-            `This photo was not accepted as a valid leaf image. ${reason}`
-          );
+          setMessage(formatGateRejection(cropPart, result.rejection_reason));
           return;
         }
 
@@ -271,7 +270,7 @@ export default function DiseaseDashboardScreen() {
           <View style={{ flex: 1 }}>
             <Text style={styles.sectionLabel}>Attach weather context</Text>
             <Text style={styles.meta}>
-              Uses demo coordinates (Colombo). Weather is context only — not treatment advice.
+              Uses demo coordinates (Colombo). Weather is context only.
             </Text>
           </View>
           <Switch
@@ -480,7 +479,7 @@ export default function DiseaseDashboardScreen() {
                   {String(status.latest_recommendation.title ?? "Monitoring guidance")}
                 </Text>
                 <Text style={styles.meta}>
-                  Monitoring tips only — not a treatment prescription.
+                  Monitoring tips
                 </Text>
                 {Array.isArray(status.latest_recommendation.actions)
                   ? status.latest_recommendation.actions.map((a, i) => (
@@ -501,7 +500,7 @@ export default function DiseaseDashboardScreen() {
             <Text style={styles.cardTitle}>Monitoring case ready</Text>
             <Text style={styles.meta}>Monitoring Case ID: {status.case_id}</Text>
             <Text style={styles.meta}>
-              No observations yet — upload Observation 1 to set the baseline.
+              No observations yet - upload Observation 1 to set the baseline.
             </Text>
           </View>
         ) : null}
@@ -569,7 +568,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     flexGrow: 1,
   },
-  primaryBtnText: { color: "#04210f", fontWeight: "700" },
+  primaryBtnText: { color: "#FFFFFF", fontWeight: "700" },
   secondaryBtn: {
     borderWidth: 1,
     borderColor: palette.cardBorder,

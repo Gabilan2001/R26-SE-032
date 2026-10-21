@@ -18,58 +18,38 @@ export type MonitoringPalette = {
   onAccent: string;
 };
 
-/** Hub / choose Leaf|Fruit — matches TomatoDoc Home (#5). */
+/** Hub / choose Leaf|Fruit: shared TomatoDoc light theme (see src/theme). */
 export const hubPalette: MonitoringPalette = {
-  bg: "#0f0f0f",
-  bgElevated: "#1a1a1a",
-  card: "#1a1a1a",
-  cardBorder: "rgba(255,255,255,0.07)",
-  textPrimary: "#f0f0f0",
-  textMuted: "#666666",
-  accent: "#c8f135",
-  accentDim: "rgba(200,241,53,0.10)",
-  accentBorder: "rgba(200,241,53,0.22)",
-  divider: "rgba(255,255,255,0.07)",
-  infoBanner: "#0f1a2e",
-  infoText: "#7ec8ff",
-  trackLine: "#2a2a2a",
-  onAccent: "#0f0f0f",
+  bg: "#FBFAF5",
+  bgElevated: "#F3F5EE",
+  card: "#FFFFFF",
+  cardBorder: "#E3E8DF",
+  textPrimary: "#1E3027",
+  textMuted: "#5E6E64",
+  accent: "#1F6044",
+  accentDim: "#EDF6DF",
+  accentBorder: "#CFE3B8",
+  divider: "#E3E8DF",
+  infoBanner: "#EDF6DF",
+  infoText: "#12382B",
+  trackLine: "#E3E8DF",
+  onAccent: "#FFFFFF",
 };
 
-/** Leaf flow — matches Leaf Scanner / Nutrient lime theme. */
+/** Leaf flow: same green theme as the hub. */
 export const leafPalette: MonitoringPalette = {
-  bg: "#0f0f0f",
-  bgElevated: "#1a1a1a",
-  card: "#1a1a1a",
-  cardBorder: "rgba(255,255,255,0.07)",
-  textPrimary: "#f0f0f0",
-  textMuted: "#666666",
-  accent: "#c8f135",
-  accentDim: "rgba(200,241,53,0.10)",
-  accentBorder: "rgba(200,241,53,0.22)",
-  divider: "rgba(255,255,255,0.07)",
-  infoBanner: "#0f1a00",
-  infoText: "#c8f135",
-  trackLine: "#2a2a2a",
-  onAccent: "#0f0f0f",
+  ...hubPalette,
 };
 
-/** Fruit flow — matches Tomato Fruit Disease Scan coral/red theme. */
+/** Fruit flow: tomato-red accent on the same light surfaces. */
 export const fruitPalette: MonitoringPalette = {
-  bg: "#0f0f0f",
-  bgElevated: "#1a1a1a",
-  card: "#1a1a1a",
-  cardBorder: "rgba(255,255,255,0.07)",
-  textPrimary: "#f0f0f0",
-  textMuted: "#666666",
-  accent: "#ff5c5c",
-  accentDim: "rgba(255,92,92,0.08)",
-  accentBorder: "rgba(255,92,92,0.20)",
-  divider: "rgba(255,255,255,0.07)",
-  infoBanner: "#2a1012",
-  infoText: "#ff5c5c",
-  trackLine: "#2a2a2a",
-  onAccent: "#ffffff",
+  ...hubPalette,
+  accent: "#E34A3B",
+  accentDim: "#FDEDEA",
+  accentBorder: "#F5C5BF",
+  infoBanner: "#FDEDEA",
+  infoText: "#C9362C",
+  onAccent: "#FFFFFF",
 };
 
 /** Default export used by unused/legacy screens — TomatoDoc hub. */
@@ -85,22 +65,22 @@ export function paletteFor(
 
 export const severityColors = {
   high: {
-    main: "#FF6B6B",
-    muted: "#3d1518",
-    badgeText: "#FF6B6B",
-    badgeBg: "#2a1012",
+    main: "#D64545",
+    muted: "#F8D6D3",
+    badgeText: "#B83232",
+    badgeBg: "#FDECEA",
   },
   medium: {
-    main: "#FFB347",
-    muted: "#3d2e10",
-    badgeText: "#FFB347",
-    badgeBg: "#2a2210",
+    main: "#D98A1B",
+    muted: "#F4E2B8",
+    badgeText: "#9A6410",
+    badgeBg: "#FBF1DA",
   },
   low: {
-    main: "#4ADE80",
-    muted: "#103d22",
-    badgeText: "#4ADE80",
-    badgeBg: "#0f2418",
+    main: "#2F8F4E",
+    muted: "#CBE8D3",
+    badgeText: "#1F6B38",
+    badgeBg: "#E4F4E8",
   },
 } as const;
 

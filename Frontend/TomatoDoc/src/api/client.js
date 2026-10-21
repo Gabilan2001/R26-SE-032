@@ -1,17 +1,14 @@
 import axios from 'axios';
-import { Platform } from 'react-native';
 
-// For Expo Web running in the browser on the same PC, `127.0.0.1` works.
-// For real devices/emulators, you must use your PC's LAN IP instead.
+// Nutrient Deficiency API (also serves /auth). Hosted on Render; override with
+// EXPO_PUBLIC_API_BASE_URL in .env to point at a local backend.
 const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_BASE_URL ||
-  (Platform.OS === 'web'
-    ? 'http://127.0.0.1:5000'
-    : 'http://192.168.243.127:5000');
+  process.env.EXPO_PUBLIC_API_BASE_URL || 'https://tomatodoc-nutrient.onrender.com';
 
+// Render's free plan sleeps when idle and takes up to ~1 minute to wake.
 const client = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 20000,
+  timeout: 60000,
 });
 
 export default client;

@@ -30,7 +30,7 @@ export function SeverityResultCard({ severityClass, severityScore }: Props) {
         Estimated affected area: {formatScore(severityScore)}
       </Text>
       <Text style={styles.hint}>
-        Visual estimate from the image (≤30% LOW, &gt;30% HIGH) — not expert-validated severity.
+        Visual estimate from the image (≤30% LOW, >30% HIGH) - not expert-validated severity.
       </Text>
     </View>
   );

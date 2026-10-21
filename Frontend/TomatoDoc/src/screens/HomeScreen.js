@@ -1,8 +1,6 @@
-import React, { useContext, useRef, useEffect } from 'react';
+import React, { useContext, useMemo } from 'react';
 import {
-  Animated,
   ImageBackground,
-  Pressable,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -10,324 +8,360 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthContext } from '../context/AuthContext';
-import { UIThemeContext } from '../context/UIThemeContext';
+import { palette as P, gradients, radius, shadow, type } from '../theme';
 
-// ── Design Tokens ─────────────────────────────────────────────────────────────
-const C = {
-  bg:          '#0f0f0f',
-  surface:     '#1a1a1a',
-  surface2:    '#222222',
-  accent:      '#c8f135',
-  accentDim:   'rgba(200,241,53,0.10)',
-  accentBorder:'rgba(200,241,53,0.22)',
-  text:        '#f0f0f0',
-  muted:       '#666666',
-  border:      'rgba(255,255,255,0.07)',
-  danger:      '#ff5c5c',
-  warn:        '#f5a623',
-};
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+}
 
-// ── Animated option card ──────────────────────────────────────────────────────
-function OptionCard({ emoji, thumbStyle, title, subtitle, badge, locked, delay = 0, onPress }) {
-  const slideY  = useRef(new Animated.Value(20)).current;
-  const opacity = useRef(new Animated.Value(0)).current;
-  const scale   = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.spring(slideY,  { toValue: 0, useNativeDriver: true, delay }),
-      Animated.timing(opacity, { toValue: 1, duration: 350, delay, useNativeDriver: true }),
-    ]).start();
-  }, []);
-
-  const onPressIn  = () => !locked && Animated.spring(scale, { toValue: 0.97, useNativeDriver: true }).start();
-  const onPressOut = () => !locked && Animated.spring(scale, { toValue: 1,    useNativeDriver: true }).start();
-
+function ModuleCard({ icon, iconColor, iconBg, title, subtitle, onPress, locked, badge }) {
   return (
-    <Animated.View style={{ opacity, transform: [{ translateY: slideY }, { scale }] }}>
-      <Pressable
-        style={[styles.optionCard, locked && styles.optionCardLocked]}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-        onPress={!locked ? onPress : undefined}
-      >
-        <View style={[styles.optionThumb, thumbStyle]}>
-          <Text style={styles.optionEmoji}>{emoji}</Text>
+    <TouchableOpacity
+      style={[styles.moduleCard, locked && styles.moduleCardLocked]}
+      onPress={locked ? undefined : onPress}
+      activeOpacity={locked ? 1 : 0.8}
+    >
+      <View style={[styles.moduleIcon, { backgroundColor: iconBg }]}>
+        <MaterialCommunityIcons name={icon} size={24} color={iconColor} />
+      </View>
+      <View style={styles.moduleBody}>
+        <View style={styles.moduleTitleRow}>
+          <Text style={[styles.moduleTitle, locked && styles.moduleTitleLocked]} numberOfLines={1}>{title}</Text>
+          {!locked && badge ? (
+            <View style={styles.readyBadge}>
+              <View style={styles.readyDot} />
+              <Text style={styles.readyText}>{badge}</Text>
+            </View>
+          ) : null}
         </View>
-
-        <View style={styles.optionBody}>
-          <Text style={styles.optionTitle}>{title}</Text>
-          <Text style={styles.optionSub} numberOfLines={1}>{subtitle}</Text>
+        <Text style={styles.moduleSub} numberOfLines={2}>{subtitle}</Text>
+        {!locked && <Text style={styles.moduleAction}>Open module</Text>}
+      </View>
+      {locked ? (
+        <View style={styles.soonBadge}>
+          <Text style={styles.soonText}>Soon</Text>
         </View>
-
-        <View style={styles.optionRight}>
-          {locked ? (
-            <View style={styles.badgeLock}><Text style={styles.badgeLockTxt}>Locked</Text></View>
-          ) : (
-            <View style={styles.badgeNew}><Text style={styles.badgeNewTxt}>{badge ?? 'NEW'}</Text></View>
-          )}
-          <Text style={[styles.chevron, !locked && { color: C.accent }]}>›</Text>
+      ) : (
+        <View style={styles.chevronWrap}>
+          <MaterialCommunityIcons name="arrow-right" size={18} color={P.lime} />
         </View>
-      </Pressable>
-    </Animated.View>
+      )}
+    </TouchableOpacity>
   );
 }
 
-// ── Stat card ─────────────────────────────────────────────────────────────────
-function StatCard({ num, label, accent = false }) {
-  return (
-    <View style={[styles.statCard, accent && styles.statCardAccent]}>
-      <Text style={[styles.statNum, accent && { color: '#0f0f0f' }]}>{num}</Text>
-      <Text style={[styles.statLabel, accent && { color: 'rgba(0,0,0,0.45)' }]}>{label}</Text>
-    </View>
-  );
-}
-
-// ── HomeScreen ────────────────────────────────────────────────────────────────
 export default function HomeScreen({ navigation }) {
-  const { logout }                                                        = useContext(AuthContext);
-  const { isDark, toggleTheme, presentationMode, togglePresentationMode } = useContext(UIThemeContext);
-
-  const heroScale = useRef(new Animated.Value(0.96)).current;
-  const heroOp    = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.spring(heroScale, { toValue: 1, useNativeDriver: true }),
-      Animated.timing(heroOp,    { toValue: 1, duration: 400, useNativeDriver: true }),
-    ]).start();
-  }, []);
+  const { user, logout } = useContext(AuthContext);
+  const insets = useSafeAreaInsets();
+  const greeting = useMemo(() => getGreeting(), []);
+  const displayName = user?.name?.trim() || 'Farmer';
+  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+      <StatusBar barStyle="light-content" backgroundColor={P.forest} />
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* ── Hero card ── */}
-        <Animated.View style={[styles.heroCard, { opacity: heroOp, transform: [{ scale: heroScale }] }]}>
-          {/* Decorative blob */}
-          <View style={styles.heroBlob} pointerEvents="none" />
-
-          <View style={styles.heroTop}>
-            <View style={styles.heroBrand}>
-              <View style={styles.brandIcon}><Text style={styles.brandEmoji}>🍅</Text></View>
-              <Text style={styles.brandName}>TomatoDoc</Text>
-            </View>
-
-            <View style={styles.heroActions}>
-              <TouchableOpacity style={styles.pillBtn} onPress={toggleTheme}>
-                <Text style={styles.pillBtnTxt}>{isDark ? 'Light' : 'Dark'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.pillBtn, presentationMode && styles.pillBtnActive]}
-                onPress={togglePresentationMode}
-              >
-                <Text style={[styles.pillBtnTxt, presentationMode && { color: C.accent }]}>Demo</Text>
-              </TouchableOpacity>
-              <View style={styles.bellBtn}><Text>🔔</Text></View>
-            </View>
-          </View>
-
-          <Text style={styles.heroSub}>AI-powered assistant for precision tomato farming</Text>
-          <Text style={styles.heroTag}>Smart Scan · Fast Diagnosis · Better Harvest</Text>
-        </Animated.View>
-
-        {/* ── Stats row ── */}
-        <View style={styles.statsRow}>
-          <StatCard num="100" label="Total Scans" />
-          <StatCard num="85%" label="Avg Accuracy" accent />
-        </View>
-
-        {/* ── Cover card ── */}
-        <ImageBackground
-          source={require('../../assets/images/tomato1.jpg')}
-          imageStyle={styles.coverImg}
-          style={styles.coverCard}
+      <ScrollView contentContainerStyle={{ paddingBottom: 130 }} showsVerticalScrollIndicator={false}>
+        {/* Hero */}
+        <LinearGradient
+          colors={gradients.hero}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.hero, { paddingTop: insets.top + 14 }]}
         >
-          <View style={styles.coverOverlay}>
-            <View style={styles.coverBadge}>
-              <View style={styles.coverDot} />
-              <Text style={styles.coverBadgeTxt}>Pro Intelligence</Text>
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <TouchableOpacity
+                style={styles.avatar}
+                onPress={() => navigation.navigate('User')}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.avatarText}>{initial}</Text>
+              </TouchableOpacity>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.greeting}>{greeting}</Text>
+                <Text style={styles.userName} numberOfLines={1}>{displayName}</Text>
+              </View>
             </View>
-            <Text style={[styles.coverTitle, presentationMode && { fontSize: 20 }]}>
-              Professional Crop Intelligence Panel
-            </Text>
-            <Text style={styles.coverDesc}>
-              Designed for project demos, field trials & precision recommendations.
+            <TouchableOpacity style={styles.iconBtn} onPress={logout} activeOpacity={0.7}>
+              <MaterialCommunityIcons name="logout" size={18} color={P.lime} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.eyebrowRow}>
+            <View style={styles.eyebrowLine} />
+            <Text style={styles.heroEyebrow}>Precision tomato farming</Text>
+          </View>
+          <Text style={styles.heroTitle}>
+            TomatoDoc<Text style={styles.heroDot}>.</Text>
+          </Text>
+          <Text style={styles.heroSub}>
+            Scan your crop, understand the problem and get treatment advice in one place.
+          </Text>
+
+          <View style={styles.pillRow}>
+            {['Scan', 'Diagnose', 'Treat', 'Track'].map((w) => (
+              <View key={w} style={styles.pill}>
+                <Text style={styles.pillText}>{w}</Text>
+              </View>
+            ))}
+          </View>
+        </LinearGradient>
+
+        <View style={styles.body}>
+          {/* Banner */}
+          <ImageBackground
+            source={require('../../assets/images/tomato1.jpg')}
+            imageStyle={styles.bannerImage}
+            style={styles.banner}
+          >
+            <LinearGradient
+              colors={['rgba(14,51,38,0.15)', 'rgba(14,51,38,0.88)']}
+              style={styles.bannerOverlay}
+            >
+              <View style={styles.bannerBadge}>
+                <MaterialCommunityIcons name="shield-check-outline" size={12} color={P.lime} />
+                <Text style={styles.bannerBadgeText}>Crop intelligence</Text>
+              </View>
+              <Text style={styles.bannerTitle}>Field diagnostics and treatment guidance</Text>
+              <Text style={styles.bannerDesc}>
+                Built for farmers, field trials, and data-driven crop decisions.
+              </Text>
+            </LinearGradient>
+          </ImageBackground>
+
+          {/* Modules */}
+          <Text style={[type.eyebrow, styles.sectionEyebrow]}>Diagnostic tools</Text>
+          <Text style={styles.sectionTitle}>What would you like to do?</Text>
+
+          <ModuleCard
+            icon="chart-line"
+            iconColor={P.warn}
+            iconBg={P.warnDim}
+            title="Price forecasting"
+            subtitle="Market trend analytics and selling recommendations"
+            badge="Ready"
+            onPress={() => navigation.navigate('PricePrediction')}
+          />
+          <ModuleCard
+            icon="leaf"
+            iconColor={P.leaf}
+            iconBg={P.surfaceTint}
+            title="Nutrient deficiency"
+            subtitle="Leaf scan with fertilizer and treatment recommendations"
+            badge="Ready"
+            onPress={() => navigation.navigate('NutrientModule', { screen: 'Scan' })}
+          />
+          <ModuleCard
+            icon="chart-timeline-variant"
+            iconColor={P.info}
+            iconBg={P.infoDim}
+            title="Disease monitoring"
+            subtitle="Track severity and recovery over multiple observations"
+            badge="Ready"
+            onPress={() => navigation.navigate('MonitoringModule')}
+          />
+          <ModuleCard
+            icon="virus"
+            iconColor={P.forestMid}
+            iconBg={P.goodDim}
+            title="Disease in leaf"
+            subtitle="Pathology diagnostics and leaf disease scan"
+            badge="Ready"
+            onPress={() => navigation.navigate('DiseaseModule', { screen: 'DiseaseScan' })}
+          />
+          <ModuleCard
+            icon="food-apple"
+            iconColor={P.tomato}
+            iconBg={P.tomatoDim}
+            title="Fruit disease detection"
+            subtitle="Identify fruit diseases and view treatment guidance"
+            badge="Ready"
+            onPress={() => navigation.navigate('FruitModule', { screen: 'FruitScan' })}
+          />
+
+          <View style={styles.tipBox}>
+            <View style={styles.tipIcon}>
+              <MaterialCommunityIcons name="white-balance-sunny" size={16} color={P.forest} />
+            </View>
+            <Text style={styles.tipText}>
+              For best results, capture photos in natural daylight with the subject filling most of the frame.
             </Text>
           </View>
-        </ImageBackground>
 
-        {/* ── Section label ── */}
-        <Text style={styles.sectionLabel}>Diagnostic Tools</Text>
-
-        {/* ── Option cards ── */}
-        <OptionCard
-          emoji="📈"
-          thumbStyle={styles.thumbOrange}
-          title="Price Forecasting"
-          subtitle="Market trend analytics"
-          locked
-          delay={0}
-        />
-        <OptionCard
-          emoji="🍃"
-          thumbStyle={styles.thumbGreen}
-          title="Nutrient Deficiency"
-          subtitle="Leaf scan + fertilizer recommendation"
-          delay={60}
-          onPress={() => navigation.navigate('NutrientModule', { screen: 'Scan' })}
-        />
-        <OptionCard
-          emoji="🦠"
-          thumbStyle={styles.thumbRed}
-          title="Disease Monitoring"
-          subtitle="Severity & recovery tracking over time"
-          delay={120}
-          onPress={() => navigation.navigate('MonitoringModule')}
-        />
-        <OptionCard
-          emoji="🍃"
-          thumbStyle={styles.thumbGreen}
-          title="Disease in Tomato Leaf"
-          subtitle="Leaf severity & recovery monitoring"
-          delay={150}
-          onPress={() =>
-            navigation.navigate('MonitoringModule', { initialCropPart: 'LEAF' })
-          }
-        />
-        <OptionCard
-          emoji="🍅"
-          thumbStyle={styles.thumbAccent}
-          title="Disease in Tomato"
-          subtitle="Fruit disease detection + treatment"
-          delay={180}
-          onPress={() => navigation.navigate('FruitModule', { screen: 'FruitScan' })}
-        />
-
-        {/* ── Logout ── */}
-        <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
-          <Text style={styles.logoutTxt}>Logout</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.logoutBtn} onPress={logout} activeOpacity={0.85}>
+            <MaterialCommunityIcons name="logout" size={18} color={P.muted} />
+            <Text style={styles.logoutText}>Log out</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );
 }
 
-// ── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  root:    { flex: 1, backgroundColor: C.bg },
-  scroll:  { flex: 1 },
-  content: { padding: 18, paddingBottom: 130 },
+  root: { flex: 1, backgroundColor: P.bg },
 
-  // Hero
-  heroCard: {
-    backgroundColor: C.surface,
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: C.border,
-    padding: 16,
-    marginBottom: 14,
-    overflow: 'hidden',
+  hero: {
+    paddingHorizontal: 20,
+    paddingBottom: 34,
+    borderBottomLeftRadius: radius.xl,
+    borderBottomRightRadius: radius.xl,
   },
-  heroBlob: {
-    position: 'absolute',
-    top: -50, right: -50,
-    width: 150, height: 150,
-    borderRadius: 75,
-    backgroundColor: C.accent,
-    opacity: 0.05,
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 26 },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  avatar: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: P.lime,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  heroTop:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
-  heroBrand:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  brandIcon:  { width: 36, height: 36, backgroundColor: C.accent, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  brandEmoji: { fontSize: 18 },
-  brandName:  { fontSize: 22, fontWeight: '800', color: C.text },
-  heroActions:{ flexDirection: 'row', alignItems: 'center', gap: 6 },
-
-  pillBtn:       { backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border, borderRadius: 100, paddingHorizontal: 11, paddingVertical: 5 },
-  pillBtnActive: { backgroundColor: C.accentDim, borderColor: C.accentBorder },
-  pillBtnTxt:    { fontSize: 11, color: C.muted, fontWeight: '600' },
-  bellBtn:       { width: 30, height: 30, backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-
-  heroSub: { fontSize: 12.5, color: C.muted, lineHeight: 19, marginBottom: 4 },
-  heroTag: { fontSize: 12, fontWeight: '700', color: C.accent },
-
-  // Stats
-  statsRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },
-  statCard: {
-    flex: 1,
-    backgroundColor: C.surface,
+  avatarText: { fontSize: 19, fontWeight: '800', color: P.forest },
+  greeting: { fontSize: 12, color: P.onDarkSoft, fontWeight: '600' },
+  userName: { fontSize: 18, fontWeight: '800', color: P.onDark, marginTop: 1, letterSpacing: -0.3 },
+  iconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.10)',
     borderWidth: 1,
-    borderColor: C.border,
-    borderRadius: 16,
+    borderColor: 'rgba(255,255,255,0.16)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 },
+  eyebrowLine: { width: 26, height: 1.5, backgroundColor: P.lime },
+  heroEyebrow: { ...type.eyebrow, color: P.lime, fontSize: 10 },
+  heroTitle: { fontSize: 42, fontWeight: '800', letterSpacing: -1.6, color: P.onDark },
+  heroDot: { color: P.lime },
+  heroSub: { fontSize: 14, lineHeight: 21, color: P.onDarkSoft, marginTop: 6, maxWidth: 330 },
+  pillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 18 },
+  pill: {
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+    borderRadius: radius.pill,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+  },
+  pillText: { fontSize: 12, fontWeight: '700', color: P.lime },
+
+  body: { paddingHorizontal: 18, marginTop: 18 },
+
+  banner: { borderRadius: radius.lg, overflow: 'hidden', marginBottom: 24, minHeight: 150, ...shadow.card },
+  bannerImage: { borderRadius: radius.lg },
+  bannerOverlay: { flex: 1, padding: 16, justifyContent: 'flex-end', minHeight: 150 },
+  bannerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(214,239,117,0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(214,239,117,0.35)',
+    borderRadius: radius.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginBottom: 8,
+  },
+  bannerBadgeText: { fontSize: 10, fontWeight: '700', color: P.lime, letterSpacing: 0.4 },
+  bannerTitle: { fontSize: 17, fontWeight: '800', color: '#fff', marginBottom: 4, lineHeight: 23, letterSpacing: -0.3 },
+  bannerDesc: { fontSize: 12, color: 'rgba(255,255,255,0.75)', lineHeight: 17 },
+
+  sectionEyebrow: { marginBottom: 4 },
+  sectionTitle: { ...type.h2, fontSize: 21, marginBottom: 14 },
+
+  moduleCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: P.surface,
+    borderWidth: 1,
+    borderColor: P.border,
+    borderRadius: radius.lg,
     padding: 14,
+    marginBottom: 12,
+    gap: 14,
+    ...shadow.card,
   },
-  statCardAccent: { backgroundColor: C.accent, borderColor: C.accent },
-  statNum:        { fontSize: 28, fontWeight: '800', color: C.accent, lineHeight: 32 },
-  statLabel:      { fontSize: 10, color: C.muted, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 4 },
-
-  // Cover card
-  coverCard:    { borderRadius: 20, overflow: 'hidden', marginBottom: 14, minHeight: 148 },
-  coverImg:     { borderRadius: 20 },
-  coverOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.52)', padding: 16, justifyContent: 'flex-end', minHeight: 148 },
-  coverBadge:   { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start',
-                  backgroundColor: 'rgba(200,241,53,0.15)', borderWidth: 1, borderColor: C.accentBorder,
-                  borderRadius: 100, paddingHorizontal: 10, paddingVertical: 3, marginBottom: 8 },
-  coverDot:     { width: 5, height: 5, borderRadius: 3, backgroundColor: C.accent },
-  coverBadgeTxt:{ fontSize: 10, color: C.accent, fontWeight: '700', letterSpacing: 0.4 },
-  coverTitle:   { fontSize: 17, fontWeight: '800', color: '#fff', marginBottom: 4 },
-  coverDesc:    { fontSize: 11, color: 'rgba(255,255,255,0.55)', lineHeight: 15 },
-
-  // Section
-  sectionLabel: { fontSize: 10, fontWeight: '700', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10, marginLeft: 2 },
-
-  // Option card
-  optionCard:       {
-    backgroundColor: C.surface,
+  moduleCardLocked: { opacity: 0.55 },
+  moduleIcon: { width: 52, height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  moduleBody: { flex: 1 },
+  moduleTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 3 },
+  moduleTitle: { fontSize: 15, fontWeight: '800', color: P.text, letterSpacing: -0.2, flexShrink: 1 },
+  moduleTitleLocked: { color: P.muted },
+  moduleSub: { fontSize: 12, color: P.textSoft, lineHeight: 17 },
+  moduleAction: { fontSize: 11, fontWeight: '800', color: P.forestMid, marginTop: 6, letterSpacing: 0.2 },
+  readyBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: P.goodDim,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: radius.pill,
+  },
+  readyDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: P.good },
+  readyText: { fontSize: 9, fontWeight: '800', color: P.good, letterSpacing: 0.3 },
+  soonBadge: {
+    backgroundColor: P.surface2,
     borderWidth: 1,
-    borderColor: C.border,
-    borderRadius: 18,
+    borderColor: P.border,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  soonText: { fontSize: 9, fontWeight: '700', color: P.muted },
+  chevronWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: P.forest,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  tipBox: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    backgroundColor: P.surfaceTint,
+    borderWidth: 1,
+    borderColor: '#D5E7BD',
+    borderRadius: radius.md,
     padding: 14,
-    marginBottom: 10,
+    marginTop: 6,
   },
-  optionCardLocked: { opacity: 0.5 },
-  optionThumb:      { width: 52, height: 52, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  optionEmoji:      { fontSize: 26 },
-
-  thumbGreen:  { backgroundColor: C.accentDim,              borderWidth: 1, borderColor: C.accentBorder },
-  thumbOrange: { backgroundColor: 'rgba(245,166,35,0.12)',   borderWidth: 1, borderColor: 'rgba(245,166,35,0.22)' },
-  thumbRed:    { backgroundColor: 'rgba(255,92,92,0.10)',    borderWidth: 1, borderColor: 'rgba(255,92,92,0.18)' },
-  thumbAccent: { backgroundColor: 'rgba(200,241,53,0.08)',   borderWidth: 1, borderColor: C.accentBorder },
-
-  optionBody:  { flex: 1, minWidth: 0 },
-  optionTitle: { fontSize: 14, fontWeight: '800', color: C.text, marginBottom: 2 },
-  optionSub:   { fontSize: 11, color: C.muted },
-  optionRight: { alignItems: 'flex-end', gap: 5 },
-
-  badgeNew:    { backgroundColor: C.accent, borderRadius: 100, paddingHorizontal: 7, paddingVertical: 2 },
-  badgeNewTxt: { fontSize: 9, fontWeight: '800', color: '#0f0f0f', letterSpacing: 0.3 },
-  badgeLock:   { backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border, borderRadius: 100, paddingHorizontal: 7, paddingVertical: 2 },
-  badgeLockTxt:{ fontSize: 9, fontWeight: '700', color: C.muted },
-  chevron:     { fontSize: 18, color: C.muted },
-
-  // Logout
-  logoutBtn: {
-    borderWidth: 1.5,
-    borderColor: C.border,
-    borderRadius: 14,
-    padding: 14,
+  tipIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: P.lime,
     alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 8,
+    justifyContent: 'center',
   },
-  logoutTxt: { fontSize: 13, fontWeight: '600', color: C.muted },
+  tipText: { flex: 1, fontSize: 12, color: P.textSoft, lineHeight: 18 },
+
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 16,
+    paddingVertical: 14,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: P.border,
+    backgroundColor: P.surface,
+  },
+  logoutText: { fontSize: 14, fontWeight: '700', color: P.muted },
 });

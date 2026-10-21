@@ -127,24 +127,18 @@ def test_03_different_image_mismatch():
     assert _upload(case_id, img1).json()["accepted"] is True
     body2 = _upload(case_id, img2, confirm=False).json()
     assert body2["accepted"] is False
-    assert body2["consistency_status"] in {"MISMATCH", "POSSIBLE_MATCH"}
+    assert body2["consistency_status"] == "MISMATCH"
     assert len(client.get(f"/cases/{case_id}/observations").json()["observations"]) == 1
 
 
-# ── Test 4: POSSIBLE_MATCH requires confirmation ──────────────────────────────
-def test_04_possible_match_requires_confirm():
+# ── Test 4: POSSIBLE_MATCH is accepted without confirmation ───────────────────
+def test_04_possible_match_auto_accept():
     from consistency.consistency_checker import check_consistency
 
     status, accepted, reason = check_consistency(0.75, is_first_observation=False)
     assert status == "POSSIBLE_MATCH"
-    assert accepted is False
-    assert reason is not None
-
-    status2, accepted2, _ = check_consistency(
-        0.75, is_first_observation=False, confirm_same_case=True
-    )
-    assert status2 == "POSSIBLE_MATCH"
-    assert accepted2 is True
+    assert accepted is True
+    assert reason is None
 
 
 # ── Test 5 / 6: WORSENING recommendation vs IMPROVING no recommendation ───────
@@ -152,7 +146,7 @@ def test_05_worsening_recommendation():
     rec = get_worsening_recommendation("early_blight", TREND_WORSENING, None)
     assert rec is not None
     assert "worsening" in rec["title"].lower()
-    assert "not a treatment" in rec["note"].lower() or "monitoring" in rec["note"].lower()
+    assert "Early Blight -" in rec["title"] or "early blight" in rec["title"].lower()
 
 
 def test_06_improving_no_worsening_recommendation():

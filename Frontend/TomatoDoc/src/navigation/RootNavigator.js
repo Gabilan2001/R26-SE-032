@@ -18,5 +18,15 @@ export default function RootNavigator() {
     );
   }
 
-  return <NavigationContainer>{isAuthenticated ? <AppNavigator /> : <AuthNavigator />}</NavigationContainer>;
+  // ⚠️ Local-testing-only auth bypass, since the Nutrient team's auth backend
+  // (MongoDB) isn't always running/configured here. Left commented out so it
+  // stays out of the real auth path by default -- uncomment the `= true`
+  // line (and comment out the `= false` one) whenever it's needed again.
+  // const BYPASS_AUTH_FOR_LOCAL_TESTING = true;
+  const BYPASS_AUTH_FOR_LOCAL_TESTING = false;
+  return (
+    <NavigationContainer>
+      {isAuthenticated || BYPASS_AUTH_FOR_LOCAL_TESTING ? <AppNavigator /> : <AuthNavigator />}
+    </NavigationContainer>
+  );
 }

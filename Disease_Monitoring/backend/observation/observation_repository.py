@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from config.observation_config import DB_PATH, OBSERVATIONS_DATA_DIR
+from utils.location_service import public_location_fields
 
 
 def _utc_now_iso() -> str:
@@ -60,8 +61,26 @@ def init_observation_db() -> None:
     cursor.execute(
         "CREATE INDEX IF NOT EXISTS idx_observations_case ON observations(case_id, created_at)"
     )
+    _migrate_observation_columns(cursor)
     conn.commit()
     conn.close()
+
+
+def _migrate_observation_columns(cursor: sqlite3.Cursor) -> None:
+    """Add location columns to existing databases without dropping data."""
+    existing = {row[1] for row in cursor.execute("PRAGMA table_info(observations)")}
+    additions = [
+        ("latitude", "REAL"),
+        ("longitude", "REAL"),
+        ("area", "TEXT"),
+        ("district", "TEXT"),
+        ("province", "TEXT"),
+        ("location_source", "TEXT"),
+        ("severity_evidence_json", "TEXT"),
+    ]
+    for name, col_type in additions:
+        if name not in existing:
+            cursor.execute(f"ALTER TABLE observations ADD COLUMN {name} {col_type}")
 
 
 def create_case(crop_part: str, label: Optional[str] = None) -> Dict[str, Any]:
@@ -103,8 +122,10 @@ def insert_observation(record: Dict[str, Any]) -> Dict[str, Any]:
             observation_id, case_id, crop_part, created_at, disease,
             severity_score, severity_class, embedding_json, similarity_score,
             consistency_status, weather_context, trend, status, recommendation,
-            accepted, image_path
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            accepted, image_path,
+            latitude, longitude, area, district, province, location_source,
+            severity_evidence_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             record["observation_id"],
@@ -123,6 +144,15 @@ def insert_observation(record: Dict[str, Any]) -> Dict[str, Any]:
             json.dumps(record.get("recommendation")),
             1 if record.get("accepted", True) else 0,
             record.get("image_path"),
+            record.get("latitude"),
+            record.get("longitude"),
+            record.get("area"),
+            record.get("district"),
+            record.get("province"),
+            record.get("location_source"),
+            json.dumps(record["severity_evidence"])
+            if record.get("severity_evidence") is not None
+            else None,
         ),
     )
     conn.commit()
@@ -177,15 +207,79 @@ def _row_to_observation(row: sqlite3.Row) -> Dict[str, Any]:
         "recommendation": json.loads(row["recommendation"]) if row["recommendation"] else None,
         "accepted": bool(row["accepted"]),
         "image_path": row["image_path"],
+        "latitude": row["latitude"] if "latitude" in row.keys() else None,
+        "longitude": row["longitude"] if "longitude" in row.keys() else None,
+        "area": row["area"] if "area" in row.keys() else None,
+        "district": row["district"] if "district" in row.keys() else None,
+        "province": row["province"] if "province" in row.keys() else None,
+        "location_source": row["location_source"] if "location_source" in row.keys() else None,
+        "severity_evidence": (
+            json.loads(row["severity_evidence_json"])
+            if "severity_evidence_json" in row.keys() and row["severity_evidence_json"]
+            else None
+        ),
     }
 
 
+_FARMER_HIDDEN = {
+    "embedding",
+    "severity_evidence",
+    "cnn_high_prob",
+    "verification_status",
+    "final_severity",
+    "secondary_severity",
+    "secondary_confidence",
+    "secondary_estimated_area_percentage",
+    "secondary_reasoning",
+}
+
+
+def delete_case(case_id: str) -> bool:
+    """Remove a monitoring case, its observations, and saved images. Returns True if case existed."""
+    case = get_case(case_id)
+    if not case:
+        return False
+
+    conn = _connect()
+    conn.execute("DELETE FROM observations WHERE case_id = ?", (case_id,))
+    conn.execute("DELETE FROM monitoring_cases WHERE case_id = ?", (case_id,))
+    conn.commit()
+    conn.close()
+
+    case_dir = os.path.join(OBSERVATIONS_DATA_DIR, case_id)
+    if os.path.isdir(case_dir):
+        for name in os.listdir(case_dir):
+            path = os.path.join(case_dir, name)
+            try:
+                if os.path.isfile(path):
+                    os.remove(path)
+            except OSError:
+                pass
+        try:
+            os.rmdir(case_dir)
+        except OSError:
+            pass
+    return True
+
+
 def public_observation(obs: Dict[str, Any]) -> Dict[str, Any]:
-    """Strip embedding from API responses; expose estimated affected-area %."""
-    out = {k: v for k, v in obs.items() if k != "embedding"}
+    """Strip embeddings and secondary-verify internals from farmer-facing API."""
+    out = {k: v for k, v in obs.items() if k not in _FARMER_HIDDEN}
     score = out.get("severity_score")
     if isinstance(score, (int, float)):
         out["estimated_affected_area_percentage"] = round(float(score) * 100.0, 1)
+    loc = public_location_fields(
+        {
+            "latitude": out.pop("latitude", None),
+            "longitude": out.pop("longitude", None),
+            "area": out.pop("area", None),
+            "district": out.pop("district", None),
+            "province": out.pop("province", None),
+            "source": out.pop("location_source", None),
+        }
+    )
+    if loc:
+        out["location"] = loc
     return out
 
 

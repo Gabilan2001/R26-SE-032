@@ -1,7 +1,6 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,20 +10,24 @@ import { StatusBar } from "expo-status-bar";
 import type { CropPart, Observation } from "../../api/observations";
 import { LeafScanAppHeader } from "../../components/LeafScanAppHeader";
 import {
+  DiseaseContextModal,
   ObservationProgress,
   ObservationResultCard,
 } from "../../components/monitoring";
 import { NEXT_OBSERVATION_GUIDANCE, TARGET_OBSERVATIONS, MODALITY } from "../../config/modality";
 import { useMonitoringPalette } from "../../theme/MonitoringThemeContext";
 import type { MonitoringPalette } from "../../theme/colors";
-import { trendFarmerLabel } from "../../utils/observationLabels";
+import type { ObservationLocationSelection } from "../../utils/locationCapture";
 
+import { ScreenFrame as SafeAreaView } from "../../components/ScreenFrame";
 type Props = {
   caseId: string;
   observationNumber: number;
   observation: Observation;
+  previousObservation?: Observation | null;
   imageUri?: string | null;
   cropPart?: CropPart;
+  caseLocation?: ObservationLocationSelection | null;
   onBack?: () => void;
   onNextObservation: () => void;
   onViewOverall: () => void;
@@ -34,17 +37,20 @@ export function ObservationResultScreen({
   caseId,
   observationNumber,
   observation,
+  previousObservation,
   imageUri,
   cropPart,
+  caseLocation = null,
   onBack,
   onNextObservation,
   onViewOverall,
 }: Props) {
+  const [contextOpen, setContextOpen] = useState(false);
   const complete = observationNumber >= TARGET_OBSERVATIONS;
   const p = useMonitoringPalette();
   const styles = useMemo(() => makeStyles(p), [p]);
-  const title =
-    cropPart && MODALITY[cropPart] ? MODALITY[cropPart].title : "Disease Monitoring";
+  const cfg = cropPart ? MODALITY[cropPart] : null;
+  const title = cfg ? cfg.title : "Disease Monitoring";
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -58,26 +64,18 @@ export function ObservationResultScreen({
         <ObservationProgress current={observationNumber} />
 
         <ObservationResultCard
-          caseId={caseId}
           observationNumber={observationNumber}
           observation={observation}
+          previousObservation={previousObservation}
+          cropPart={cropPart}
           imageUri={imageUri}
         />
-
-        {observation.trend && observation.trend !== "BASELINE" ? (
-          <View style={styles.trendBox}>
-            <Text style={styles.trendTitle}>Trend</Text>
-            <Text style={styles.trendBody}>{trendFarmerLabel(observation.trend)}</Text>
-            <Text style={styles.trendCode}>{observation.trend}</Text>
-          </View>
-        ) : null}
 
         {observation.recommendation ? (
           <View style={styles.guideBox}>
             <Text style={styles.guideTitle}>
               {String(observation.recommendation.title ?? "Monitoring guidance")}
             </Text>
-            <Text style={styles.guideHint}>Monitoring tips only — not a prescription.</Text>
             {Array.isArray(observation.recommendation.actions)
               ? observation.recommendation.actions.map((a, i) => (
                   <Text key={i} style={styles.guideItem}>
@@ -106,7 +104,22 @@ export function ObservationResultScreen({
             </Pressable>
           )}
         </View>
+
+        <Pressable style={styles.link} onPress={() => setContextOpen(true)}>
+          <Text style={styles.linkText}>About disease context</Text>
+        </Pressable>
+
+        <Text style={styles.caseFootnote}>Case reference: {caseId}</Text>
       </ScrollView>
+
+      <DiseaseContextModal
+        visible={contextOpen}
+        caseId={caseId}
+        disease={observation.disease}
+        cropPartLabel={cfg?.shortLabel}
+        location={caseLocation}
+        onClose={() => setContextOpen(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -114,27 +127,16 @@ export function ObservationResultScreen({
 function makeStyles(p: MonitoringPalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: p.bg },
-    content: { padding: 18, paddingBottom: 40 },
-    trendBox: {
-      marginTop: 12,
-      backgroundColor: p.bgElevated,
-      borderRadius: 14,
-      padding: 14,
-      borderWidth: 1,
-      borderColor: p.cardBorder,
-    },
-    trendTitle: { color: p.textMuted, fontWeight: "700", fontSize: 12 },
-    trendBody: { color: p.textPrimary, marginTop: 6, fontWeight: "700", lineHeight: 20 },
-    trendCode: { color: p.infoText, marginTop: 4, fontWeight: "600" },
+    content: { padding: 18, paddingBottom: 120 },
     guideBox: {
       marginTop: 12,
-      backgroundColor: "#2a1012",
+      backgroundColor: "#FDECEA",
       borderRadius: 14,
       padding: 14,
       borderWidth: 1,
-      borderColor: "#FF6B6B",
+      borderColor: "#D64545",
     },
-    guideTitle: { color: "#FF6B6B", fontWeight: "700" },
+    guideTitle: { color: "#D64545", fontWeight: "700" },
     guideHint: { color: p.textMuted, marginTop: 4, fontSize: 12 },
     guideItem: { color: p.textPrimary, marginTop: 6, lineHeight: 18 },
     nextCard: {
@@ -155,5 +157,13 @@ function makeStyles(p: MonitoringPalette) {
       alignItems: "center",
     },
     primaryText: { color: p.onAccent, fontWeight: "800" },
+    link: { marginTop: 16, alignItems: "center" },
+    linkText: { color: p.infoText, fontWeight: "600" },
+    caseFootnote: {
+      color: p.textMuted,
+      fontSize: 11,
+      marginTop: 14,
+      textAlign: "center",
+    },
   });
 }

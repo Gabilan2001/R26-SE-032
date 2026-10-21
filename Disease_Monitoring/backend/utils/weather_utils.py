@@ -4,10 +4,13 @@ Gets real-time weather data using GPS coordinates
 Computes Weather Risk Score for disease spread
 """
 
-import requests
+import math
 import os
 import logging
 from datetime import datetime
+from typing import Optional
+
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -20,13 +23,41 @@ WEATHER_API_KEY = os.getenv("WEATHER_API_KEY") or os.getenv("OPENWEATHER_API_KEY
 BASE_URL        = "https://api.openweathermap.org/data/2.5/weather"
 
 
+def _dew_point_c(temperature_c: float, humidity_pct: float) -> Optional[float]:
+    """Magnus approximation. OpenWeather current weather does not return dew point."""
+    try:
+        t = float(temperature_c)
+        rh = min(100.0, max(1.0, float(humidity_pct)))
+        a, b = 17.27, 237.7
+        gamma = (a * t / (b + t)) + math.log(rh / 100.0)
+        return round((b * gamma) / (a - gamma), 1)
+    except Exception:
+        return None
+
+
+def _vpd_kpa(temperature_c: float, humidity_pct: float) -> Optional[float]:
+    """Vapour-pressure deficit from temperature and relative humidity (kPa)."""
+    try:
+        t = float(temperature_c)
+        rh = min(100.0, max(0.0, float(humidity_pct)))
+        es = 0.6108 * math.exp((17.27 * t) / (t + 237.3))
+        ea = es * (rh / 100.0)
+        return round(max(0.0, es - ea), 2)
+    except Exception:
+        return None
+
+
 def get_weather_data(lat: float, lon: float):
     """
-    Fetch current weather from OpenWeatherMap API
-    
-    Returns dict with temperature, humidity, rainfall
-    or None if API call fails
+    Fetch current weather from OpenWeatherMap API.
+
+    Returns a snapshot dict or None if the API call fails.
+    Missing API key / timeout / HTTP errors never raise.
     """
+    if not WEATHER_API_KEY:
+        logger.debug("Weather API key not configured")
+        return None
+
     try:
         params = {
             "lat":   lat,
@@ -35,41 +66,53 @@ def get_weather_data(lat: float, lon: float):
             "units": "metric"   # Celsius
         }
         response = requests.get(BASE_URL, params=params, timeout=5)
-        print(f"[DEBUG] Weather API response status={response.status_code} body={response.text}")
-        logger.debug("Weather API response status=%s body=%s", response.status_code, response.text)
-        
-        if response.status_code == 200:
-            data = response.json()
+        logger.debug("Weather API response status=%s", response.status_code)
 
-            if not data.get("main") or not data.get("wind") or not data.get("weather"):
-                logger.debug("Weather API response missing required fields: %s", data)
-                return None
-            
-            weather = {
-                "temperature":    data["main"]["temp"],
-                "humidity":       data["main"]["humidity"],
-                "rainfall_1h":    data.get("rain", {}).get("1h", 0.0),
-                "rainfall_3h":    data.get("rain", {}).get("3h", 0.0),
-                "wind_speed":     data["wind"]["speed"],
-                "weather_desc":   data["weather"][0]["description"],
-                "condition":      data["weather"][0].get("main"),
-                "city":           data.get("name", "Unknown"),
-                "timestamp":      datetime.now().isoformat()
-            }
-            print(f"[DEBUG] Extracted weather data: {weather}")
-            logger.debug("Extracted weather data: %s", weather)
-            return weather
-        else:
-            print(f"[DEBUG] Weather API error status={response.status_code} body={response.text}")
+        if response.status_code != 200:
             logger.debug("Weather API error status=%s body=%s", response.status_code, response.text)
             return None
 
+        data = response.json()
+        main = data.get("main") or {}
+        wind = data.get("wind") or {}
+        weather_list = data.get("weather") or []
+        if not main or not weather_list:
+            logger.debug("Weather API response missing required fields: %s", data)
+            return None
+
+        temperature = main.get("temp")
+        humidity = main.get("humidity")
+        wind_ms = float(wind.get("speed") or 0.0)
+        gust_ms = wind.get("gust")
+        rain_1h = float((data.get("rain") or {}).get("1h") or 0.0)
+        rain_3h = float((data.get("rain") or {}).get("3h") or 0.0)
+        clouds = (data.get("clouds") or {}).get("all")
+        visibility_m = data.get("visibility")
+
+        weather = {
+            "temperature":    temperature,
+            "humidity":       humidity,
+            "rainfall_1h":    rain_1h,
+            "rainfall_3h":    rain_3h,
+            "wind_speed":     wind_ms,
+            "wind_speed_kmh": round(wind_ms * 3.6, 1),
+            "wind_gust_kmh":  round(float(gust_ms) * 3.6, 1) if gust_ms is not None else None,
+            "cloud_cover":    clouds,
+            "visibility_km":  round(float(visibility_m) / 1000.0, 1) if visibility_m else None,
+            "dew_point":      _dew_point_c(temperature, humidity) if temperature is not None and humidity is not None else None,
+            "vpd_kpa":        _vpd_kpa(temperature, humidity) if temperature is not None and humidity is not None else None,
+            "weather_desc":   weather_list[0].get("description"),
+            "condition":      weather_list[0].get("main"),
+            "city":           data.get("name", "Unknown"),
+            "timestamp":      datetime.now().isoformat(),
+        }
+        logger.debug("Extracted weather data: %s", weather)
+        return weather
+
     except requests.exceptions.Timeout:
-        print("[DEBUG] Weather API timeout")
         logger.debug("Weather API timeout")
         return None
     except Exception as e:
-        print(f"[DEBUG] Weather API error: {e}")
         logger.debug("Weather API error: %s", e)
         return None
 
@@ -89,9 +132,20 @@ def compute_weather_risk_score(weather: dict) -> dict:
             "details":     {}
         }
 
-    humidity    = weather["humidity"]
-    rainfall    = weather["rainfall_1h"]
-    temperature = weather["temperature"]
+    humidity    = weather.get("humidity")
+    rainfall    = weather.get("rainfall_1h") or 0.0
+    temperature = weather.get("temperature")
+    if humidity is None or temperature is None:
+        return {
+            "risk_score":  0.0,
+            "risk_level":  "UNKNOWN",
+            "alert":       None,
+            "details":     {}
+        }
+
+    humidity = float(humidity)
+    rainfall = float(rainfall)
+    temperature = float(temperature)
 
     # Temperature deviation from ideal (25°C is ideal for tomatoes)
     temp_deviation = abs(temperature - 25)
@@ -131,11 +185,19 @@ def compute_weather_risk_score(weather: dict) -> dict:
         "details": {
             "humidity":        humidity,
             "temperature":     temperature,
+            "rainfall":        rainfall,
             "rainfall_1h":     rainfall,
+            "rainfall_3h":     weather.get("rainfall_3h", 0.0),
             "temp_deviation":  temp_deviation,
-            "wind_speed":      weather["wind_speed"],
-            "condition":       weather["condition"],
-            "description":     weather["weather_desc"]
+            "wind_speed":      weather.get("wind_speed"),
+            "wind_speed_kmh":  weather.get("wind_speed_kmh"),
+            "wind_gust_kmh":   weather.get("wind_gust_kmh"),
+            "cloud_cover":     weather.get("cloud_cover"),
+            "dew_point":       weather.get("dew_point"),
+            "visibility_km":   weather.get("visibility_km"),
+            "vpd_kpa":         weather.get("vpd_kpa"),
+            "condition":       weather.get("condition"),
+            "description":     weather.get("weather_desc"),
         }
     }
 
@@ -165,6 +227,5 @@ def get_weather_risk(lat: float, lon: float) -> dict:
         "city":        weather["city"],
         "timestamp":   weather["timestamp"]
     }
-    print(f"[DEBUG] Weather risk result: {result}")
     logger.debug("Weather risk result: %s", result)
     return result

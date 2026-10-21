@@ -10,6 +10,7 @@ import {
 type Props = {
   status: string;
   similarity?: number | null;
+  showSimilarity?: boolean;
 };
 
 function tone(status: string) {
@@ -33,7 +34,11 @@ function tone(status: string) {
   return { border: palette.cardBorder, bg: palette.bgElevated, text: palette.textMuted };
 }
 
-export function ConsistencyStatusCard({ status, similarity }: Props) {
+export function ConsistencyStatusCard({
+  status,
+  similarity,
+  showSimilarity = false,
+}: Props) {
   const t = tone(status);
   const icon =
     status === "MATCH" || status === "BASELINE"
@@ -54,7 +59,7 @@ export function ConsistencyStatusCard({ status, similarity }: Props) {
           <Text style={[styles.title, { color: t.text }]}>
             {consistencyFarmerTitle(status)}
           </Text>
-          {similarity != null ? (
+          {showSimilarity && similarity != null ? (
             <Text style={styles.meta}>Similarity score: {formatScore(similarity)}</Text>
           ) : null}
         </View>

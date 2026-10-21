@@ -1,0 +1,369 @@
+Series,Location,Feature,Lag,Pearson_r,Spearman_rho
+Dambulla-Retail,Nuwara Eliya,Daily Rainfall,0 days,0.03420506353166217,0.026576391024754797
+Dambulla-Retail,Nuwara Eliya,Daily Temperature,0 days,-0.1248946073753611,-0.19900854249534253
+Dambulla-Retail,Nuwara Eliya,Daily Rainfall,1 days,0.05830430383506383,0.038430897264832856
+Dambulla-Retail,Nuwara Eliya,Daily Temperature,1 days,-0.12163394693482746,-0.1970054273933947
+Dambulla-Retail,Nuwara Eliya,Daily Rainfall,3 days,0.07401694649586679,0.07193889552132417
+Dambulla-Retail,Nuwara Eliya,Daily Temperature,3 days,-0.11184236832462739,-0.1804065661293889
+Dambulla-Retail,Nuwara Eliya,Daily Rainfall,7 days,0.06894732204860035,0.09638733416992801
+Dambulla-Retail,Nuwara Eliya,Daily Temperature,7 days,-0.0911551626168023,-0.15557250016289462
+Dambulla-Retail,Nuwara Eliya,Daily Rainfall,14 days,0.14202572305224065,0.1317650815407727
+Dambulla-Retail,Nuwara Eliya,Daily Temperature,14 days,-0.03673060921211515,-0.08345109839500342
+Dambulla-Retail,Nuwara Eliya,Daily Rainfall,21 days,0.15042053428927799,0.12466717396883967
+Dambulla-Retail,Nuwara Eliya,Daily Temperature,21 days,-0.029935531159456855,-0.05584227502413211
+Dambulla-Retail,Nuwara Eliya,Daily Rainfall,30 days,0.16217969086396256,0.18074091388100436
+Dambulla-Retail,Nuwara Eliya,Daily Temperature,30 days,0.04132195335819234,0.010786497576138107
+Dambulla-Retail,Nuwara Eliya,Cum Rain (7d),0 days,0.05818946694655954,0.09208123083272651
+Dambulla-Retail,Nuwara Eliya,Cum Rain (7d),7 days,0.09348825014261952,0.15387706962086128
+Dambulla-Retail,Nuwara Eliya,Cum Rain (7d),14 days,0.19620997189932,0.17959760924923693
+Dambulla-Retail,Nuwara Eliya,Cum Rain (14d),0 days,0.07268147257388874,0.12625323792078533
+Dambulla-Retail,Nuwara Eliya,Cum Rain (14d),7 days,0.15409296216785126,0.18189173387577587
+Dambulla-Retail,Nuwara Eliya,Cum Rain (14d),14 days,0.2520516287202465,0.21475627422262852
+Dambulla-Retail,Nuwara Eliya,Cum Rain (30d),0 days,0.1905249648975207,0.1871394472800758
+Dambulla-Retail,Nuwara Eliya,Cum Rain (30d),7 days,0.28567875155252004,0.25684632893055603
+Dambulla-Retail,Nuwara Eliya,Cum Rain (30d),14 days,0.35765940100797927,0.3190496921777218
+Dambulla-Retail,Badulla,Daily Rainfall,0 days,0.03680395856170576,0.08984226909045587
+Dambulla-Retail,Badulla,Daily Temperature,0 days,-0.10559608243303925,-0.15098171203453306
+Dambulla-Retail,Badulla,Daily Rainfall,1 days,0.06055844988625632,0.10085166770160545
+Dambulla-Retail,Badulla,Daily Temperature,1 days,-0.11043960187676023,-0.15246895843345865
+Dambulla-Retail,Badulla,Daily Rainfall,3 days,0.08076972643651154,0.12911721303351417
+Dambulla-Retail,Badulla,Daily Temperature,3 days,-0.12295821723777546,-0.15774462369206696
+Dambulla-Retail,Badulla,Daily Rainfall,7 days,0.07286418417852436,0.14484372025269499
+Dambulla-Retail,Badulla,Daily Temperature,7 days,-0.12033930971918606,-0.14084471192608095
+Dambulla-Retail,Badulla,Daily Rainfall,14 days,0.15186907832923077,0.18229769377096788
+Dambulla-Retail,Badulla,Daily Temperature,14 days,-0.11879351674465659,-0.11819798384259163
+Dambulla-Retail,Badulla,Daily Rainfall,21 days,0.13685486243396627,0.15846774877355235
+Dambulla-Retail,Badulla,Daily Temperature,21 days,-0.12462563393669855,-0.10539620948520988
+Dambulla-Retail,Badulla,Daily Rainfall,30 days,0.15254939416876803,0.1972467853689233
+Dambulla-Retail,Badulla,Daily Temperature,30 days,-0.10630770628289055,-0.08192522341253988
+Dambulla-Retail,Badulla,Cum Rain (7d),0 days,0.08284809642416247,0.1488003430407063
+Dambulla-Retail,Badulla,Cum Rain (7d),7 days,0.11157179351031786,0.2032344438083797
+Dambulla-Retail,Badulla,Cum Rain (7d),14 days,0.20061206504199927,0.22734953077684025
+Dambulla-Retail,Badulla,Cum Rain (14d),0 days,0.10138623062455192,0.18231981462196079
+Dambulla-Retail,Badulla,Cum Rain (14d),7 days,0.1663420264632008,0.2378942050309953
+Dambulla-Retail,Badulla,Cum Rain (14d),14 days,0.23825149447525046,0.25088309252080665
+Dambulla-Retail,Badulla,Cum Rain (30d),0 days,0.19439857911158678,0.2350092243494449
+Dambulla-Retail,Badulla,Cum Rain (30d),7 days,0.26429128151097353,0.2807361685773292
+Dambulla-Retail,Badulla,Cum Rain (30d),14 days,0.32733800382266326,0.3122391221161201
+Dambulla-Retail,Anuradhapura,Daily Rainfall,0 days,0.024195865364311887,0.05073009198533629
+Dambulla-Retail,Anuradhapura,Daily Temperature,0 days,-0.14009641727836056,-0.19880492084080423
+Dambulla-Retail,Anuradhapura,Daily Rainfall,1 days,0.048457816381703954,0.06615265523000426
+Dambulla-Retail,Anuradhapura,Daily Temperature,1 days,-0.14924678170976527,-0.2043890705495623
+Dambulla-Retail,Anuradhapura,Daily Rainfall,3 days,0.06464921142900763,0.10598995368547992
+Dambulla-Retail,Anuradhapura,Daily Temperature,3 days,-0.1663229832223362,-0.21483156142923512
+Dambulla-Retail,Anuradhapura,Daily Rainfall,7 days,0.06436003632982557,0.12702599433822487
+Dambulla-Retail,Anuradhapura,Daily Temperature,7 days,-0.1595359751150423,-0.20901747396483136
+Dambulla-Retail,Anuradhapura,Daily Rainfall,14 days,0.161408831389114,0.19925627365420445
+Dambulla-Retail,Anuradhapura,Daily Temperature,14 days,-0.16450650668133704,-0.18872260058584187
+Dambulla-Retail,Anuradhapura,Daily Rainfall,21 days,0.1682156501122067,0.2175943751811777
+Dambulla-Retail,Anuradhapura,Daily Temperature,21 days,-0.15957657616141802,-0.1658006084222591
+Dambulla-Retail,Anuradhapura,Daily Rainfall,30 days,0.17908644097715534,0.2824037712601244
+Dambulla-Retail,Anuradhapura,Daily Temperature,30 days,-0.10020988963321859,-0.10728109395055897
+Dambulla-Retail,Anuradhapura,Cum Rain (7d),0 days,0.0765288118506708,0.09911263760964824
+Dambulla-Retail,Anuradhapura,Cum Rain (7d),7 days,0.12490360059014106,0.18971739030407167
+Dambulla-Retail,Anuradhapura,Cum Rain (7d),14 days,0.26106323481525523,0.2646975658885679
+Dambulla-Retail,Anuradhapura,Cum Rain (14d),0 days,0.09930217831673739,0.14670000571682093
+Dambulla-Retail,Anuradhapura,Cum Rain (14d),7 days,0.20305495417735653,0.25064311594691324
+Dambulla-Retail,Anuradhapura,Cum Rain (14d),14 days,0.3110968643080272,0.31074047377872893
+Dambulla-Retail,Anuradhapura,Cum Rain (30d),0 days,0.23098169588803316,0.25047481581845527
+Dambulla-Retail,Anuradhapura,Cum Rain (30d),7 days,0.3366264915540103,0.3480838305270837
+Dambulla-Retail,Anuradhapura,Cum Rain (30d),14 days,0.4174539835391049,0.4319451108437393
+Dambulla-Retail,Dambulla,Daily Rainfall,0 days,0.027765581020136938,0.04548627777451499
+Dambulla-Retail,Dambulla,Daily Temperature,0 days,-0.14689406688753082,-0.20325859366085527
+Dambulla-Retail,Dambulla,Daily Rainfall,1 days,0.049174821095791396,0.0616354598004283
+Dambulla-Retail,Dambulla,Daily Temperature,1 days,-0.15474113512500182,-0.20664958509106707
+Dambulla-Retail,Dambulla,Daily Rainfall,3 days,0.07378335062859848,0.09834983337864468
+Dambulla-Retail,Dambulla,Daily Temperature,3 days,-0.1717377718256194,-0.21645302728696586
+Dambulla-Retail,Dambulla,Daily Rainfall,7 days,0.06352106247987432,0.11900627754060386
+Dambulla-Retail,Dambulla,Daily Temperature,7 days,-0.15385259751266195,-0.20379346438502455
+Dambulla-Retail,Dambulla,Daily Rainfall,14 days,0.1544675729050564,0.1713558789510381
+Dambulla-Retail,Dambulla,Daily Temperature,14 days,-0.14006983920758964,-0.16278351397224675
+Dambulla-Retail,Dambulla,Daily Rainfall,21 days,0.16283692859486779,0.1803708739468983
+Dambulla-Retail,Dambulla,Daily Temperature,21 days,-0.12605932461130454,-0.1350168944307701
+Dambulla-Retail,Dambulla,Daily Rainfall,30 days,0.1801009948630704,0.2394376008094185
+Dambulla-Retail,Dambulla,Daily Temperature,30 days,-0.05842117106759896,-0.07306411678970783
+Dambulla-Retail,Dambulla,Cum Rain (7d),0 days,0.07881417103591307,0.10789381419067454
+Dambulla-Retail,Dambulla,Cum Rain (7d),7 days,0.11143811205232756,0.18948339588498436
+Dambulla-Retail,Dambulla,Cum Rain (7d),14 days,0.23665831564150372,0.24316447210996575
+Dambulla-Retail,Dambulla,Cum Rain (14d),0 days,0.1001220134548487,0.1554283832417974
+Dambulla-Retail,Dambulla,Cum Rain (14d),7 days,0.18393521885683586,0.24668424647007448
+Dambulla-Retail,Dambulla,Cum Rain (14d),14 days,0.2882400343481542,0.2958146732742981
+Dambulla-Retail,Dambulla,Cum Rain (30d),0 days,0.21780286088930592,0.25523922689073153
+Dambulla-Retail,Dambulla,Cum Rain (30d),7 days,0.3150426779934002,0.34476246223937645
+Dambulla-Retail,Dambulla,Cum Rain (30d),14 days,0.39693449247342016,0.4149023722383265
+Dambulla-Wholesale,Nuwara Eliya,Daily Rainfall,0 days,0.029230624714683885,0.012499312648519422
+Dambulla-Wholesale,Nuwara Eliya,Daily Temperature,0 days,-0.1291203276514017,-0.20404576896863993
+Dambulla-Wholesale,Nuwara Eliya,Daily Rainfall,1 days,0.05275478481977953,0.02294482881980087
+Dambulla-Wholesale,Nuwara Eliya,Daily Temperature,1 days,-0.1257627505368726,-0.20262917421143337
+Dambulla-Wholesale,Nuwara Eliya,Daily Rainfall,3 days,0.06767625247077,0.061627224337474695
+Dambulla-Wholesale,Nuwara Eliya,Daily Temperature,3 days,-0.11559267171630111,-0.18427365127425419
+Dambulla-Wholesale,Nuwara Eliya,Daily Rainfall,7 days,0.06101324546414549,0.0817699175676796
+Dambulla-Wholesale,Nuwara Eliya,Daily Temperature,7 days,-0.09426192878217982,-0.1581449353735995
+Dambulla-Wholesale,Nuwara Eliya,Daily Rainfall,14 days,0.13676304952262802,0.11601178611826538
+Dambulla-Wholesale,Nuwara Eliya,Daily Temperature,14 days,-0.037888885273397545,-0.08350915360025031
+Dambulla-Wholesale,Nuwara Eliya,Daily Rainfall,21 days,0.14494513563190004,0.10784082237703894
+Dambulla-Wholesale,Nuwara Eliya,Daily Temperature,21 days,-0.03006613175983009,-0.05204620337525615
+Dambulla-Wholesale,Nuwara Eliya,Daily Rainfall,30 days,0.1554813068425251,0.1614574154405901
+Dambulla-Wholesale,Nuwara Eliya,Daily Temperature,30 days,0.04259217628070983,0.01637096348313476
+Dambulla-Wholesale,Nuwara Eliya,Cum Rain (7d),0 days,0.05109600137125032,0.07158468626076939
+Dambulla-Wholesale,Nuwara Eliya,Cum Rain (7d),7 days,0.08107311736148849,0.13035179705907024
+Dambulla-Wholesale,Nuwara Eliya,Cum Rain (7d),14 days,0.1899489776171231,0.15978602068554432
+Dambulla-Wholesale,Nuwara Eliya,Cum Rain (14d),0 days,0.06412634379548629,0.10366780637341837
+Dambulla-Wholesale,Nuwara Eliya,Cum Rain (14d),7 days,0.14284885414997558,0.1581497760283454
+Dambulla-Wholesale,Nuwara Eliya,Cum Rain (14d),14 days,0.2455518383405907,0.18817365696382884
+Dambulla-Wholesale,Nuwara Eliya,Cum Rain (30d),0 days,0.18150824866127907,0.1694979917920946
+Dambulla-Wholesale,Nuwara Eliya,Cum Rain (30d),7 days,0.2751401179039666,0.23074360032879299
+Dambulla-Wholesale,Nuwara Eliya,Cum Rain (30d),14 days,0.3463442626300537,0.28184252004821014
+Dambulla-Wholesale,Badulla,Daily Rainfall,0 days,0.03871324019611377,0.09575974738927323
+Dambulla-Wholesale,Badulla,Daily Temperature,0 days,-0.10259048142854006,-0.14899625517419277
+Dambulla-Wholesale,Badulla,Daily Rainfall,1 days,0.06263316271138612,0.10564415502409569
+Dambulla-Wholesale,Badulla,Daily Temperature,1 days,-0.10717502490390024,-0.15050137915559836
+Dambulla-Wholesale,Badulla,Daily Rainfall,3 days,0.08166459982746428,0.13594961413104098
+Dambulla-Wholesale,Badulla,Daily Temperature,3 days,-0.11906714341331628,-0.1539154859021359
+Dambulla-Wholesale,Badulla,Daily Rainfall,7 days,0.07217152738847434,0.14950581867404122
+Dambulla-Wholesale,Badulla,Daily Temperature,7 days,-0.11566432831906,-0.13520784747681044
+Dambulla-Wholesale,Badulla,Daily Rainfall,14 days,0.15268174540180876,0.17796728399557357
+Dambulla-Wholesale,Badulla,Daily Temperature,14 days,-0.112519122004957,-0.10839905916011745
+Dambulla-Wholesale,Badulla,Daily Rainfall,21 days,0.13767048751014696,0.15862872475962128
+Dambulla-Wholesale,Badulla,Daily Temperature,21 days,-0.11745618220306663,-0.09201008483657154
+Dambulla-Wholesale,Badulla,Daily Rainfall,30 days,0.15059861992613224,0.196445881801964
+Dambulla-Wholesale,Badulla,Daily Temperature,30 days,-0.09881377014752835,-0.06876487980279532
+Dambulla-Wholesale,Badulla,Cum Rain (7d),0 days,0.08475496525462729,0.1544014606751227
+Dambulla-Wholesale,Badulla,Cum Rain (7d),7 days,0.10958396790174661,0.20381982243542673
+Dambulla-Wholesale,Badulla,Cum Rain (7d),14 days,0.20176033728180592,0.22736011916835686
+Dambulla-Wholesale,Badulla,Cum Rain (14d),0 days,0.10329004904937249,0.1863725721180717
+Dambulla-Wholesale,Badulla,Cum Rain (14d),7 days,0.16543095481269982,0.23599499263610652
+Dambulla-Wholesale,Badulla,Cum Rain (14d),14 days,0.24088094632826845,0.2487010081073275
+Dambulla-Wholesale,Badulla,Cum Rain (30d),0 days,0.19628392270933598,0.23739540407851076
+Dambulla-Wholesale,Badulla,Cum Rain (30d),7 days,0.26448987069731905,0.27775426980167844
+Dambulla-Wholesale,Badulla,Cum Rain (30d),14 days,0.3265008812468708,0.30574549374559734
+Dambulla-Wholesale,Anuradhapura,Daily Rainfall,0 days,0.022030030392660715,0.061972346582998016
+Dambulla-Wholesale,Anuradhapura,Daily Temperature,0 days,-0.14412907802687902,-0.2072725797254227
+Dambulla-Wholesale,Anuradhapura,Daily Rainfall,1 days,0.046375983220298796,0.07807945714445595
+Dambulla-Wholesale,Anuradhapura,Daily Temperature,1 days,-0.15259450254542986,-0.2121626466620854
+Dambulla-Wholesale,Anuradhapura,Daily Rainfall,3 days,0.06410657341089757,0.12025325084199644
+Dambulla-Wholesale,Anuradhapura,Daily Temperature,3 days,-0.16891105989023658,-0.220992945596354
+Dambulla-Wholesale,Anuradhapura,Daily Rainfall,7 days,0.06231977620648387,0.1417859856387256
+Dambulla-Wholesale,Anuradhapura,Daily Temperature,7 days,-0.16026644903762924,-0.21266313645622212
+Dambulla-Wholesale,Anuradhapura,Daily Rainfall,14 days,0.16046780798548685,0.21053358252340063
+Dambulla-Wholesale,Anuradhapura,Daily Temperature,14 days,-0.1637127818407239,-0.18954947287029586
+Dambulla-Wholesale,Anuradhapura,Daily Rainfall,21 days,0.16701982015113698,0.22905043772025968
+Dambulla-Wholesale,Anuradhapura,Daily Temperature,21 days,-0.1570700702185394,-0.16289068929963643
+Dambulla-Wholesale,Anuradhapura,Daily Rainfall,30 days,0.1780668413402838,0.2950603031061709
+Dambulla-Wholesale,Anuradhapura,Daily Temperature,30 days,-0.09618707600388464,-0.10284570877101111
+Dambulla-Wholesale,Anuradhapura,Cum Rain (7d),0 days,0.07717332816222133,0.11159983241643191
+Dambulla-Wholesale,Anuradhapura,Cum Rain (7d),7 days,0.12302574141972533,0.20131298263619304
+Dambulla-Wholesale,Anuradhapura,Cum Rain (7d),14 days,0.262954049133642,0.27806282115540687
+Dambulla-Wholesale,Anuradhapura,Cum Rain (14d),0 days,0.10010077277501869,0.15842905268537433
+Dambulla-Wholesale,Anuradhapura,Cum Rain (14d),7 days,0.2028460676328045,0.2607785750165631
+Dambulla-Wholesale,Anuradhapura,Cum Rain (14d),14 days,0.313074540977548,0.31982770850210046
+Dambulla-Wholesale,Anuradhapura,Cum Rain (30d),0 days,0.23305397415232434,0.2639523636136565
+Dambulla-Wholesale,Anuradhapura,Cum Rain (30d),7 days,0.33788459015461036,0.3565929708855426
+Dambulla-Wholesale,Anuradhapura,Cum Rain (30d),14 days,0.41925542347682515,0.44033024991087255
+Dambulla-Wholesale,Dambulla,Daily Rainfall,0 days,0.026077394679573113,0.045403343407323576
+Dambulla-Wholesale,Dambulla,Daily Temperature,0 days,-0.15000689618771593,-0.20935907250344912
+Dambulla-Wholesale,Dambulla,Daily Rainfall,1 days,0.047859438797582844,0.06352304087692813
+Dambulla-Wholesale,Dambulla,Daily Temperature,1 days,-0.1572880743377106,-0.2122262267570874
+Dambulla-Wholesale,Dambulla,Daily Rainfall,3 days,0.07366311174423179,0.10447442024033486
+Dambulla-Wholesale,Dambulla,Daily Temperature,3 days,-0.17377563475071597,-0.22078454416040633
+Dambulla-Wholesale,Dambulla,Daily Rainfall,7 days,0.0613933850049533,0.12207885733407849
+Dambulla-Wholesale,Dambulla,Daily Temperature,7 days,-0.1531549776024074,-0.20379154943395178
+Dambulla-Wholesale,Dambulla,Daily Rainfall,14 days,0.1530917571370283,0.17211473005157157
+Dambulla-Wholesale,Dambulla,Daily Temperature,14 days,-0.13732325614035068,-0.15843452852428463
+Dambulla-Wholesale,Dambulla,Daily Rainfall,21 days,0.1596885841919426,0.17904448633724487
+Dambulla-Wholesale,Dambulla,Daily Temperature,21 days,-0.12134936926962199,-0.1258542484984624
+Dambulla-Wholesale,Dambulla,Daily Rainfall,30 days,0.17893654403223075,0.2399859070110883
+Dambulla-Wholesale,Dambulla,Daily Temperature,30 days,-0.052204001863756545,-0.06226585139752947
+Dambulla-Wholesale,Dambulla,Cum Rain (7d),0 days,0.07773129776952466,0.10977922100907322
+Dambulla-Wholesale,Dambulla,Cum Rain (7d),7 days,0.1080205137723457,0.19123140388833942
+Dambulla-Wholesale,Dambulla,Cum Rain (7d),14 days,0.23486477041952128,0.24349982267006873
+Dambulla-Wholesale,Dambulla,Cum Rain (14d),0 days,0.09923894622125462,0.15812889757384993
+Dambulla-Wholesale,Dambulla,Cum Rain (14d),7 days,0.18139071327097014,0.24588689168021782
+Dambulla-Wholesale,Dambulla,Cum Rain (14d),14 days,0.2866867341768109,0.29054893650019364
+Dambulla-Wholesale,Dambulla,Cum Rain (30d),0 days,0.2170056987896721,0.25492863168302604
+Dambulla-Wholesale,Dambulla,Cum Rain (30d),7 days,0.31245691589173213,0.3378329954544225
+Dambulla-Wholesale,Dambulla,Cum Rain (30d),14 days,0.3939126784905482,0.4057961007002902
+Pettah-Retail,Nuwara Eliya,Daily Rainfall,0 days,0.02194786559982559,0.04308134831751968
+Pettah-Retail,Nuwara Eliya,Daily Temperature,0 days,-0.12156318032387586,-0.18929712130153037
+Pettah-Retail,Nuwara Eliya,Daily Rainfall,1 days,0.03702023304511286,0.052444564581204764
+Pettah-Retail,Nuwara Eliya,Daily Temperature,1 days,-0.11964653886734591,-0.18751330063743718
+Pettah-Retail,Nuwara Eliya,Daily Rainfall,3 days,0.07025199765925846,0.07941355281841618
+Pettah-Retail,Nuwara Eliya,Daily Temperature,3 days,-0.10919307270630765,-0.17762232677631282
+Pettah-Retail,Nuwara Eliya,Daily Rainfall,7 days,0.07313689662147964,0.11701887598227387
+Pettah-Retail,Nuwara Eliya,Daily Temperature,7 days,-0.09869253902471653,-0.16220824626452127
+Pettah-Retail,Nuwara Eliya,Daily Rainfall,14 days,0.12394359190969863,0.14856759600783634
+Pettah-Retail,Nuwara Eliya,Daily Temperature,14 days,-0.0542256758219476,-0.10691079221335671
+Pettah-Retail,Nuwara Eliya,Daily Rainfall,21 days,0.15893584429026716,0.1482390932123167
+Pettah-Retail,Nuwara Eliya,Daily Temperature,21 days,-0.0395490119326917,-0.08225887058305593
+Pettah-Retail,Nuwara Eliya,Daily Rainfall,30 days,0.16054563865500654,0.1961721982439745
+Pettah-Retail,Nuwara Eliya,Daily Temperature,30 days,0.010291188353394539,-0.04106360876959225
+Pettah-Retail,Nuwara Eliya,Cum Rain (7d),0 days,0.044942401490450125,0.10346581232085564
+Pettah-Retail,Nuwara Eliya,Cum Rain (7d),7 days,0.10601962980140067,0.17839484324889313
+Pettah-Retail,Nuwara Eliya,Cum Rain (7d),14 days,0.18891082388380892,0.20379843916236653
+Pettah-Retail,Nuwara Eliya,Cum Rain (14d),0 days,0.0700209324746408,0.14393580429141345
+Pettah-Retail,Nuwara Eliya,Cum Rain (14d),7 days,0.15281053421413784,0.20065167544774012
+Pettah-Retail,Nuwara Eliya,Cum Rain (14d),14 days,0.24755609855173896,0.2355213620500022
+Pettah-Retail,Nuwara Eliya,Cum Rain (30d),0 days,0.18510996688607298,0.2061484396699952
+Pettah-Retail,Nuwara Eliya,Cum Rain (30d),7 days,0.2843573264128429,0.2713951243120361
+Pettah-Retail,Nuwara Eliya,Cum Rain (30d),14 days,0.3511531843658555,0.32904557335523343
+Pettah-Retail,Badulla,Daily Rainfall,0 days,0.02969040437309414,0.10727535277593739
+Pettah-Retail,Badulla,Daily Temperature,0 days,-0.11392911299934211,-0.17991071346121476
+Pettah-Retail,Badulla,Daily Rainfall,1 days,0.046679547335115534,0.11722106353614457
+Pettah-Retail,Badulla,Daily Temperature,1 days,-0.12008100575193316,-0.18339859474746606
+Pettah-Retail,Badulla,Daily Rainfall,3 days,0.07262460359997118,0.13243130080222715
+Pettah-Retail,Badulla,Daily Temperature,3 days,-0.13170239289247795,-0.1881255096107686
+Pettah-Retail,Badulla,Daily Rainfall,7 days,0.080543615499494,0.15827973788453967
+Pettah-Retail,Badulla,Daily Temperature,7 days,-0.13796766377908112,-0.18305877734699344
+Pettah-Retail,Badulla,Daily Rainfall,14 days,0.14251946515426991,0.1916267432600308
+Pettah-Retail,Badulla,Daily Temperature,14 days,-0.13609182980867313,-0.15873381347209287
+Pettah-Retail,Badulla,Daily Rainfall,21 days,0.14882279106526317,0.17423086117991757
+Pettah-Retail,Badulla,Daily Temperature,21 days,-0.14383654067546886,-0.14720123629380436
+Pettah-Retail,Badulla,Daily Rainfall,30 days,0.14991874308207384,0.20366161075909806
+Pettah-Retail,Badulla,Daily Temperature,30 days,-0.13143171117274569,-0.12546737032479902
+Pettah-Retail,Badulla,Cum Rain (7d),0 days,0.07505278085038583,0.1610335240290823
+Pettah-Retail,Badulla,Cum Rain (7d),7 days,0.13435329520175077,0.22214418006215442
+Pettah-Retail,Badulla,Cum Rain (7d),14 days,0.20353101507809296,0.24674418526491249
+Pettah-Retail,Badulla,Cum Rain (14d),0 days,0.10674320698249824,0.2053409096145644
+Pettah-Retail,Badulla,Cum Rain (14d),7 days,0.17860640227397728,0.2560782714958717
+Pettah-Retail,Badulla,Cum Rain (14d),14 days,0.24366520921123172,0.2705167827071646
+Pettah-Retail,Badulla,Cum Rain (30d),0 days,0.20312992457099993,0.2611079731932999
+Pettah-Retail,Badulla,Cum Rain (30d),7 days,0.2741714151360153,0.30021180866316377
+Pettah-Retail,Badulla,Cum Rain (30d),14 days,0.325843829334813,0.32836485204164584
+Pettah-Retail,Anuradhapura,Daily Rainfall,0 days,0.014221829754459566,0.046238049898793786
+Pettah-Retail,Anuradhapura,Daily Temperature,0 days,-0.12521135954660628,-0.18911741004556795
+Pettah-Retail,Anuradhapura,Daily Rainfall,1 days,0.026865169426783863,0.05665793973498599
+Pettah-Retail,Anuradhapura,Daily Temperature,1 days,-0.13507558049717303,-0.19586162096763401
+Pettah-Retail,Anuradhapura,Daily Rainfall,3 days,0.053775132831734726,0.0927285641556966
+Pettah-Retail,Anuradhapura,Daily Temperature,3 days,-0.15449838500067326,-0.20911855746216618
+Pettah-Retail,Anuradhapura,Daily Rainfall,7 days,0.07047998239636323,0.12706307707094552
+Pettah-Retail,Anuradhapura,Daily Temperature,7 days,-0.1640563756979521,-0.21971082557242674
+Pettah-Retail,Anuradhapura,Daily Rainfall,14 days,0.1449960968550898,0.18579490874097043
+Pettah-Retail,Anuradhapura,Daily Temperature,14 days,-0.16603172540985833,-0.20445164638594218
+Pettah-Retail,Anuradhapura,Daily Rainfall,21 days,0.16775321364680887,0.20161017494165315
+Pettah-Retail,Anuradhapura,Daily Temperature,21 days,-0.16661537517246275,-0.1872781247668214
+Pettah-Retail,Anuradhapura,Daily Rainfall,30 days,0.17251665966352595,0.25342937596221204
+Pettah-Retail,Anuradhapura,Daily Temperature,30 days,-0.11997005127527781,-0.1447775402552158
+Pettah-Retail,Anuradhapura,Cum Rain (7d),0 days,0.05618170026214819,0.09890873003829002
+Pettah-Retail,Anuradhapura,Cum Rain (7d),7 days,0.13019997565853475,0.18348234705645186
+Pettah-Retail,Anuradhapura,Cum Rain (7d),14 days,0.25615331053627394,0.2631482398658169
+Pettah-Retail,Anuradhapura,Cum Rain (14d),0 days,0.09216831733205741,0.15775269797312189
+Pettah-Retail,Anuradhapura,Cum Rain (14d),7 days,0.19609941616431575,0.24535505163628238
+Pettah-Retail,Anuradhapura,Cum Rain (14d),14 days,0.3085256545042298,0.3091034985222624
+Pettah-Retail,Anuradhapura,Cum Rain (30d),0 days,0.22091654400070995,0.25501229716828644
+Pettah-Retail,Anuradhapura,Cum Rain (30d),7 days,0.3286881615977336,0.337356610395063
+Pettah-Retail,Anuradhapura,Cum Rain (30d),14 days,0.4046514126630731,0.40757307763612627
+Pettah-Retail,Dambulla,Daily Rainfall,0 days,0.019319968886170283,0.04855694926685591
+Pettah-Retail,Dambulla,Daily Temperature,0 days,-0.13220257875939923,-0.19377485206872175
+Pettah-Retail,Dambulla,Daily Rainfall,1 days,0.03198305593875641,0.05898413131366966
+Pettah-Retail,Dambulla,Daily Temperature,1 days,-0.14124073407995483,-0.19869497590222407
+Pettah-Retail,Dambulla,Daily Rainfall,3 days,0.06360580622459251,0.09250170782857636
+Pettah-Retail,Dambulla,Daily Temperature,3 days,-0.1593145002027614,-0.20992231022585991
+Pettah-Retail,Dambulla,Daily Rainfall,7 days,0.07058917117520322,0.12852021625189727
+Pettah-Retail,Dambulla,Daily Temperature,7 days,-0.1598111666360806,-0.21414150603926624
+Pettah-Retail,Dambulla,Daily Rainfall,14 days,0.13956965361538948,0.1712967678078606
+Pettah-Retail,Dambulla,Daily Temperature,14 days,-0.145134552420157,-0.18603399244561752
+Pettah-Retail,Dambulla,Daily Rainfall,21 days,0.16355668633704018,0.17838715202237143
+Pettah-Retail,Dambulla,Daily Temperature,21 days,-0.1363482836196841,-0.16140891082041453
+Pettah-Retail,Dambulla,Daily Rainfall,30 days,0.173841005905485,0.22736299300586155
+Pettah-Retail,Dambulla,Daily Temperature,30 days,-0.08328362252789887,-0.11990994073205992
+Pettah-Retail,Dambulla,Cum Rain (7d),0 days,0.062039346303399794,0.11351008982158677
+Pettah-Retail,Dambulla,Cum Rain (7d),7 days,0.12532868798917207,0.1950078485339299
+Pettah-Retail,Dambulla,Cum Rain (7d),14 days,0.23244856980715606,0.2520873355356854
+Pettah-Retail,Dambulla,Cum Rain (14d),0 days,0.09664631421075627,0.1721405159227329
+Pettah-Retail,Dambulla,Cum Rain (14d),7 days,0.18715559822767863,0.2521303970451867
+Pettah-Retail,Dambulla,Cum Rain (14d),14 days,0.2853576953039972,0.29921595975603776
+Pettah-Retail,Dambulla,Cum Rain (30d),0 days,0.21374116544604144,0.27063915751102374
+Pettah-Retail,Dambulla,Cum Rain (30d),7 days,0.3114755355650946,0.3454259327331962
+Pettah-Retail,Dambulla,Cum Rain (30d),14 days,0.38450221472641294,0.4016568559566546
+Pettah-Wholesale,Nuwara Eliya,Daily Rainfall,0 days,0.013899429862691636,0.02155889841973275
+Pettah-Wholesale,Nuwara Eliya,Daily Temperature,0 days,-0.1100995127453898,-0.18502454706125565
+Pettah-Wholesale,Nuwara Eliya,Daily Rainfall,1 days,0.02987163640321108,0.03036293869886472
+Pettah-Wholesale,Nuwara Eliya,Daily Temperature,1 days,-0.10818189165523077,-0.18348471286112833
+Pettah-Wholesale,Nuwara Eliya,Daily Rainfall,3 days,0.06342526889097773,0.06118910630472642
+Pettah-Wholesale,Nuwara Eliya,Daily Temperature,3 days,-0.09755849245418831,-0.1725843134241928
+Pettah-Wholesale,Nuwara Eliya,Daily Rainfall,7 days,0.06332220048968638,0.09193925309883419
+Pettah-Wholesale,Nuwara Eliya,Daily Temperature,7 days,-0.087111583721525,-0.15385927996787152
+Pettah-Wholesale,Nuwara Eliya,Daily Rainfall,14 days,0.1173295763752001,0.12357675150249126
+Pettah-Wholesale,Nuwara Eliya,Daily Temperature,14 days,-0.0427476379393423,-0.09416818752255561
+Pettah-Wholesale,Nuwara Eliya,Daily Rainfall,21 days,0.15038370855765462,0.12429763132481308
+Pettah-Wholesale,Nuwara Eliya,Daily Temperature,21 days,-0.02785398735699273,-0.0638185886700009
+Pettah-Wholesale,Nuwara Eliya,Daily Rainfall,30 days,0.14956129037012217,0.173547287537706
+Pettah-Wholesale,Nuwara Eliya,Daily Temperature,30 days,0.02456632280434819,-0.016071641531481273
+Pettah-Wholesale,Nuwara Eliya,Cum Rain (7d),0 days,0.03380337120717348,0.07532706123804316
+Pettah-Wholesale,Nuwara Eliya,Cum Rain (7d),7 days,0.09146777697285578,0.1511666264025376
+Pettah-Wholesale,Nuwara Eliya,Cum Rain (7d),14 days,0.1818054763983903,0.17941942316089754
+Pettah-Wholesale,Nuwara Eliya,Cum Rain (14d),0 days,0.05619394081325791,0.11268174937238752
+Pettah-Wholesale,Nuwara Eliya,Cum Rain (14d),7 days,0.13869891949548818,0.17012338601758967
+Pettah-Wholesale,Nuwara Eliya,Cum Rain (14d),14 days,0.2379511176843471,0.20627294349322758
+Pettah-Wholesale,Nuwara Eliya,Cum Rain (30d),0 days,0.1700568328117,0.17566858636949925
+Pettah-Wholesale,Nuwara Eliya,Cum Rain (30d),7 days,0.26820078169468436,0.23878725255012556
+Pettah-Wholesale,Nuwara Eliya,Cum Rain (30d),14 days,0.33413678899326865,0.2969848219191657
+Pettah-Wholesale,Badulla,Daily Rainfall,0 days,0.018201508559200347,0.09689280395626164
+Pettah-Wholesale,Badulla,Daily Temperature,0 days,-0.09455179697920699,-0.15603640271951924
+Pettah-Wholesale,Badulla,Daily Rainfall,1 days,0.0368427215797011,0.10693230973008279
+Pettah-Wholesale,Badulla,Daily Temperature,1 days,-0.10090785399950064,-0.15932878014548416
+Pettah-Wholesale,Badulla,Daily Rainfall,3 days,0.06289876900169696,0.12465619174584545
+Pettah-Wholesale,Badulla,Daily Temperature,3 days,-0.11283128176234347,-0.16360687497303697
+Pettah-Wholesale,Badulla,Daily Rainfall,7 days,0.06655878087869374,0.1470035252063256
+Pettah-Wholesale,Badulla,Daily Temperature,7 days,-0.11967887676240223,-0.15728074328628858
+Pettah-Wholesale,Badulla,Daily Rainfall,14 days,0.13160128058071469,0.17874330621563458
+Pettah-Wholesale,Badulla,Daily Temperature,14 days,-0.121085426192899,-0.13377728744928943
+Pettah-Wholesale,Badulla,Daily Rainfall,21 days,0.13888638640351286,0.16322171592848284
+Pettah-Wholesale,Badulla,Daily Temperature,21 days,-0.13010045059829803,-0.12127000827851614
+Pettah-Wholesale,Badulla,Daily Rainfall,30 days,0.1379748555391845,0.19439950071776194
+Pettah-Wholesale,Badulla,Daily Temperature,30 days,-0.121132100413114,-0.10337538801166289
+Pettah-Wholesale,Badulla,Cum Rain (7d),0 days,0.05829139090396367,0.14845632415461524
+Pettah-Wholesale,Badulla,Cum Rain (7d),7 days,0.11272626773818652,0.2063276403025711
+Pettah-Wholesale,Badulla,Cum Rain (7d),14 days,0.1888366001014845,0.2333520220229183
+Pettah-Wholesale,Badulla,Cum Rain (14d),0 days,0.08480146174955289,0.1885245898205267
+Pettah-Wholesale,Badulla,Cum Rain (14d),7 days,0.15386147781155923,0.2344451695526451
+Pettah-Wholesale,Badulla,Cum Rain (14d),14 days,0.2263639194677822,0.25438201905515223
+Pettah-Wholesale,Badulla,Cum Rain (30d),0 days,0.17641354488708488,0.23672396950617924
+Pettah-Wholesale,Badulla,Cum Rain (30d),7 days,0.24786124847674154,0.2761971071974094
+Pettah-Wholesale,Badulla,Cum Rain (30d),14 days,0.3039228808246456,0.3051266093383775
+Pettah-Wholesale,Anuradhapura,Daily Rainfall,0 days,0.0043595260729056475,0.04629791342978599
+Pettah-Wholesale,Anuradhapura,Daily Temperature,0 days,-0.11087719528985192,-0.17992744980236322
+Pettah-Wholesale,Anuradhapura,Daily Rainfall,1 days,0.017523061964864417,0.055742520031241076
+Pettah-Wholesale,Anuradhapura,Daily Temperature,1 days,-0.12076019343086233,-0.1858691275733345
+Pettah-Wholesale,Anuradhapura,Daily Rainfall,3 days,0.04550698446239167,0.0938855443225432
+Pettah-Wholesale,Anuradhapura,Daily Temperature,3 days,-0.13983002411707235,-0.19772312257424357
+Pettah-Wholesale,Anuradhapura,Daily Rainfall,7 days,0.06029814799717346,0.12681544002779147
+Pettah-Wholesale,Anuradhapura,Daily Temperature,7 days,-0.148520342509098,-0.205390770196607
+Pettah-Wholesale,Anuradhapura,Daily Rainfall,14 days,0.13702322627861838,0.18682319619374996
+Pettah-Wholesale,Anuradhapura,Daily Temperature,14 days,-0.15172182486848185,-0.1892259017137717
+Pettah-Wholesale,Anuradhapura,Daily Rainfall,21 days,0.15588479047221138,0.20421039064071608
+Pettah-Wholesale,Anuradhapura,Daily Temperature,21 days,-0.15306919806399166,-0.16970990112121487
+Pettah-Wholesale,Anuradhapura,Daily Rainfall,30 days,0.1610982663384433,0.2570592205243538
+Pettah-Wholesale,Anuradhapura,Daily Temperature,30 days,-0.10734348971198228,-0.12714378788346598
+Pettah-Wholesale,Anuradhapura,Cum Rain (7d),0 days,0.04538930286435777,0.09552979997570232
+Pettah-Wholesale,Anuradhapura,Cum Rain (7d),7 days,0.11617454591144272,0.1804917464048066
+Pettah-Wholesale,Anuradhapura,Cum Rain (7d),14 days,0.24858785678602524,0.26140239281061506
+Pettah-Wholesale,Anuradhapura,Cum Rain (14d),0 days,0.0779968216491281,0.14988334741729917
+Pettah-Wholesale,Anuradhapura,Cum Rain (14d),7 days,0.18108323933713694,0.23513045660078927
+Pettah-Wholesale,Anuradhapura,Cum Rain (14d),14 days,0.29427285658175806,0.3014983647841567
+Pettah-Wholesale,Anuradhapura,Cum Rain (30d),0 days,0.20502935744417333,0.24606088968196457
+Pettah-Wholesale,Anuradhapura,Cum Rain (30d),7 days,0.3100413397001427,0.3279995464582676
+Pettah-Wholesale,Anuradhapura,Cum Rain (30d),14 days,0.3864599786972028,0.4043356818960817
+Pettah-Wholesale,Dambulla,Daily Rainfall,0 days,0.0074467536506806755,0.035625090010562174
+Pettah-Wholesale,Dambulla,Daily Temperature,0 days,-0.11816843441358096,-0.18180624403119017
+Pettah-Wholesale,Dambulla,Daily Rainfall,1 days,0.02173209254582611,0.04792778518067603
+Pettah-Wholesale,Dambulla,Daily Temperature,1 days,-0.12700483365523071,-0.18599724030095088
+Pettah-Wholesale,Dambulla,Daily Rainfall,3 days,0.05564262691377361,0.0858256607781226
+Pettah-Wholesale,Dambulla,Daily Temperature,3 days,-0.14510799905755473,-0.19705652094486692
+Pettah-Wholesale,Dambulla,Daily Rainfall,7 days,0.05921633427664728,0.11768200219970294
+Pettah-Wholesale,Dambulla,Daily Temperature,7 days,-0.1442810565090185,-0.1978348792338301
+Pettah-Wholesale,Dambulla,Daily Rainfall,14 days,0.12951937842881603,0.16072553531501388
+Pettah-Wholesale,Dambulla,Daily Temperature,14 days,-0.13009534100063924,-0.16711917795742326
+Pettah-Wholesale,Dambulla,Daily Rainfall,21 days,0.15091455158923028,0.1685323078291753
+Pettah-Wholesale,Dambulla,Daily Temperature,21 days,-0.1221521989427389,-0.14001653536064984
+Pettah-Wholesale,Dambulla,Daily Rainfall,30 days,0.16516557625006198,0.2193937864556681
+Pettah-Wholesale,Dambulla,Daily Temperature,30 days,-0.06870805679278293,-0.09804591844290583
+Pettah-Wholesale,Dambulla,Cum Rain (7d),0 days,0.0492915460154386,0.09880356279943732
+Pettah-Wholesale,Dambulla,Cum Rain (7d),7 days,0.10968067921480025,0.18403174552709456
+Pettah-Wholesale,Dambulla,Cum Rain (7d),14 days,0.2217225171328482,0.24009929857518386
+Pettah-Wholesale,Dambulla,Cum Rain (14d),0 days,0.08089831890689582,0.15606257401916507
+Pettah-Wholesale,Dambulla,Cum Rain (14d),7 days,0.1695504339820453,0.2360144741113004
+Pettah-Wholesale,Dambulla,Cum Rain (14d),14 days,0.2702581674102324,0.2838539053761042
+Pettah-Wholesale,Dambulla,Cum Rain (30d),0 days,0.19465840761880485,0.2521698723190353
+Pettah-Wholesale,Dambulla,Cum Rain (30d),7 days,0.2906020897339426,0.32752626476922564
+Pettah-Wholesale,Dambulla,Cum Rain (30d),14 days,0.36535451341867897,0.385359228890401

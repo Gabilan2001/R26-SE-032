@@ -6,10 +6,13 @@ Pipeline (no retraining):
   2) Optional MobileNet gate as secondary check (existing weights, not retrained)
 
 IMAGE_GATE_MODE:
-  hybrid (default) — CV must pass; MobileNet confidence is advisory only
+  hybrid (default) — CV must pass; MobileNet confirms low-confidence CV passes
   strict           — CV must pass AND MobileNet must pass
   soft             — CV must still pass; MobileNet soft-accept disabled for CV
   off              — skip validation (decode-only); debug only
+
+GATE_CV_CONF_FLOOR (default 0.52):
+  In hybrid mode, CV passes below this floor require MobileNet confirmation.
 
 Rejected images never reach severity inference (enforced by observation_service).
 """
@@ -23,8 +26,8 @@ import io
 from typing import Optional
 
 from ml.predict.cv_pregate import (
-    REJECT_MESSAGE,
     REJECT_MESSAGE_FRUIT,
+    REJECT_MESSAGE_LEAF,
     is_valid_tomato_image,
 )
 
@@ -36,6 +39,8 @@ FRUIT_MODEL_PATH = os.path.join(BASE_DIR, "ml", "models", "gate_fruit.pth")
 
 LEAF_GATE_THRESHOLD = float(os.getenv("LEAF_GATE_THRESHOLD", "0.5"))
 FRUIT_GATE_THRESHOLD = float(os.getenv("FRUIT_GATE_THRESHOLD", "0.5"))
+# When CV passes with low confidence, require MobileNet confirmation (hybrid mode).
+GATE_CV_CONF_FLOOR = float(os.getenv("GATE_CV_CONF_FLOOR", "0.52"))
 # hybrid: CV hard-gate (fixes soft-accept of junk images)
 IMAGE_GATE_MODE = os.getenv("IMAGE_GATE_MODE", "hybrid").strip().lower()
 
@@ -151,27 +156,29 @@ def _combine_with_ml(
     """
     mode = _gate_mode()
     reject_default = (
-        REJECT_MESSAGE_FRUIT if crop_part == "FRUIT" else REJECT_MESSAGE
+        REJECT_MESSAGE_FRUIT if crop_part == "FRUIT" else REJECT_MESSAGE_LEAF
     )
 
     if mode == "off":
         try:
             Image.open(io.BytesIO(image_bytes)).convert("RGB")
             return True, 1.0, None
-        except Exception as e:
-            return False, 0.0, f"Error: {str(e)}"
+        except Exception:
+            return False, 0.0, reject_default
 
     if not cv_ok:
         return False, cv_conf, cv_reason or reject_default
 
-    # CV passed — optional MobileNet secondary
+    # CV passed — MobileNet secondary for low-confidence CV passes
     try:
         prob = ml_prob_fn(image_bytes)
-    except Exception as e:
-        return False, 0.0, f"Error: {str(e)}"
+    except Exception:
+        return False, 0.0, reject_default
 
     if prob is None:
-        return True, cv_conf, None
+        if cv_conf >= GATE_CV_CONF_FLOOR or mode in {"soft", "strict"}:
+            return True, cv_conf, None
+        return False, cv_conf, reject_default
 
     ml_pass = prob > threshold
     confidence = prob if ml_pass else (1.0 - prob)
@@ -179,7 +186,10 @@ def _combine_with_ml(
     if mode == "strict" and not ml_pass:
         return False, round(confidence, 4), reject_default
 
-    # hybrid / soft: CV already passed; accept and report best confidence
+    if mode == "hybrid" and cv_conf < GATE_CV_CONF_FLOOR and not ml_pass:
+        return False, round(confidence, 4), reject_default
+
+    # hybrid / soft: CV passed with sufficient confidence or ML confirmation
     return True, round(max(cv_conf, prob if ml_pass else cv_conf), 4), None
 
 
